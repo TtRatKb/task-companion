@@ -5,6 +5,7 @@ import type { AppData } from '../types';
 
 const META_KEY = 'task-companion:cloud-meta-v1';
 const BACKUP_PREFIX = 'task-companion:recovery:';
+const OPT_IN_KEY = 'task-companion:cloud-enabled-v1';
 const DOC_COLLECTION = 'taskCompanion';
 const DOC_ID = 'state';
 const repository = new LocalTaskRepository();
@@ -112,6 +113,11 @@ export class CloudController {
   }
 
   async start() {
+    // Do not even contact Firebase until cloud sync has been opted into.
+    if (!this.initPromise && localStorage.getItem(OPT_IN_KEY) !== '1') {
+      this.emit('signed-out');
+      return;
+    }
     if (this.initPromise) return this.initPromise;
     this.initPromise = (async () => {
       try {
@@ -144,6 +150,7 @@ export class CloudController {
   }
 
   async signIn() {
+    localStorage.setItem(OPT_IN_KEY, '1');
     await this.start();
     if (!this.services) return;
     try {
@@ -158,6 +165,7 @@ export class CloudController {
 
   async signOut() {
     try {
+      localStorage.removeItem(OPT_IN_KEY);
       if (this.services) await this.services.authSDK.signOut(this.services.auth);
     } catch (error) { this.failure(error); }
   }
