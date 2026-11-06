@@ -4,8 +4,8 @@ type Overrides={priority?:Priority;scheduledDate?:string|null;deadlineDate?:stri
 export function QuickCapture({projectId,onSave,onMore,onCancel}:{projectId:string|null;onSave:(draft:TaskDraft)=>void;onMore:(draft:TaskDraft)=>void;onCancel:()=>void}){
  const [input,setInput]=useState(''),[overrides,setOverrides]=useState<Overrides>({});const submitting=useRef(false);const parsed=useMemo(()=>parseQuickTask(input,todayLocal()),[input]);
  const draft:TaskDraft={title:parsed.title,description:'',projectId,priority:overrides.priority??parsed.priority,scheduledDate:overrides.scheduledDate!==undefined?overrides.scheduledDate:parsed.scheduledDate,deadlineDate:overrides.deadlineDate!==undefined?overrides.deadlineDate:parsed.deadlineDate,recurrence:overrides.recurrence!==undefined?overrides.recurrence:parsed.recurrence};
- const submit=(e?:FormEvent)=>{e?.preventDefault();if(!draft.title||submitting.current)return;submitting.current=true;onSave(draft)};
- return <form className="quick-capture" onSubmit={submit} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();onCancel()}else if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}}}>
+ const submit=(e?:FormEvent)=>{e?.preventDefault();if(!draft.title.trim()||submitting.current)return;submitting.current=true;try{onSave(draft)}catch{ /* Keep the input available if local saving fails. */ submitting.current=false;alert('Die Aufgabe konnte nicht gespeichert werden. Bitte versuche es erneut.')}};
+ return <form className="quick-capture" onSubmit={submit} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();onCancel()}else if(e.key==='Enter'&&!e.shiftKey&&e.target instanceof HTMLTextAreaElement){e.preventDefault();submit()}}}>
   <textarea autoFocus aria-label="Aufgabe schnell erfassen" rows={1} value={input} onChange={e=>setInput(e.target.value)} placeholder="z. B. WebUntis eintragen jeden Wochentag #P2"/>
   <div className="quick-preview" aria-live="polite">
    <label className="chip">Priorität <select aria-label="Erkannte Priorität" value={draft.priority} onChange={e=>setOverrides({...overrides,priority:Number(e.target.value) as Priority})}>{[1,2,3,4].map(p=><option key={p} value={p}>P{p}</option>)}</select></label>
@@ -13,6 +13,6 @@ export function QuickCapture({projectId,onSave,onMore,onCancel}:{projectId:strin
    {draft.deadlineDate&&<span className="chip deadline"><Flag/>Deadline: {formatDate(draft.deadlineDate)}<input aria-label="Erkannte Deadline" type="date" value={draft.deadlineDate} onChange={e=>setOverrides({...overrides,deadlineDate:e.target.value||null})}/><button type="button" aria-label="Deadline entfernen" onClick={()=>setOverrides({...overrides,deadlineDate:null})}><X/></button></span>}
    {draft.recurrence&&<span className="chip"><RotateCw/>{recurrenceLabel(draft.recurrence)}<button type="button" aria-label="Wiederholung entfernen" onClick={()=>setOverrides({...overrides,recurrence:null})}><X/></button></span>}
   </div>
-  <div className="quick-actions"><button type="button" className="ghost" onClick={()=>draft.title&&onMore(draft)}>Weitere Einstellungen</button><span/><button type="button" className="ghost" onClick={onCancel}>Abbrechen</button><button className="primary" disabled={!draft.title}>Hinzufügen</button></div>
+  <div className="quick-actions"><button type="button" className="ghost" onClick={()=>onMore(draft)}>Weitere Einstellungen</button><span/><button type="button" className="ghost" onClick={onCancel}>Abbrechen</button><button className="primary" disabled={!draft.title}>Hinzufügen</button></div>
  </form>
 }

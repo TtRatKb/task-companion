@@ -8,7 +8,8 @@ function parseDate(reference:string,value:string){if(value.toLowerCase()==='heut
 export function parseQuickTask(input:string,referenceDate:string):QuickTaskResult{
  let priority:Priority=4,scheduledDate:string|null=null,deadlineDate:string|null=null,rule:Recurrence|null=null;const spans:Array<[number,number]>=[];
  const take=(m:RegExpExecArray)=>spans.push([m.index,m.index+m[0].length]);
- const priorityRe=/(?:^|\s)#p([1-4])(?=\s|$)/ig;let match:RegExpExecArray|null;const priorities:RegExpExecArray[]=[];while((match=priorityRe.exec(input)))priorities.push(match);if(priorities.length&&new Set(priorities.map(m=>m[1])).size===1){priority=Number(priorities[0][1]) as Priority;priorities.forEach(take)}
+ // Priority shortcuts must also work before punctuation, not just before whitespace.
+ const priorityRe=/(?:^|[\s,;:([{])#p([1-4])(?=$|[\s.,;:!?)}\]])/gi;let match:RegExpExecArray|null;const priorities:RegExpExecArray[]=[];while((match=priorityRe.exec(input)))priorities.push(match);if(priorities.length&&new Set(priorities.map(m=>m[1])).size===1){priority=Number(priorities[0][1]) as Priority;priorities.forEach(take)}
  const presets=[{re:/\bjeden\s+Tag\b/i,days:DAILY},{re:/\bjeden\s+(?:Wochen|Schul)tag\b/i,days:WORKDAYS},{re:/\bjedes\s+Wochenende\b/i,days:WEEKEND}];
  for(const preset of presets){const m=preset.re.exec(input);if(m){rule=recurrence(preset.days);take(m);break}}
  if(!rule){const re=new RegExp(`\\bjeden\\s+(${DAY}(?:\\s*(?:,|und)\\s*${DAY})*)\\b`,'i');const m=re.exec(input);if(m){const found=m[1].match(new RegExp(DAY,'gi'))!.map(x=>dayMap[x.toLowerCase()]);rule=recurrence(found);take(m)}}

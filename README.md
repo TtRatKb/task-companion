@@ -24,7 +24,9 @@ Wichtig: Daten liegen nur im jeweiligen Browser. Es gibt noch keinen Geräte-Syn
 
 ### Schnellerfassung
 
-Mit Q oder „Aufgabe hinzufügen“ öffnet sich die Erfassung direkt in der Liste. Beispiele:
+Mit Q oder „Aufgabe hinzufügen“ öffnet sich die Erfassung direkt in der Liste. **Enter speichert die Aufgabe und öffnet sofort das nächste leere, fokussierte Eingabefeld** – so lassen sich beliebig viele Aufgaben ohne Maus hintereinander erfassen. **Escape schließt** die Erfassung. `#P1` bis `#P4` (auch klein geschrieben) steuern die Priorität; die erkannte Priorität ist sofort in der Vorschau zu sehen und wird gespeichert. „Weitere Einstellungen“ öffnet den vollständigen Editor, auch wenn noch kein Titel eingegeben wurde. Beim Abbrechen bleibt die bisherige Schnelleingabe erhalten.
+
+Beispiele:
 
 - WebUntis eintragen jeden Wochentag #P2
 - Elternbrief schreiben am Dienstag bis Donnerstag #P2
