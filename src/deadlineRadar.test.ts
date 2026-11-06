@@ -58,7 +58,7 @@ describe('Deadline-Radar', () => {
     ];
     const groups = todayRadarGroups(tasks, today);
     expect(groups[0].tasks.map(t => t.id)).toEqual(['critical-overdue', 'critical-today']);
-    expect(groups[1].tasks.map(t => t.id)).toEqual(['planned', 'planned-and-soon']);
+    expect(groups[1].tasks.map(t => t.id)).toEqual(['planned-and-soon', 'planned']);
     expect(groups[2].tasks.map(t => t.id)).toEqual(['soon']);
     expect(groups[3].tasks.map(t => t.id)).toEqual(['later-deadline', 'optional']);
     const displayed = groups.flatMap(group => group.tasks.map(t => t.id));
