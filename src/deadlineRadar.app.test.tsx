@@ -61,7 +61,7 @@ describe('Deadline-Radar in der Anwendung', () => {
 
     await userEvent.setup().click(screen.getByRole('button', { name: /Alle Deadlines/ }));
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Deadline-Radar' })).toBeInTheDocument());
-    expect(screen.getByText('Überfällig')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Überfällig/ })).toBeInTheDocument();
     expect(screen.getByText('Langfristig')).toBeInTheDocument();
     expect(screen.getByText('Alte Abgabe')).toBeInTheDocument();
     expect(screen.getByText('Spätere Abgabe')).toBeInTheDocument();
