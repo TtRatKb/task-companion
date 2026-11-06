@@ -123,3 +123,15 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Pro Aufgabe und lokalem Abschlusstag entsteht höchstens ein aktives Abschlussereignis. Undo ist nur für den neuesten passenden Abschluss zulässig.
 - Schema-v1-Daten und alte JSON-Sicherungen werden idempotent nach Schema v2 migriert. IDs, Termine, Projekte und Abschlussereignisse bleiben erhalten; Fehler überschreiben keine gespeicherten Daten.
 - Die Inline-Schnellerfassung erkennt deterministisch deutsche Planungs-, Deadline-, Prioritäts- und Wiederholungsangaben. Nur erfolgreich erkannte Abschnitte werden aus dem Titel entfernt und alle Ergebnisse bleiben vor dem Speichern sichtbar und änderbar.
+
+
+## 10. Ergänzung v0.3 — optionale Cloud-Synchronisation und Backups
+
+- Task Companion bleibt eine eigenständige App und speichert weiterhin sofort im lokalen Browser. **Google-Cloud-Sync ist opt-in**, kein Startzwang.
+- Reuse der öffentlichen Firebase-Web-Konfiguration von Life RPG (`life-rpg-3afb7`) – aber eigener Firestore-Pfad `users/{uid}/taskCompanion/state`, nicht in Life-RPG-Speicherdateien schreiben.
+- Firestore-Lese-/Schreibrechte ausschließlich für authentifizierte Eigentümer:innen der jeweiligen UID; notwendige Firebase-Console-Ergänzung steht in `docs/CLOUD_SETUP.md`. Bestehende Life-RPG-Regeln bleiben unangetastet.
+- Versioniertes Cloud-Dokument (Revision + AppData). Veränderungen werden durch Transaktionen mit Revisionsvergleich gegen gleichzeitige Bearbeitung geschützt. Lokale und Cloud-Daten werden niemals ungefragt aufeinander überschrieben.
+- Beim ersten Verbinden und bei Konflikten muss die Nutzerin ausdrücklich wählen, welche Version sie weiterführt. Vor Ersetzen wird die andere lokale oder Cloud-Version als zusätzliche Wiederherstellungskopie im Browser gespeichert. Download/Import per JSON bleiben separat verfügbar.
+- Aufträge/Änderungen, die offline entstehen, werden lokal gespeichert und bei verfügbarer Cloud wieder abgeglichen; kollidierende Änderungen werden **angezeigt statt automatisch verschmolzen**.
+- Dies ist keine produktive Cloud-Freigabe, solange autorisierte Domain, Google-Anmeldung, serverseitige Firestore-Rules und echte Zwei-Geräte-Tests nicht überprüft wurden. Cloud-Sync ist kein Ersatz für externe Backups oder Push-Erinnerungen.
+- Firestore-Dokumentgrenze von 1 MiB beachten; bei Wachstum künftig pro-Aufgabe-Dokumente mit kontrollierter Migration einführen.
