@@ -135,3 +135,14 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Aufträge/Änderungen, die offline entstehen, werden lokal gespeichert und bei verfügbarer Cloud wieder abgeglichen; kollidierende Änderungen werden **angezeigt statt automatisch verschmolzen**.
 - Dies ist keine produktive Cloud-Freigabe, solange autorisierte Domain, Google-Anmeldung, serverseitige Firestore-Rules und echte Zwei-Geräte-Tests nicht überprüft wurden. Cloud-Sync ist kein Ersatz für externe Backups oder Push-Erinnerungen.
 - Firestore-Dokumentgrenze von 1 MiB beachten; bei Wachstum künftig pro-Aufgabe-Dokumente mit kontrollierter Migration einführen.
+
+
+## 11. Ergänzung v0.4 — Deadline-Radar und fokussierte Heute-Ansicht
+
+- Das Dashboard **Heute** zeigt vier disjunkte, nach Dringlichkeit geordnete Kategorien: (1) heute/überfällig per Deadline, (2) heute oder früher bewusst geplante Aufgaben, (3) echte Deadlines innerhalb der folgenden sieben Kalendertage, (4) höchstens drei freiwillige Vorschläge unter ungeplanten und nicht kurzfristig fälligen Aufgaben. Dieselbe Aufgabe wird innerhalb der Ansicht nicht mehrfach dargestellt.
+- Eine separate Navigationsseite **Deadline-Radar** führt alle offenen Aufgaben mit Deadline aus sämtlichen Projekten auf: überfällig, heute, innerhalb von sieben Tagen und langfristig. Keine Aufgaben ohne Deadline auf dieser Seite.
+- Ein visuelles Radar zählt überfällige, heute fällige und bald fällige Aufgaben; es warnt zusätzlich, wenn eine Aufgabe erst **nach** ihrer Deadline zur Bearbeitung eingeplant ist.
+- Aufgabenzeilen erhalten einen lesbaren Deadline-Countdown, mit diskreter farblicher Betonung. Keine Änderung an geplanten Tagen, Deadlines, Prioritäten oder Cloud-Daten durch die Radar-Berechnung.
+- Kalenderarithmetik nutzt lokale `YYYY-MM-DD`-Kalendertage in Europe/Berlin und ist unabhängig von Sommer-/Winterzeit. Die Ansicht aktualisiert sich beim Fensterfokus und Tageswechsel.
+- **Bewusste Grenze:** Das Radar zeigt Hinweise *innerhalb* der Anwendung, **keine** Benachrichtigungen, wenn die PWA geschlossen ist. Serverseitige Push-Erinnerungen samt tatsächlichem Lieferstatus gehören in einen späteren, separat getesteten Schritt.
+- Die in v0.3 etablierte Cloud-Synchronisation und ihre Sicherungsstrategie dürfen von diesem Update nicht verändert oder zurückgesetzt werden; keine Datenmodellmigration erforderlich.

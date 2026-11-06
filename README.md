@@ -9,9 +9,11 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.3
+## Funktionen in v0.4
 
-- Eingang, Heute, Anstehend (7 Tage) und eigene Projekte
+- Eingang, Heute, Anstehend (7 Tage), **Deadline-Radar** und eigene Projekte
+- Neue Heute-Ansicht: **Unbedingt im Blick**, **Für heute geplant**, **Bald fällig** und **Wenn du noch Zeit hast** – ohne doppelte Aufgaben oder automatische Umplanung
+- Deadline-Radar mit überfälligen, heutigen, in den nächsten 7 Tagen und langfristigen Fristen, visuellen Countdown-Hinweisen und Warnung bei Planung nach Deadline
 - Aufgaben erstellen, bearbeiten, löschen, priorisieren, planen und mit unabhängiger Deadline versehen
 - Flexible Wiederholungen: täglich, Mo–Fr, Wochenende, einzelne oder frei kombinierte Wochentage
 - Abschlussverlauf mit Schutz vor Doppelabschluss und unmittelbarem Undo
@@ -39,6 +41,12 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 ### Datenmigration
 
 Beim Laden und Importieren werden v1-Daten mit einer alten wöchentlichen Regel automatisch und ohne Änderung von Aufgaben-, Projekt- oder Ereignis-IDs in das v2-Regelmodell überführt. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Deadline-Radar
+
+Die App unterscheidet ausdrücklich zwischen geplantem Tag und tatsächlich verpflichtender Deadline. Im Menü **Deadline-Radar** werden offene Aufgaben aus **allen Projekten** anhand ihrer Deadline gebündelt: überfällig, heute, nächste 7 Tage und später. Die Heute-Ansicht zeigt zunächst Dringendes, dann bereits für heute geplante Aufgaben, anschließend bevorstehende Deadlines und höchstens drei freiwillige Vorschläge aus ungeplanten Aufgaben. Eine Aufgabe erscheint innerhalb von Heute nur in einer Gruppe; kein Datum wird automatisch geändert. Tageswechsel werden beim Aktivieren der App und im Minutenrhythmus aktualisiert.
+
+Die Anzeige ist **keine Push-Erinnerung**. Du siehst sie, wenn du die App öffnest. Benachrichtigungen außerhalb der App sind für einen späteren Schritt vorgesehen.
 
 ## Cloud-Synchronisation
 
