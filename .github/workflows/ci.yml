@@ -14,6 +14,10 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     needs: verify
+    # Only one GitHub Pages deployment at a time.
+    concurrency:
+      group: pages-deployment
+      cancel-in-progress: false
     permissions: { contents: read, pages: write, id-token: write }
     environment: { name: github-pages, url: "${{ steps.deployment.outputs.page_url }}" }
     runs-on: ubuntu-latest
