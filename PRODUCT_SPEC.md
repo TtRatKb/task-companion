@@ -146,3 +146,13 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Kalenderarithmetik nutzt lokale `YYYY-MM-DD`-Kalendertage in Europe/Berlin und ist unabhängig von Sommer-/Winterzeit. Die Ansicht aktualisiert sich beim Fensterfokus und Tageswechsel.
 - **Bewusste Grenze:** Das Radar zeigt Hinweise *innerhalb* der Anwendung, **keine** Benachrichtigungen, wenn die PWA geschlossen ist. Serverseitige Push-Erinnerungen samt tatsächlichem Lieferstatus gehören in einen späteren, separat getesteten Schritt.
 - Die in v0.3 etablierte Cloud-Synchronisation und ihre Sicherungsstrategie dürfen von diesem Update nicht verändert oder zurückgesetzt werden; keine Datenmodellmigration erforderlich.
+
+
+## 12. Ergänzung v0.5 — sichtbarer Build und opt-in Browser-Erinnerungen
+
+- Die Sidebar zeigt unten links und die Einstellungen zeigen explizit die geladene App-Version. Die Build-Kennung wird bei GitHub Pages automatisch aus der tatsächlichen Commit-SHA injiziert. Eine neue Veröffentlichung lässt sich somit auch bei gleicher semantischer Versionsnummer unterscheiden.
+- Browser-Benachrichtigungen sind standardmäßig **deaktiviert**. Browserberechtigung wird nur nach einem ausdrücklichen Klick angefragt.
+- Erinnerungstage sind gerätespezifisch auswählbar: 7/3/1 Tage vor der Deadline und am Deadline-Tag; dazu eine früheste Uhrzeit in Europe/Berlin. Eine sichtbare Testbenachrichtigung ist möglich.
+- Ein Reminder wird je Task-ID, Deadline und Vorwarnstufe lokal höchstens einmal angezeigt. Mehr als drei zeitgleiche Erinnerungen werden gebündelt. Abgeschlossene Aufgaben erzeugen keine Meldung. Benachrichtigungen verändern weder geplante Daten noch Deadlines, Abschlussereignisse oder Cloud-Status.
+- **Einschränkung ausdrücklich anzeigen:** Diese Browser-Erinnerungen benötigen eine gerade geöffnete/ausgeführte App. Kein garantierter Background-Push bei vollständig geschlossener App. Serverseitiger Scheduler mit FCM/Web Push bleibt ein separates Vorhaben mit Einrichtungs- und möglicher Kostenfreigabe (siehe `docs/PUSH_NEXT_STEPS.md`).
+- Keine Migration des Aufgabendatenmodells. Browser-/Geräte-Einstellungen liegen getrennt im lokalen Speicher; Cloud-Synchronisierung und JSON-Backups der Aufgaben bleiben unverändert.

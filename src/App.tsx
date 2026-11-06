@@ -4,6 +4,7 @@ import {DataSettings} from './components/DataSettings';import {MenuButton,Sideba
 import {QuickCapture,type TaskDraft} from './components/QuickCapture';
 import {CloudController,type CloudStatus} from './cloud/CloudController';
 import {DeadlineRadarSummary} from './components/DeadlineRadarSummary';
+import {useDeadlineNotifications} from './useDeadlineNotifications';
 type TaskGroup={key:string;title:string|null;description?:string;tasks:Task[]};
 const repo=new LocalTaskRepository();const route=():View=>{const p=location.hash.slice(1).split('/');return p[0]==='today'?{kind:'today'}:p[0]==='upcoming'?{kind:'upcoming'}:p[0]==='deadlines'?{kind:'deadlines'}:p[0]==='project'?{kind:'project',id:p[1]}:{kind:'inbox'}};
 export default function App(){
@@ -12,6 +13,7 @@ export default function App(){
  const localDataRef=useRef<AppData>(emptyData());
  const [cloudStatus,setCloudStatus]=useState<CloudStatus>({phase:'checking'});
  const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null);
+ const {reminderSettings,updateReminderSettings}=useDeadlineNotifications(data.tasks);
  useEffect(()=>{
    let loaded:AppData;
    try {
@@ -78,7 +80,7 @@ export default function App(){
  </section>)}
  {quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>}</div></main>
  {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
- {settings&&<DataSettings data={data} cloudController={cloudRef.current} cloudStatus={cloudStatus} onClose={()=>setSettings(false)} onImport={async file=>{try{const next=repo.parseImport(await file.text());if(confirm('Die aktuellen lokalen Daten vollständig durch diese Sicherung ersetzen?'))commit(next)}catch(e){alert((e as Error).message)}}}/>}
+ {settings&&<DataSettings data={data} cloudController={cloudRef.current} cloudStatus={cloudStatus} reminderSettings={reminderSettings} onReminderChange={updateReminderSettings} onClose={()=>setSettings(false)} onImport={async file=>{try{const next=repo.parseImport(await file.text());if(confirm('Die aktuellen lokalen Daten vollständig durch diese Sicherung ersetzen?'))commit(next)}catch(e){alert((e as Error).message)}}}/>}
  {undo&&<div className="snackbar">Aufgabe abgeschlossen. <button onClick={()=>{commit(undoCompletion(data,undo));setUndo(null)}}>Rückgängig</button><button aria-label="Meldung schließen" onClick={()=>setUndo(null)}>×</button></div>}
  </div>
 }

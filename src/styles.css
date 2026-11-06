@@ -46,3 +46,24 @@
 .meta .planning-warning{color:#a04e2c;font-weight:600}
 .radar-all-clear{border-bottom:1px solid #eae6e1;margin-bottom:25px}
 @media(max-width:540px){.radar-stats{gap:6px}.radar-stat{padding:10px 8px}.radar-stat strong{font-size:20px}.radar-stat span{font-size:11px}.radar-summary{padding-bottom:19px}.radar-link{font-size:12px}}
+
+/* v0.5 — build identity and opt-in browser reminders */
+.sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:5px}
+.sidebar-footer .settings{margin-top:0}
+.app-version{font-size:11px;letter-spacing:.02em;color:#877f79;padding:0 10px 6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.settings-build-info{border-top:1px solid #e8e2dc;margin:20px 0 3px;padding-top:11px;font-size:11px;color:#79726c;font-variant-numeric:tabular-nums}
+.reminder-settings{border-top:1px solid #e7e3df;margin-top:21px;padding-top:18px;font-size:13px}
+.reminder-settings h3{display:flex;align-items:center;gap:8px;font-size:16px;margin:0 0 7px}
+.reminder-settings h3 svg{color:#ba433a}
+.reminder-status{display:flex;align-items:center;gap:8px;background:#f7f5f2;border-radius:8px;padding:9px 11px;margin:10px 0 14px;font-size:12px;color:#5f5953}
+.reminder-status svg{flex:none}
+.reminder-buttons{flex-wrap:wrap}
+.reminder-days{border:1px solid #e6dfd9;border-radius:9px;padding:11px 12px;margin:15px 0 12px;display:grid;grid-template-columns:1fr 1fr;gap:9px 11px}
+.reminder-days legend{font-weight:650;font-size:12px;padding:0 5px;color:#5b554f}
+.reminder-days label{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer}
+.reminder-days input{accent-color:#bc3d35}
+.reminder-time{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-weight:600;font-size:12px}
+.reminder-time input{padding:6px;border:1px solid #d8d3ce;border-radius:6px;background:#fff}
+.reminder-time small{color:#837b75;font-weight:400;font-size:11px}
+.reminder-limit,.reminder-help{font-size:12px;line-height:1.5;color:#736b64;margin:13px 0 0}
+@media(max-width:540px){.reminder-days{grid-template-columns:1fr}.sidebar-footer{padding-bottom:8px}}
