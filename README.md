@@ -9,18 +9,19 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.2
+## Funktionen in v0.3
 
 - Eingang, Heute, Anstehend (7 Tage) und eigene Projekte
 - Aufgaben erstellen, bearbeiten, löschen, priorisieren, planen und mit unabhängiger Deadline versehen
 - Flexible Wiederholungen: täglich, Mo–Fr, Wochenende, einzelne oder frei kombinierte Wochentage
 - Abschlussverlauf mit Schutz vor Doppelabschluss und unmittelbarem Undo
 - Inline-Schnellerfassung mit Live-Vorschau für Planung, Deadline, Priorität und Wiederholung
-- Versionierte Speicherung sowie validierter JSON-Export/-Import
+- Versionierte lokale Speicherung sowie validierter JSON-Export/-Import
+- Optionale Google-Anmeldung und Cloud-Synchronisation über Firebase (nach einmaliger Einrichtung der Firestore-Regeln); konservativer Revisionsabgleich mit Konfliktwarnung statt stiller Überschreibung
 - Schnellerfassung mit Q, Speichern mit Enter, Abbrechen mit Escape
 - Installierbare PWA und Offline-App-Shell
 
-Wichtig: Daten liegen nur im jeweiligen Browser. Es gibt noch keinen Geräte-Sync, keine Cloud-Sicherung und keine zuverlässigen Erinnerungen.
+**Wichtig:** Die App speichert weiterhin immer lokal. Eine optionale Cloud-Synchronisation ist nach einer einmaligen Firebase-Einrichtung verfügbar. Ohne diese Einrichtung findet noch **kein** Geräte-Sync statt. Es gibt weiterhin keine Push-Erinnerungen. Ein Cloud-Sync ersetzt keine unabhängig heruntergeladene JSON-Sicherung.
 
 ### Schnellerfassung
 
@@ -39,6 +40,12 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 
 Beim Laden und Importieren werden v1-Daten mit einer alten wöchentlichen Regel automatisch und ohne Änderung von Aufgaben-, Projekt- oder Ereignis-IDs in das v2-Regelmodell überführt. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
 
+## Cloud-Synchronisation
+
+Die technischen Voraussetzungen und die einmalige sichere Einrichtung stehen unter **[docs/CLOUD_SETUP.md](docs/CLOUD_SETUP.md)**. Die neue Cloud-Datei liegt im bereits vorhandenen Life-RPG-Firebase-Projekt, **aber in einem völlig getrennten Pfad**. Die Life-RPG-Spielstände werden nicht geändert. Beim ersten Verbinden wird nicht ungefragt eine lokale oder eine Cloud-Aufgabenliste überschrieben. Ein Konflikt bei zwei Geräten wird angezeigt und bleibt bis zu einer bewussten Entscheidung erhalten.
+
+**Vor echten Aufgaben auf zwei Geräten:** Login, Berechtigung, Cloud-Upload, zweite Anmeldung, Offline-Änderung und JSON-Backup praktisch prüfen.
+
 ## Qualität
 
     npm run typecheck
@@ -55,4 +62,4 @@ Wenn Pages für das Repository oder Konto nicht freigeschaltet ist, bleibt die l
 
 ## Grenzen
 
-Bewusst nicht enthalten sind Cloud-Sync, Push-Erinnerungen, Companion-/Life-RPG-Funktionen, KI, Kalender- oder Todoist-Import.
+Bewusst nicht enthalten sind Push-Erinnerungen, automatisches Mergen von gleichzeitig geänderten Cloud-Datensätzen, Companion-/Life-RPG-Belohnungsfunktionen, KI, Kalender- oder Todoist-Import. Die Cloud-Synchronisation ist optional und muss einmalig serverseitig eingerichtet werden.
