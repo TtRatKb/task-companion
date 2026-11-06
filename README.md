@@ -9,16 +9,33 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.1
+## Funktionen in v0.2
 
 - Eingang, Heute, Anstehend (7 Tage) und eigene Projekte
 - Aufgaben erstellen, bearbeiten, löschen, priorisieren, planen und mit unabhängiger Deadline versehen
-- Wöchentliche Wiederholung mit Abschlussverlauf und unmittelbarem Undo
+- Flexible Wiederholungen: täglich, Mo–Fr, Wochenende, einzelne oder frei kombinierte Wochentage
+- Abschlussverlauf mit Schutz vor Doppelabschluss und unmittelbarem Undo
+- Inline-Schnellerfassung mit Live-Vorschau für Planung, Deadline, Priorität und Wiederholung
 - Versionierte Speicherung sowie validierter JSON-Export/-Import
 - Schnellerfassung mit Q, Speichern mit Enter, Abbrechen mit Escape
 - Installierbare PWA und Offline-App-Shell
 
 Wichtig: Daten liegen nur im jeweiligen Browser. Es gibt noch keinen Geräte-Sync, keine Cloud-Sicherung und keine zuverlässigen Erinnerungen.
+
+### Schnellerfassung
+
+Mit Q oder „Aufgabe hinzufügen“ öffnet sich die Erfassung direkt in der Liste. Beispiele:
+
+- WebUntis eintragen jeden Wochentag #P2
+- Elternbrief schreiben am Dienstag bis Donnerstag #P2
+- Müll rausbringen jedes Wochenende
+- Korrektur jeden Dienstag und Freitag
+
+Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Schultag“ ist lediglich ein Alias für Montag bis Freitag; Ferien und Feiertage werden nicht automatisch berücksichtigt. Eine Deadline bleibt bei wiederkehrenden Aufgaben unverändert.
+
+### Datenmigration
+
+Beim Laden und Importieren werden v1-Daten mit einer alten wöchentlichen Regel automatisch und ohne Änderung von Aufgaben-, Projekt- oder Ereignis-IDs in das v2-Regelmodell überführt. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
 
 ## Qualität
 
