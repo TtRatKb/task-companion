@@ -1,33 +1,39 @@
-# Task Companion — Projektstart
+# Task Companion
 
-**Arbeitsname:** Task Companion  
-**Repository:** `TtRatKb/task-companion`  
-**Stand:** 06.11.2026  
-**Status:** Projektgrundlage auf `main`; Anwendung noch nicht implementiert
+Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, wöchentlichen Routinen, Undo und lokaler Speicherung.
 
-Task Companion ist eine eigenständige, deutschsprachige, mobile und desktopfähige Aufgaben-PWA. In der ersten Phase soll sie sich in Aussehen, Navigation und Bedienlogik eng an Todoist orientieren, ohne dessen geschützte Logos, Illustrationen, Produktnamen oder Code zu kopieren.
+## Direkt ausprobieren
 
-## Produktziel
+    npm install
+    npm run dev
 
-Ein verlässlicher Ort, an dem Verpflichtungen erfasst, bewusst geplant und rechtzeitig wiedergefunden werden. Die Nutzerin entscheidet selbst, wann sie Aufgaben erledigt. Die App unterscheidet strikt zwischen:
+Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-- **Geplant:** Wann die Aufgabe bearbeitet werden soll (`scheduledDate`).
-- **Deadline:** Bis wann sie spätestens erledigt sein muss (`deadlineDate`).
-- **Erinnerung:** Wann ein aktiver Benachrichtigungsversuch stattfinden soll (späterer Meilenstein).
+## Funktionen in v0.1
 
-Eine Deadline verschiebt niemals automatisch den geplanten Arbeitstag. Flexible Aufgaben ohne geplanten Tag bleiben sichtbar, ohne ungefragt in „Heute“ geschoben zu werden.
+- Eingang, Heute, Anstehend (7 Tage) und eigene Projekte
+- Aufgaben erstellen, bearbeiten, löschen, priorisieren, planen und mit unabhängiger Deadline versehen
+- Wöchentliche Wiederholung mit Abschlussverlauf und unmittelbarem Undo
+- Versionierte Speicherung sowie validierter JSON-Export/-Import
+- Schnellerfassung mit Q, Speichern mit Enter, Abbrechen mit Escape
+- Installierbare PWA und Offline-App-Shell
 
-## Projektdateien
+Wichtig: Daten liegen nur im jeweiligen Browser. Es gibt noch keinen Geräte-Sync, keine Cloud-Sicherung und keine zuverlässigen Erinnerungen.
 
-- `PRODUCT_SPEC.md` — Produktvision, Architektur, Bedienprinzipien, Datenmodell, Roadmap und Grenzen.
-- `AGENTS.md` — knappe, dauerhafte Regeln für Codex.
-- `CODEX_TASK_01.md` — vollständig formulierter erster Auftrag an Codex.
+## Qualität
 
-## Nächster Entwicklungsschritt
+    npm run typecheck
+    npm test
+    npm run build
 
-1. In Codex das Repository `TtRatKb/task-companion` und den Branch `main` auswählen.
-2. Codex beauftragen, `CODEX_TASK_01.md` unter Beachtung von `AGENTS.md` und `PRODUCT_SPEC.md` umzusetzen.
-3. Codex soll einen Feature-Branch erstellen, die erste funktionierende Anwendung entwickeln, Tests ausführen, einen Pull Request erstellen und bei erfolgreichen Checks nach Möglichkeit mergen.
-4. Erst nach funktionsfähiger, getesteter Version die Anwendung mit echten Aufgaben ausprobieren. **Version 0.1 hat nur lokale Speicherung und ist kein verlässlicher Ersatz für Todoist über mehrere Geräte hinweg.**
+## GitHub Pages
 
-Die Projektdokumente sind die verbindliche Grundlage. Spätere Änderungen sollen versioniert statt stillschweigend angepasst werden.
+Der Workflow in .github/workflows/ci.yml baut, testet und veröffentlicht main. Einmalig unter **Settings → Pages → Build and deployment → Source** „GitHub Actions“ wählen. Danach liegt die App unter:
+
+https://ttratkb.github.io/task-companion/
+
+Wenn Pages für das Repository oder Konto nicht freigeschaltet ist, bleibt die lokale Vorschau mit npm run dev ohne weitere Einrichtung nutzbar.
+
+## Grenzen
+
+Bewusst nicht enthalten sind Cloud-Sync, Push-Erinnerungen, Companion-/Life-RPG-Funktionen, KI, Kalender- oder Todoist-Import.
