@@ -18,7 +18,7 @@ Eigenständige deutschsprachige Todoist-inspirierte Aufgaben-PWA. Lies `PRODUCT_
 
 ## GitHub-Arbeitsweise
 1. Änderungsumfang begrenzen; vor Änderungen relevante Dateien und Tests prüfen.
-2. Auf Branch arbeiten, committen, pushen, PR gegen `main` erstellen.
-3. Build, Tests und verfügbare CI prüfen; Fehler beheben, nichts überspringen.
-4. Nach erfolgreichen Prüfungen selbstständig mergen, sofern das Repository es erlaubt. Andernfalls PR-Link und verbleibende manuellen Schritte nennen.
-5. Remote-`main` und ggf. tatsächliches Deployment getrennt verifizieren; keine ungeprüften Erfolgsmeldungen.
+2. Auf Feature-Branch arbeiten, committen, Tests/Build ausführen und den Branch nach GitHub pushen.
+3. Sofern GitHub-Authentifizierung funktioniert, PR gegen `main` öffnen, CI prüfen und nach erfolgreichen Prüfungen selbstständig mergen.
+4. **Bekanntes Codex-Umgebungsproblem:** `GH_TOKEN` ist bei Codex wiederholt ungültig (`GitHub GraphQL: Forbidden`), obwohl Git-Push klappt. Bei diesem Fehler **keine manuelle PR-Erstellung oder Merge-Aktion von der Nutzerin verlangen**. Nur den gepushten Branch samt Head-SHA, Testresultaten und Fehler kurz melden und für PR, Merge und Deployment an die separate GitHub-Verbindung des ChatGPT-Gesprächs übergeben. Keine geheimen Tokens ausgeben oder zur Umgehung abfragen. Nicht behaupten, ein PR oder Merge sei erfolgt, wenn nur ein Push möglich war.
+5. Remote-`main`, CI und tatsächliches GitHub-Pages-Deployment separat verifizieren; keine ungeprüften Erfolgsmeldungen. Keine erzwungenen Merges bei Fehlern oder Konflikten.
