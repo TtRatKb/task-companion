@@ -114,3 +114,12 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Export enthält vollständige Daten; Import validiert und ersetzt nur nach ausdrücklicher Bestätigung.
 - Tastatur- und Mobile-Bedienung funktionieren.
 - Build und automatisierte Tests sind erfolgreich; Grenzen und manuelle Deployment-Schritte sind dokumentiert.
+
+## 9. Ergänzung v0.2 — Wiederholungen und Schnellerfassung
+
+- Wiederholungen speichern eine normalisierte, sortierte Menge von Wochentagen. Unterstützt sind täglich, Montag bis Freitag, Wochenende, ein einzelner Tag und beliebige Kombinationen.
+- „Jeden Schultag“ bedeutet ausschließlich Montag bis Freitag. Es gibt keine Ferien- oder Feiertagslogik.
+- Das nächste Vorkommen liegt streng nach dem tatsächlichen lokalen Abschlusstag. Die Deadline wird nicht mitverschoben.
+- Pro Aufgabe und lokalem Abschlusstag entsteht höchstens ein aktives Abschlussereignis. Undo ist nur für den neuesten passenden Abschluss zulässig.
+- Schema-v1-Daten und alte JSON-Sicherungen werden idempotent nach Schema v2 migriert. IDs, Termine, Projekte und Abschlussereignisse bleiben erhalten; Fehler überschreiben keine gespeicherten Daten.
+- Die Inline-Schnellerfassung erkennt deterministisch deutsche Planungs-, Deadline-, Prioritäts- und Wiederholungsangaben. Nur erfolgreich erkannte Abschnitte werden aus dem Titel entfernt und alle Ergebnisse bleiben vor dem Speichern sichtbar und änderbar.
