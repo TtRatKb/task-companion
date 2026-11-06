@@ -9,7 +9,7 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.4
+## Funktionen in v0.5
 
 - Eingang, Heute, Anstehend (7 Tage), **Deadline-Radar** und eigene Projekte
 - Neue Heute-Ansicht: **Unbedingt im Blick**, **Für heute geplant**, **Bald fällig** und **Wenn du noch Zeit hast** – ohne doppelte Aufgaben oder automatische Umplanung
@@ -22,8 +22,10 @@ Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm 
 - Optionale Google-Anmeldung und Cloud-Synchronisation über Firebase (nach einmaliger Einrichtung der Firestore-Regeln); konservativer Revisionsabgleich mit Konfliktwarnung statt stiller Überschreibung
 - Schnellerfassung mit Q, Speichern mit Enter, Abbrechen mit Escape
 - Installierbare PWA und Offline-App-Shell
+- Sichtbare App-Version inklusive automatisch eingeblendeter GitHub-Build-Kennung
+- Optionale, gerätespezifische Deadline-Erinnerungen als Browser-Benachrichtigung (7/3/1 Tag vor Termin oder am Termin; Uhrzeit einstellbar), solange die App im Browser ausgeführt wird
 
-**Wichtig:** Die App speichert weiterhin immer lokal. Eine optionale Cloud-Synchronisation ist nach einer einmaligen Firebase-Einrichtung verfügbar. Ohne diese Einrichtung findet noch **kein** Geräte-Sync statt. Es gibt weiterhin keine Push-Erinnerungen. Ein Cloud-Sync ersetzt keine unabhängig heruntergeladene JSON-Sicherung.
+**Wichtig:** Die App speichert weiterhin immer lokal. Eine optionale Cloud-Synchronisation ist nach einer einmaligen Firebase-Einrichtung verfügbar. Ohne diese Einrichtung findet noch **kein** Geräte-Sync statt. Es gibt weiterhin **keine serverseitigen Push-Erinnerungen bei vollständig geschlossener App**. Ein Cloud-Sync ersetzt keine unabhängig heruntergeladene JSON-Sicherung.
 
 ### Schnellerfassung
 
@@ -41,6 +43,14 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 ### Datenmigration
 
 Beim Laden und Importieren werden v1-Daten mit einer alten wöchentlichen Regel automatisch und ohne Änderung von Aufgaben-, Projekt- oder Ereignis-IDs in das v2-Regelmodell überführt. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Versionsanzeige und Benachrichtigungen
+
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v0.5.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+
+In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
+
+**Grenze:** Die Benachrichtigungsprüfung läuft nur, solange die App im Browser ausgeführt wird (einschließlich des nächsten Aufrufes, soweit der betreffende Erinnerungs-Kalendertag noch aktuell ist). Bei vollständig geschlossener App gibt es keinen garantierten Push. Dafür ist ein Server mit Scheduler und Web-Push/FCM nötig; siehe **[docs/PUSH_NEXT_STEPS.md](docs/PUSH_NEXT_STEPS.md)**. Die Benachrichtigungserlaubnis und Erinnerungszeit sind lokale Einstellungen pro Browser, die Aufgaben selbst werden davon unabhängig synchronisiert.
 
 ## Deadline-Radar
 
@@ -70,4 +80,4 @@ Wenn Pages für das Repository oder Konto nicht freigeschaltet ist, bleibt die l
 
 ## Grenzen
 
-Bewusst nicht enthalten sind Push-Erinnerungen, automatisches Mergen von gleichzeitig geänderten Cloud-Datensätzen, Companion-/Life-RPG-Belohnungsfunktionen, KI, Kalender- oder Todoist-Import. Die Cloud-Synchronisation ist optional und muss einmalig serverseitig eingerichtet werden.
+Bewusst nicht enthalten sind **Hintergrund-Push bei vollständig geschlossener App**, automatisches Mergen von gleichzeitig geänderten Cloud-Datensätzen, Companion-/Life-RPG-Belohnungsfunktionen, KI, Kalender- oder Todoist-Import. Die Cloud-Synchronisation ist optional und muss einmalig serverseitig eingerichtet werden.
