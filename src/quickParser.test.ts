@@ -29,9 +29,43 @@ describe('deutsche Schnellerfassung', () => {
   });
 
   it('erkennt mehrere Wochentage', () => {
-    expect(parseQuickTask('Korrektur jeden Dienstag und Freitag', ref).recurrence?.weekdays).toEqual([2, 5]);
+    expect(parseQuickTask('Korrektur jeden Dienstag und Freitag', ref).recurrence).toEqual({kind:'weekdays',weekdays:[2,5]});
   });
 
+  it('erkennt Intervalle in Tagen, Wochen und Monaten auch mit Zahlwörtern',()=>{
+    expect(parseQuickTask('Kontrolle alle 3 Tage #P2',ref)).toMatchObject({
+      title:'Kontrolle',priority:2,scheduledDate:ref,
+      recurrence:{kind:'interval',every:3,unit:'days',anchorDate:ref}
+    });
+    expect(parseQuickTask('Klassenbuch alle zwei Wochen',ref)).toMatchObject({
+      title:'Klassenbuch',scheduledDate:ref,
+      recurrence:{kind:'interval',every:2,unit:'weeks',anchorDate:ref}
+    });
+    expect(parseQuickTask('Abrechnung alle 2 Monate',ref)).toMatchObject({
+      title:'Abrechnung',recurrence:{kind:'interval',every:2,unit:'months',anchorDate:ref}
+    });
+  });
+  it('verankert einen Wiederholungsabstand am ausdrücklich gewählten Startdatum',()=>{
+    expect(parseQuickTask('Teammeeting alle 2 Wochen am Dienstag',ref)).toMatchObject({
+      title:'Teammeeting',scheduledDate:'2026-11-10',
+      recurrence:{kind:'interval',every:2,unit:'weeks',anchorDate:'2026-11-10'}
+    });
+    expect(parseQuickTask('Kontrolle alle 4 Tage am 16.11.',ref)).toMatchObject({
+      title:'Kontrolle',scheduledDate:'2026-11-16',
+      recurrence:{kind:'interval',every:4,unit:'days',anchorDate:'2026-11-16'}
+    });
+  });
+  it('erkennt jeden Monat am 15. sowie Monatssprünge am 31.',()=>{
+    expect(parseQuickTask('Bericht jeden Monat am 15.',ref)).toMatchObject({
+      title:'Bericht',scheduledDate:'2026-11-15',
+      recurrence:{kind:'interval',every:1,unit:'months',anchorDate:'2026-11-15'}
+    });
+    expect(parseQuickTask('Bericht monatlich am 31.',ref)).toMatchObject({
+      title:'Bericht',scheduledDate:'2026-11-30',
+      recurrence:{kind:'interval',every:1,unit:'months',anchorDate:'2026-10-31'}
+    });
+    expect(parseQuickTask('Bericht monatlich am 15.','2026-11-20').scheduledDate).toBe('2026-12-15');
+  });
   it('bewahrt ungültige und unbekannte Angaben', () => {
     expect(parseQuickTask('Bericht am 31.02. bis irgendwann Projekt Pinguin', ref))
       .toMatchObject({ title: 'Bericht am 31.02. bis irgendwann Projekt Pinguin', scheduledDate: null, deadlineDate: null });

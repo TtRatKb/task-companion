@@ -55,7 +55,16 @@ describe('cloud conflict policy', () => {
 
   it('does not unnecessarily write equivalent snapshots', () => {
     expect(resolveInitial(uid, cloudData, cloud, null)).toBe('already-equal');
-    expect(sameData({ ...cloudData, schemaVersion: 5 }, cloudData)).toBe(true);
+    expect(sameData({ ...cloudData, schemaVersion: 6 }, cloudData)).toBe(true);
+  });
+
+  it('notices different interval settings as a real cloud change',()=>{
+    const first=data('Routine');
+    first.tasks[0].scheduledDate='2026-11-07';
+    first.tasks[0].recurrence={kind:'interval',every:2,unit:'weeks',anchorDate:'2026-11-07'};
+    const second={...first,tasks:first.tasks.map(t=>({...t,recurrence:{kind:'interval',every:3,unit:'weeks',anchorDate:'2026-11-07'} as const}))};
+    expect(sameData(first,second)).toBe(false);
+    expect(resolveInitial(uid,first,{revision:3,data:second},{uid,revision:2,lastSyncedData:first})).toBe('pull-cloud');
   });
 
   it('considers event history when checking for unsynced data', () => {

@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v1.4
+## Funktionen in v1.5
 
 - Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Deadline-Radar**, **globale Suche** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Flexible Wiederholungen (v1.5)**: alle N Tage, Wochen oder Monate, Kalenderstart und Vorschau auf nächste Termine, auch in der Schnellerfassung; feste Rhythmen trotz verspäteter Erledigung
 - **Suche & Schnellfilter (v1.4)**: Aufgaben, Notizen, Projekte, einzelne Unteraufgaben und Vorlagen durchsuchen; Status, Typ, Projekt und Priorität kombinieren; mit `/` oder `Strg/⌘ + K` öffnen
 - **Unteraufgaben organisieren (v1.3)**: Schritte in Aufgaben und Vorlagen ziehen oder mit Pfeilbuttons sortieren, Checklisten ein-/ausklappen, Schritte zwischen Hauptaufgaben verschieben (Terminschutz und Rückgängig)
 - **Heute-Fokus (v1.2)**: einzeln geplante Unteraufgaben werden direkt in Heute (einschließlich überfälliger Schritte) und Anstehend angezeigt und können separat abgehakt werden, mit Rückgängig und ohne doppelte Checkboxen
@@ -70,7 +71,24 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 
 ### Datenmigration
 
-Beim Laden und Importieren werden v1-, v2-, v3- und v4-Daten automatisch in das aktuelle **v5-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+Beim Laden und Importieren werden v1-, v2-, v3-, v4- und v5-Daten automatisch in das aktuelle **v6-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Flexible Wiederholungen (v1.5)
+
+Im vollständigen Aufgabeneditor findest du unter **Wiederholung** drei neue Optionen: **Alle N Tage**, **Alle N Wochen** und **Alle N Monate**. Gib den Abstand selbst ein (1–999), lege den **ersten Arbeitstag** unter „Geplant“ fest und kontrolliere die Vorschau der folgenden Termine. Die bisherigen Wiederholungen an frei kombinierten Wochentagen funktionieren unverändert.
+
+Du kannst die Wiederholung auch direkt in der **Schnellerfassung** angeben, beispielsweise:
+
+- `Klassenbuch kontrollieren alle zwei Wochen #P2`
+- `Materialbestand prüfen alle 3 Tage`
+- `Monatsbericht jeden Monat am 15.`
+- `Dienstbesprechung alle 2 Wochen am Dienstag`
+
+**Kalenderfeste Wiederholung:** Die neuen Intervalle richten sich am ursprünglich gewählten Startdatum aus, **nicht** am tatsächlichen Tag der Erledigung. Wenn eine zweiwöchentliche Aufgabe zu spät erledigt wird, springt sie zum nächsten passenden geplanten Datum, ohne verpasste Durchläufe aufzuhäufen. Ein Monatsrhythmus am 31. wird bei kürzeren Monaten auf den Monatsletzten gesetzt, kehrt aber später zum 31. zurück (31. Januar → 28./29. Februar → 31. März). Wird das Startdatum im Editor ausdrücklich geändert, beginnt der Rhythmus von diesem neuen Datum aus.
+
+**Wichtig:** Beim Abschließen einer wiederkehrenden Aufgabe werden die Häkchen ihrer Unteraufgaben wie bisher zurückgesetzt. Eine separat eingetragene **Deadline und individuelle Unteraufgabentermine werden nicht automatisch verschoben**; das wird im Editor zusätzlich angezeigt. Die Deadline bedeutet weiterhin, dass die Aufgabe am angegebenen Datum bereits fertig sein muss. So findet keine ungewollte Terminänderung statt.
+
+Das Speicherformat wird zu **Schema v6** erweitert. Vorhandene Aufgaben, Vorlagen, Checklisten, Wochentag-Regeln und Cloud-Inhalte aus Schema v1–v5 werden übernommen. Die Validierung verhindert, dass ältere App-Versionen diese neuen Wiederholungsangaben unbemerkt verwerfen. **Aktualisiere Task Companion deshalb auf allen Geräten**, bevor du dort weiterarbeitest. Es gibt keine neue Firebase-Konfiguration und keinen kostenpflichtigen Dienst.
 
 ## Globale Suche & Schnellfilter (v1.4)
 
@@ -184,7 +202,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.4.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.5.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 

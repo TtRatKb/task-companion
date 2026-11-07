@@ -7,7 +7,7 @@ import {freshSubtask} from '../checklists';
 import {deadlineWorkday,dateBeforeDeadline,offsetDescription,parseRelativeStep,resolveRelativeSubtasks} from '../relativePlanning';
 import {formatDate,todayLocal} from '../date';
 import {weekdayNames} from '../date';
-import {DAILY,WEEKEND,WORKDAYS,recurrence} from '../recurrence';
+import {DAILY,WEEKEND,WORKDAYS,recurrence,intervalRecurrence,nextOccurrence,recurrenceLabel} from '../recurrence';
 import type {Priority,Project,Task,Subtask,Weekday} from '../types';
 
 type Draft=Omit<Task,'id'|'createdAt'|'updatedAt'|'completedAt'>;
@@ -94,9 +94,24 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
  };
  const reviewOffsets=steps.filter(s=>s.offset && s.plannedDate!==null &&
   s.plannedDate!==(v.deadlineDate?dateBeforeDeadline(v.deadlineDate,s.offset):null));
- const days=v.recurrence?.weekdays??[];
- const preset=days.join()===DAILY.join()?'daily':days.join()===WORKDAYS.join()?'workdays':days.join()===WEEKEND.join()?'weekend':days.length===1?'weekly':'custom';
- const setPreset=(value:string)=>{if(value==='')setV({...v,recurrence:null});else if(value==='daily')setV({...v,recurrence:recurrence(DAILY)});else if(value==='workdays')setV({...v,recurrence:recurrence(WORKDAYS)});else if(value==='weekend')setV({...v,recurrence:recurrence(WEEKEND)});else if(value==='weekly')setV({...v,recurrence:recurrence([v.recurrence?.weekdays[0]??1])});else setV({...v,recurrence:recurrence(v.recurrence?.weekdays.length?v.recurrence.weekdays:[1,3,5])})};
+ const days=v.recurrence?.kind==='weekdays'?v.recurrence.weekdays:[];
+ const interval=v.recurrence?.kind==='interval'?v.recurrence:null;
+ const preset=interval?'interval-'+interval.unit:!v.recurrence?'':days.join()===DAILY.join()?'daily':days.join()===WORKDAYS.join()?'workdays':days.join()===WEEKEND.join()?'weekend':days.length===1?'weekly':'custom';
+ const setPreset=(value:string)=>{
+  if(value===''){setV({...v,recurrence:null});return;}
+  if(value.startsWith('interval-')){
+   const unit=value.slice('interval-'.length) as 'days'|'weeks'|'months';
+   const start=v.scheduledDate??todayLocal();
+   const every=interval?.unit===unit?interval.every:unit==='months'?1:2;
+   setV({...v,scheduledDate:start,recurrence:intervalRecurrence(every,unit,start)});
+   return;
+  }
+  if(value==='daily')setV({...v,recurrence:recurrence(DAILY)});
+  else if(value==='workdays')setV({...v,recurrence:recurrence(WORKDAYS)});
+  else if(value==='weekend')setV({...v,recurrence:recurrence(WEEKEND)});
+  else if(value==='weekly')setV({...v,recurrence:recurrence([days[0]??1])});
+  else setV({...v,recurrence:recurrence(days.length?days:[1,3,5])});
+ };
  return <div className="modal-backdrop" role="presentation" onMouseDown={e=>e.target===e.currentTarget&&onClose()}>
   <form className="modal task-editor-workspace" role="dialog" aria-modal="true" aria-labelledby="editor-title" onSubmit={submit}
   onKeyDown={e=>{
@@ -164,14 +179,55 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
       onChange={e=>setV({...v,estimatedMinutes:e.target.value===''?null:Math.max(0,Math.min(1440,Math.round(Number(e.target.value))))})}/>
      <small>Bei zeitlich geschätzten Unteraufgaben zählen deren Zeiten separat. Diese Dauer wird dann nicht zusätzlich gezählt.</small>
     </label>
-    <label>Geplant<input type="date" value={v.scheduledDate??''} onChange={e=>setV({...v,scheduledDate:e.target.value||null})}/></label>
+    <label>Geplant<input type="date" aria-label="Geplant" value={v.scheduledDate??''}
+      onChange={e=>{
+       const date=e.target.value||null;
+       if(interval&&!date)return;
+       setV({...v,scheduledDate:date,
+        recurrence:interval&&date?intervalRecurrence(interval.every,interval.unit,date):v.recurrence});
+      }}/>
+      {interval&&<small>Startdatum des Rhythmus: Wenn du es änderst, beginnt das Intervall ab diesem Tag neu.</small>}
+    </label>
     <label>Deadline · ab diesem Tag benötigt<input type="date" value={v.deadlineDate??''}
      aria-label="Deadline" onChange={e=>changeDeadline(e.target.value||null)}/>
      <small>{v.deadlineDate?`Spätestens am ${formatDate(deadlineWorkday(v.deadlineDate))} fertigstellen – am ${formatDate(v.deadlineDate)} muss alles bereit sein.`:'Am angegebenen Tag muss alles bereits fertig sein (spätestens am Vortag).'}</small>
      <small>Bei Wiederholungen bleibt die Deadline unverändert.</small>
     </label>
-    <label>Wiederholung<select value={v.recurrence?preset:''} onChange={e=>setPreset(e.target.value)}><option value="">Keine</option><option value="daily">Jeden Tag</option><option value="workdays">Jeden Wochentag (Mo–Fr)</option><option value="weekend">Jedes Wochenende</option><option value="weekly">Jede Woche an einem Tag</option><option value="custom">Benutzerdefinierte Tage</option></select></label>
+    <label>Wiederholung<select aria-label="Wiederholung" value={preset} onChange={e=>setPreset(e.target.value)}>
+     <option value="">Keine</option>
+     <option value="daily">Jeden Tag</option>
+     <option value="workdays">Jeden Wochentag (Mo–Fr)</option>
+     <option value="weekend">Jedes Wochenende</option>
+     <option value="weekly">Jede Woche an einem Tag</option>
+     <option value="custom">Benutzerdefinierte Tage</option>
+     <option value="interval-days">Alle N Tage</option>
+     <option value="interval-weeks">Alle N Wochen</option>
+     <option value="interval-months">Alle N Monate (auch monatlich)</option>
+    </select></label>
    </div>
+   {interval&&<div className="interval-recurrence">
+     <label>Abstand
+      <input type="number" min="1" max="999" step="1" aria-label="Wiederholungsabstand"
+       value={interval.every}
+       onChange={e=>{
+        const every=Math.max(1,Math.min(999,Math.trunc(Number(e.target.value)||1)));
+        setV({...v,recurrence:intervalRecurrence(every,interval.unit,interval.anchorDate)});
+       }}/>
+     </label>
+     <div className="interval-preview" role="status">
+      <strong>{recurrenceLabel(interval)}</strong>
+      <span>Aktuell geplant: {v.scheduledDate?formatDate(v.scheduledDate):formatDate(interval.anchorDate)}</span>
+      <span>Danach: {formatDate(nextOccurrence(v.scheduledDate??interval.anchorDate,interval))}
+       {' · '} {formatDate(nextOccurrence(nextOccurrence(v.scheduledDate??interval.anchorDate,interval),interval))}</span>
+      <small>Der Rhythmus bleibt am Startdatum ausgerichtet. Verpasste Termine werden übersprungen; bei Monatsenden wird der Tag passend angepasst.</small>
+     </div>
+    </div>}
+   {v.recurrence&&!interval&&<p className="recurrence-preview">Nächster Termin nach dieser Ausführung: {formatDate(nextOccurrence(v.scheduledDate??todayLocal(),v.recurrence))}</p>}
+   {v.recurrence&&(!!v.deadlineDate||steps.some(s=>!!s.plannedDate))&&
+    <p className="recurrence-static-note">
+     <strong>Achtung bei der Wiederholung:</strong> Die Hauptaufgabe erhält nach dem Abhaken einen neuen Arbeitstag und die Häkchen der Unteraufgaben werden zurückgesetzt. Eine einmal eingetragene Deadline und eigene Termine der Unteraufgaben bleiben aber unverändert – bitte bei Bedarf selbst neu planen.
+    </p>}
+
    {v.recurrence&&(preset==='weekly'||preset==='custom')&&<fieldset className="weekday-picker"><legend>{preset==='weekly'?'Wochentag':'Wochentage'}</legend>{weekdayNames.map((name,index)=><label key={name}><input type={preset==='weekly'?'radio':'checkbox'} name="weekday" checked={days.includes(index as Weekday)} onChange={()=>setV({...v,recurrence:recurrence(preset==='weekly'?[index]:days.includes(index as Weekday)?days.filter(d=>d!==index):[...days,index])})}/>{name.slice(0,2)}</label>)}</fieldset>}
    {deadlineChange==='pending'&&<div className="replan-review" role="status">
     <strong>Deadline geändert: Unteraufgaben neu planen?</strong>

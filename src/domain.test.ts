@@ -1,7 +1,7 @@
-import {describe,expect,it,vi} from 'vitest';import {completeTask,undoCompletion} from './domain';import {emptyData,type Recurrence,type Task} from './types';
+import {describe,expect,it,vi} from 'vitest';import {completeTask,undoCompletion} from './domain';import {emptyData,type Recurrence,type Task,type Weekday} from './types';
 vi.stubGlobal('crypto',{randomUUID:()=>String(Math.random())});
 const task=(rule:Recurrence,scheduledDate:string):Task=>({id:'t1',title:'Routine',description:'',projectId:null,priority:4,scheduledDate,deadlineDate:'2026-12-20',recurrence:rule,completedAt:null,createdAt:'x',updatedAt:'x'});
-const complete=(days:number[],scheduled:string,iso:string)=>completeTask({...emptyData(),tasks:[task({kind:'weekdays',weekdays:days as Recurrence['weekdays']},scheduled)]},'t1',new Date(iso));
+const complete=(days:number[],scheduled:string,iso:string)=>completeTask({...emptyData(),tasks:[task({kind:'weekdays',weekdays:days as Weekday[]},scheduled)]},'t1',new Date(iso));
 describe('flexible Wiederholung',()=>{
  it.each([[[1,2,3,4,5],'2026-11-09','2026-11-09T09:00:00+01:00','2026-11-10'],[[1,2,3,4,5],'2026-11-13','2026-11-13T09:00:00+01:00','2026-11-16'],[[0,6],'2026-11-07','2026-11-07T09:00:00+01:00','2026-11-08'],[[0,6],'2026-11-08','2026-11-08T09:00:00+01:00','2026-11-14'],[[1,3,5],'2026-11-11','2026-11-11T09:00:00+01:00','2026-11-13'],[[1,3,5],'2026-11-13','2026-11-13T09:00:00+01:00','2026-11-16']])('berechnet nächste erlaubte Tage', (days,scheduled,iso,expected)=>expect(complete(days as number[],scheduled as string,iso as string).tasks[0].scheduledDate).toBe(expected));
  it('setzt überfällige Routine nach tatsächlichem Abschluss fort',()=>expect(complete([1,2,3,4,5],'2026-11-02','2026-11-12T09:00:00+01:00').tasks[0].scheduledDate).toBe('2026-11-13'));
