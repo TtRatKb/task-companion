@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v1.3
+## Funktionen in v1.4
 
-- Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Deadline-Radar** und eigene Projekte
+- Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Deadline-Radar**, **globale Suche** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Suche & Schnellfilter (v1.4)**: Aufgaben, Notizen, Projekte, einzelne Unteraufgaben und Vorlagen durchsuchen; Status, Typ, Projekt und Priorität kombinieren; mit `/` oder `Strg/⌘ + K` öffnen
 - **Unteraufgaben organisieren (v1.3)**: Schritte in Aufgaben und Vorlagen ziehen oder mit Pfeilbuttons sortieren, Checklisten ein-/ausklappen, Schritte zwischen Hauptaufgaben verschieben (Terminschutz und Rückgängig)
 - **Heute-Fokus (v1.2)**: einzeln geplante Unteraufgaben werden direkt in Heute (einschließlich überfälliger Schritte) und Anstehend angezeigt und können separat abgehakt werden, mit Rückgängig und ohne doppelte Checkboxen
 - **Visueller Vorlageneditor (v1.1)**: Hauptaufgabe und einzelne Checklisten-Zeilen statt eines Zeilen-Textfelds, Enter für neue Unteraufgaben, per Klick einsetzbare Syntaxbeispiele und dauerhaft sichtbare Kurzreferenz in breiten Desktop-Ansichten
@@ -70,6 +71,18 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 ### Datenmigration
 
 Beim Laden und Importieren werden v1-, v2-, v3- und v4-Daten automatisch in das aktuelle **v5-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Globale Suche & Schnellfilter (v1.4)
+
+Über **Suche** in der Seitenleiste, den Suchbutton oben oder mit dem Tastenkürzel **`/` bzw. `Strg/⌘ + K`** erreichst du eine neue zentrale Suchansicht. Das Kürzel funktioniert, solange kein Bearbeitungsdialog geöffnet ist; das einzelne `/` wird in Textfeldern nicht abgefangen.
+
+Die Suche durchsucht **Aufgabentitel, Beschreibungen, Unteraufgabentexte, Projektbezeichnungen sowie Vorlagennamen und Vorlagenschritte**. Mehrere Wörter dürfen an verschiedenen Stellen derselben Aufgabe vorkommen, etwa `Mathe ClassTime`. Groß- und Kleinschreibung sowie Umlaute/Akzente werden bei der Suche weitgehend vereinheitlicht.
+
+Du kannst vier Filter kombinieren: **offen/erledigt/alle**, **Aufgaben/Vorlagen/beides**, **Projekt (einschließlich Eingang)** und **Priorität P1–P4**. Vorlagen besitzen selbst kein Projekt und keine Priorität; wenn entsprechende Filter aktiv sind, erscheinen deshalb ausschließlich passende Aufgaben. „Erledigt“ bezieht sich auf abgeschlossene einmalige Aufgaben, nicht auf die Historie einzelner Durchläufe wiederkehrender Aufgaben.
+
+Treffer zeigen den Kontext, zum Beispiel die passende Unteraufgabe, den Fortschritt, den Namen des Projekts oder eine Deadline. Ein Klick öffnet die **volle Aufgabenbearbeitung** oder **den bestehenden visuellen Vorlageneditor**. Ergebnisse lassen sich in Seiten von 30 Einträgen nachladen.
+
+**Sicherheitsprinzip:** Suchen und Filtern sind rein lesend. Es werden weder Aufgaben umgeplant noch erledigt, und Suchbegriffe/Filter werden nicht ungefragt in der Cloud gespeichert. Änderungen geschehen erst beim ausdrücklichen Bearbeiten und Speichern. Das bestehende **Datenschema v5** bleibt unverändert; keine Migration und kein neuer Cloud-Dienst.
 
 ## Unteraufgaben organisieren (v1.3)
 
@@ -171,7 +184,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.3.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.4.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
