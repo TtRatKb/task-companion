@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v1.0
+## Funktionen in v1.1
 
 - Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Deadline-Radar** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Visueller Vorlageneditor (v1.1)**: Hauptaufgabe und einzelne Checklisten-Zeilen statt eines Zeilen-Textfelds, Enter für neue Unteraufgaben, per Klick einsetzbare Syntaxbeispiele und dauerhaft sichtbare Kurzreferenz in breiten Desktop-Ansichten
 - **Inbox-Turbo (v1.0)**: Eingang in einem fokussierten Tastaturdurchlauf sortieren – Projekt, Priorität, Arbeitstag und Deadline, speichern & nächste, überspringen ohne Datenverlust
 - **Wochenplanung mit Zeitbudget**: geschätzte Minuten pro Aufgabe und Unteraufgabe, frei konfigurierbares Budget je Wochentag, Überlastungsanzeige und bequemes Verschieben per Datumsfeld
 - **Rückwärtsplanung ab der Deadline**: Unteraufgaben können natürliche Zeitabstände wie `2 Wochen vorher`, `14 Tage vorher`, `1 Monat vorher` und `{Deadline} - 3 Tage` enthalten; sie werden einzeln geplant, ohne gleichmäßige Verteilung
@@ -67,6 +68,22 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 ### Datenmigration
 
 Beim Laden und Importieren werden v1-, v2-, v3- und v4-Daten automatisch in das aktuelle **v5-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Intuitiver Vorlageneditor und Kurzanleitungen (v1.1)
+
+Vorlagen legst du jetzt **genauso wie echte Aufgaben** an: oben die Hauptaufgabe mit optionaler Beschreibung, darunter **einzelne Unteraufgaben in eigenen Zeilen**. `Enter` in einer Unteraufgaben-Zeile fügt die nächste Zeile darunter ein; `Backspace` auf einer leeren Zeile entfernt sie. `Strg/⌘ + Enter` speichert, `Esc` schließt (bei ungespeicherten Änderungen nach Rückfrage). Über das Plus kannst du auch mit der Maus weitere Unteraufgaben hinzufügen.
+
+Die runden Häkchen zeigen im Vorlageneditor beispielhaft den späteren Aufgabenstil. **Häkchen in einer Vorlage sind nur Vorschau und werden nicht gespeichert**: Jede neu erstellte Aufgabe startet vollständig unerledigt. Bereits gespeicherte Vorlagen samt Reihenfolge, Unteraufgaben und relativen Zeitabständen können weiterhin bearbeitet werden, ohne Datenmigration.
+
+Bei der Erstellung von Vorlagen und der Bearbeitung von Aufgaben erscheint auf breiten Bildschirmen rechts eine **dauerhaft sichtbare Kurzreferenz**. Sie erläutert:
+
+- Platzhalter wie `{Fach}`, `{Klasse}` und `{Thema}` – nur für Vorlagen; die Angaben werden beim Verwenden abgefragt.
+- Unteraufgaben-Termine wie `2 Wochen vorher`, `14 Tage vorher`, `1 Monat vorher`, `am Vortag` oder `{Deadline} - 3 Tage`.
+- Die wichtigsten Tastenkürzel zur Bearbeitung.
+
+**Besonders praktisch:** Die Beispiele in der Editor-Hilfe sind anklickbar. Setze den Cursor in ein passendes Feld und klicke auf den gewünschten Ausdruck; Task Companion fügt ihn dort ein. So musst du dir die Schreibweise nicht merken. Auf schmalen Geräten steht die Referenz unter dem Editor.
+
+Auch in den normalen Aufgabenlisten kann bei breiten Desktop-Fenstern rechts eine **kontextabhängige Kurzanleitung** eingeblendet werden. Auf Tablets oder Smartphones bleibt die Liste einspaltig.
 
 ## Unteraufgaben und Vorlagen
 
@@ -123,7 +140,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.0.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.1.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
