@@ -11,6 +11,7 @@ import {TemplateEditor} from './components/TemplateEditor';
 import {SearchView} from './components/SearchView';
 import {WeekPlanner} from './components/WeekPlanner';
 import {MonthCalendar} from './components/MonthCalendar';
+import {executeCalendarItem,undoCalendarExecution,type CalendarExecutionMode,type CalendarExecutionReceipt,type CalendarExecutionStatus} from './calendarExecution';
 import {scheduleCalendarWork,undoCalendarSchedule,type CalendarPlanReceipt,type CalendarPlanStatus} from './calendarPlanning';
 import {AppShortcutRail} from './components/AppShortcutRail';
 import {MoveSubtaskDialog} from './components/MoveSubtaskDialog';
@@ -33,7 +34,8 @@ export default function App(){
  const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null),[notice,setNotice]=useState(''),[inboxRun,setInboxRun]=useState<string[]|null>(null),[stepUndo,setStepUndo]=useState<{taskId:string;stepId:string;version:string;title:string}|null>(null),
  [moveRequest,setMoveRequest]=useState<{taskId:string;stepId:string}|null>(null),
  [moveUndo,setMoveUndo]=useState<{receipt:TransferReceipt;title:string}|null>(null),
- [calendarUndo,setCalendarUndo]=useState<CalendarPlanReceipt|null>(null);
+ [calendarUndo,setCalendarUndo]=useState<CalendarPlanReceipt|null>(null),
+ [executionUndo,setExecutionUndo]=useState<CalendarExecutionReceipt|null>(null);
  const {reminderSettings,updateReminderSettings}=useDeadlineNotifications(data.tasks);
  useEffect(()=>{
    let loaded:AppData;
@@ -143,6 +145,22 @@ export default function App(){
   }
   return result.status;
  };
+ const executeMonthWork=(taskId:string,stepId:string|undefined,expectedVersion:string,mode:CalendarExecutionMode):CalendarExecutionStatus=>{
+  const result=executeCalendarItem(localDataRef.current,taskId,stepId,expectedVersion,mode);
+  if(result.status==='changed'&&result.receipt){
+   commit(result.data);
+   setExecutionUndo(result.receipt);
+   setCalendarUndo(null);
+  }
+  return result.status;
+ };
+ const undoMonthExecution=()=>{
+  if(!executionUndo)return;
+  const result=undoCalendarExecution(localDataRef.current,executionUndo);
+  if(result.status==='changed')commit(result.data);
+  else setNotice('Die Aufgabe wurde inzwischen verändert. Rückgängig würde neuere Änderungen überschreiben.');
+  setExecutionUndo(null);
+ };
  const undoCalendarMove=()=>{
   if(!calendarUndo)return;
   const result=undoCalendarSchedule(localDataRef.current,calendarUndo);
@@ -237,7 +255,7 @@ export default function App(){
  {view.kind==='search'&&<SearchView data={data} inputRef={searchInputRef} onOpenTask={setEditor} onOpenTemplate={setSearchTemplate}/>}
  {view.kind==='calendar'&&<MonthCalendar tasks={data.tasks} projects={data.projects}
   budgets={data.weeklyBudgetMinutes} today={today} onEdit={setEditor}
-  onSchedule={scheduleMonthWork} onCreate={createForCalendarDay}
+  onSchedule={scheduleMonthWork} onExecute={executeMonthWork} onCreate={createForCalendarDay}
   onOpenWeek={()=>navigate({kind:'week'})}/>}
  {view.kind==='week'&&<WeekPlanner tasks={data.tasks} projects={data.projects}
   budgets={data.weeklyBudgetMinutes} today={today} onMove={movePlannedWork}
@@ -276,6 +294,11 @@ export default function App(){
    source={data.tasks.find(task=>task.id===moveRequest.taskId)!}
    stepId={moveRequest.stepId} tasks={data.tasks}
    onTransfer={confirmMove} onClose={()=>setMoveRequest(null)}/>}
+ {executionUndo&&<div className="snackbar calendar-execution-undo">
+  „{executionUndo.title}“ {executionUndo.kind==='task'?'abgeschlossen':executionUndo.expectedComplete?'erledigt':'wieder geöffnet'}.
+  <button type="button" onClick={undoMonthExecution}>Rückgängig</button>
+  <button type="button" aria-label="Kalenderabschlussmeldung schließen" onClick={()=>setExecutionUndo(null)}>×</button>
+ </div>}
  {calendarUndo&&<div className="snackbar calendar-undo">„{calendarUndo.title}“ neu eingeplant.
   <button type="button" onClick={undoCalendarMove}>Rückgängig</button>
   <button type="button" aria-label="Kalenderhinweis schließen" onClick={()=>setCalendarUndo(null)}>×</button>
