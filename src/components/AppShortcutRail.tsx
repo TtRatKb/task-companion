@@ -13,6 +13,7 @@ export function AppShortcutRail({view}:{view:View}){
    <h3><Lightbulb size={14} aria-hidden="true"/> Schnellstart</h3>
    <p><kbd>Q</kbd> Neue Aufgabe schnell erfassen – solange du kein Textfeld bearbeitest.</p>
    <p>Für zusätzliche Angaben nutze <b>Weitere Einstellungen</b> oder klicke auf eine bestehende Aufgabe.</p>
+   <p>Unteraufgaben kannst du über den kleinen Pfeil ein- und ausklappen. Mit <b>Verschieben</b> ordnest du einen Schritt einer anderen Hauptaufgabe zu.</p>
   </section>
   {inbox&&<section>
    <h3><Keyboard size={14} aria-hidden="true"/> Eingang aufräumen</h3>

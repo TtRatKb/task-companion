@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v1.2
+## Funktionen in v1.3
 
 - Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Deadline-Radar** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Unteraufgaben organisieren (v1.3)**: Schritte in Aufgaben und Vorlagen ziehen oder mit Pfeilbuttons sortieren, Checklisten ein-/ausklappen, Schritte zwischen Hauptaufgaben verschieben (Terminschutz und Rückgängig)
 - **Heute-Fokus (v1.2)**: einzeln geplante Unteraufgaben werden direkt in Heute (einschließlich überfälliger Schritte) und Anstehend angezeigt und können separat abgehakt werden, mit Rückgängig und ohne doppelte Checkboxen
 - **Visueller Vorlageneditor (v1.1)**: Hauptaufgabe und einzelne Checklisten-Zeilen statt eines Zeilen-Textfelds, Enter für neue Unteraufgaben, per Klick einsetzbare Syntaxbeispiele und dauerhaft sichtbare Kurzreferenz in breiten Desktop-Ansichten
 - **Inbox-Turbo (v1.0)**: Eingang in einem fokussierten Tastaturdurchlauf sortieren – Projekt, Priorität, Arbeitstag und Deadline, speichern & nächste, überspringen ohne Datenverlust
@@ -69,6 +70,23 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 ### Datenmigration
 
 Beim Laden und Importieren werden v1-, v2-, v3- und v4-Daten automatisch in das aktuelle **v5-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Unteraufgaben organisieren (v1.3)
+
+**Neue Reihenfolge in Aufgaben und Vorlagen:** Im Editor hat jede Unteraufgabe einen Griff zum Ziehen. Du kannst sie am Griff per Drag-and-drop umsortieren oder die kleinen **↑/↓-Pfeile** verwenden – praktisch am Tablet oder mit der Tastatur. Die Reihenfolge wird erst beim Speichern übernommen. Bereits eingestellte Termine, Häkchen, geschätzte Minuten und Unteraufgaben-IDs bleiben dabei erhalten. In Vorlagen wird nur die Reihenfolge der Schritte geändert; daraus entstandene Aufgaben werden nicht nachträglich verändert.
+
+**Checklisten ein-/ausklappen:** In normalen Aufgabenlisten gibt es bei Aufgaben mit Unteraufgaben einen kleinen Pfeil mit Fortschrittsanzeige, etwa `2/6`. So kannst du lange Checklisten ausblenden, ohne sie zu löschen oder abzuhaken. Innerhalb der laufenden App-Sitzung bleibt deine Auswahl beim Navigieren in derselben Ansicht erhalten; nach erneutem Laden starten die Listen wie bislang offen. Im Heute-Fokus und unter Anstehend bleiben fällige Teilaufgaben eigenständig sichtbar.
+
+**Schritte zwischen Aufgaben verschieben:** In der Aufgabenliste und im Heute-Fokus gibt es beim einzelnen Schritt **„Verschieben“**. Im bestehenden Aufgabeneditor gibt es ebenfalls einen Pfeil zum **Speichern und Verschieben** (deine bisherigen Änderungen an der Hauptaufgabe werden vorher bewusst gespeichert). Im geöffneten Dialog kannst du eine andere offene Hauptaufgabe als Ziel auswählen. Beim Verschieben bleibt **die ID, der Text, das Häkchen, die Zeitschätzung** sowie standardmäßig der eingetragene Arbeitstag erhalten.
+
+Wenn der Schritt mit `2 Wochen vorher` oder `{Deadline} - 3 Tage` geplant war, musst du bewusst zwischen zwei Optionen wählen:
+
+- **Arbeitstag beibehalten** (Standard): der konkrete Termin bleibt, die alte Verknüpfung zur Deadline der Ursprungsaufgabe wird entfernt.
+- **Abstand zur neuen Deadline übernehmen:** nur möglich, wenn die Zielaufgabe eine eigene Deadline hat; dann wird das neue Datum als Vorschau angezeigt und erst bei Bestätigung übernommen.
+
+Falls der beibehaltene Arbeitstag hinter dem letzten zulässigen Fertigstellungstag der Zielaufgabe liegt, gibt es eine weitere Warnung. Nach einer Verschiebung kannst du über **„Rückgängig“** den ursprünglichen Schritt einschließlich seiner Position und relativen Verknüpfung wiederherstellen – sofern nicht zwischenzeitlich einer der beiden Task-Datensätze geändert wurde. Die App schützt damit auch gegen versehentliches Überschreiben neuerer Cloud-Daten.
+
+Es bleibt bei **AppData-Schema v5**. JSON-Export, bestehende Vorlagen und die optionale Cloud-Synchronisation benötigen keine Migration.
 
 ## Heute-Fokus: Unteraufgaben wirklich erledigen (v1.2)
 
@@ -153,7 +171,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.2.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.3.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 

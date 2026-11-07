@@ -1,4 +1,4 @@
-import {CalendarDays,Clock3,Flag,Layers3} from 'lucide-react';
+import {CalendarDays,Clock3,Flag,Layers3,MoveRight} from 'lucide-react';
 import {formatDate} from '../date';
 import {formatDuration} from '../weeklyPlanner';
 import {deadlineWorkday} from '../relativePlanning';
@@ -6,11 +6,11 @@ import type {FocusedStep} from '../focusedSteps';
 import type {Project} from '../types';
 
 export function FocusedSteps({
- entries,title,description,projects,onComplete,onEdit,today
+ entries,title,description,projects,onComplete,onEdit,onMove,today
 }:{
  entries:FocusedStep[];title:string;description?:string;projects:Project[];
  onComplete:(taskId:string,stepId:string)=>void;
- onEdit:(taskId:string)=>void;today:string;
+ onEdit:(taskId:string)=>void;onMove?:(taskId:string,stepId:string)=>void;today:string;
 }){
  if(entries.length===0)return null;
  return <section className="focused-steps" aria-label={title}>
@@ -46,6 +46,10 @@ export function FocusedSteps({
        {project&&<span className="focused-step-project"><i style={{background:project.color}} aria-hidden="true"/>{project.name}</span>}
       </div>
      </div>
+     {onMove&&<button type="button" className="subtask-move-inline focus-move"
+      title="Unteraufgabe in eine andere Hauptaufgabe verschieben"
+      aria-label={`„${item.title}“ aus „${item.taskTitle}“ verschieben`}
+      onClick={()=>onMove(item.taskId,item.stepId)}><MoveRight size={15}/><span>Verschieben</span></button>}
     </article>;
    })}
   </div>

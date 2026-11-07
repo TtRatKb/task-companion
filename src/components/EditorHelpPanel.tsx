@@ -36,6 +36,12 @@ export function EditorHelpPanel({mode,onInsert}:{
    <p>Schreib relative Termine direkt hinter eine Unteraufgabe. Wenn du die Hauptdeadline festlegst, wird der passende Arbeitstag berechnet.</p>
   </section>}
   <section className="editor-help-section">
+   <h3><Keyboard size={15} aria-hidden="true"/> Schritte sortieren & verschieben</h3>
+   <p>Am geriffelten Griff ziehen oder die ↑↓-Buttons nutzen – auch ohne Maus.</p>
+   {mode==='task'&&<p>Der Pfeil nach rechts bei einem Schritt speichert deine Änderungen und öffnet die Auswahl der Zielaufgabe. Relativ geplante Termine werden nicht heimlich neu berechnet.</p>}
+   {mode==='template'&&<p>Das Umsortieren verändert nur die Reihenfolge der Vorlage; ihre Texte bleiben unverändert.</p>}
+  </section>
+  <section className="editor-help-section">
    <h3><MousePointerClick size={15} aria-hidden="true"/> Zum Einfügen anklicken</h3>
    <p className="editor-help-muted">Klicke zuerst in den Titel oder eine Unteraufgabe. Ein Tipp wird dort am Cursor eingefügt.</p>
    <div className="editor-snippets">

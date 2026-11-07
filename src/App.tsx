@@ -9,6 +9,8 @@ import {makeTemplate,taskFromTemplate,templateFromTask,toggleSubtask} from './ch
 import {TemplatesView} from './components/TemplatesView';
 import {WeekPlanner} from './components/WeekPlanner';
 import {AppShortcutRail} from './components/AppShortcutRail';
+import {MoveSubtaskDialog} from './components/MoveSubtaskDialog';
+import {transferSubtask,undoSubtaskTransfer,type TransferDateChoice,type TransferReceipt} from './subtaskOrganization';
 import {FocusedSteps} from './components/FocusedSteps';
 import {focusedSteps,stepsDueNow,parentGroupsWithoutStepOnlyDuplicates} from './focusedSteps';
 import {moveWorkItem} from './weeklyPlanner';
@@ -22,7 +24,9 @@ export default function App(){
  const [today,setToday]=useState(()=>todayLocal());
  const localDataRef=useRef<AppData>(emptyData());
  const [cloudStatus,setCloudStatus]=useState<CloudStatus>({phase:'checking'});
- const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null),[notice,setNotice]=useState(''),[inboxRun,setInboxRun]=useState<string[]|null>(null),[stepUndo,setStepUndo]=useState<{taskId:string;stepId:string;version:string;title:string}|null>(null);
+ const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null),[notice,setNotice]=useState(''),[inboxRun,setInboxRun]=useState<string[]|null>(null),[stepUndo,setStepUndo]=useState<{taskId:string;stepId:string;version:string;title:string}|null>(null),
+ [moveRequest,setMoveRequest]=useState<{taskId:string;stepId:string}|null>(null),
+ [moveUndo,setMoveUndo]=useState<{receipt:TransferReceipt;title:string}|null>(null);
  const {reminderSettings,updateReminderSettings}=useDeadlineNotifications(data.tasks);
  useEffect(()=>{
    let loaded:AppData;
@@ -133,6 +137,39 @@ export default function App(){
   setNotice('Vorlage gelöscht. Bestehende Aufgaben bleiben unverändert.');
  };
  const saveEditor=(draft:TaskDraft)=>{saveDraft(draft,editor);setEditor(undefined);setEditorDraft(undefined);if(editorDraft)setCaptureVersion(version=>version+1)};
+ const saveAndMoveStep=(draft:TaskDraft,stepId:string)=>{
+  if(!editor||!draft.subtasks?.some(step=>step.id===stepId))return;
+  const latest=localDataRef.current;
+  const source=latest.tasks.find(task=>task.id===editor.id);
+  if(!source||source.updatedAt!==editor.updatedAt){
+   alert('Diese Aufgabe wurde inzwischen verändert. Bitte Editor schließen und aktuelle Fassung erneut öffnen.');return;
+  }
+  const updatedAt=new Date().toISOString();
+  commit({...latest,tasks:latest.tasks.map(task=>task.id===source.id?{...task,...draft,updatedAt}:task)});
+  setEditor(undefined);setEditorDraft(undefined);
+  setMoveRequest({taskId:source.id,stepId});
+ };
+ const requestMove=(taskId:string,stepId:string)=>{setMoveRequest({taskId,stepId});setMoveUndo(null)};
+ const confirmMove=(targetId:string,choice:TransferDateChoice,sourceVersion:string,targetVersion:string)=>{
+  if(!moveRequest)return 'missing' as const;
+  const latest=localDataRef.current;
+  const source=latest.tasks.find(task=>task.id===moveRequest.taskId);
+  const step=source?.subtasks?.find(s=>s.id===moveRequest.stepId);
+  const result=transferSubtask(latest,moveRequest.taskId,moveRequest.stepId,targetId,choice,sourceVersion,targetVersion);
+  if(result.status==='moved'&&result.receipt){
+   commit(result.data);
+   setMoveUndo({receipt:result.receipt,title:step?.title??'Unteraufgabe'});
+   setStepUndo(null);
+  }
+  return result.status;
+ };
+ const undoMove=()=>{
+  if(!moveUndo)return;
+  const result=undoSubtaskTransfer(localDataRef.current,moveUndo.receipt);
+  if(result.status==='moved')commit(result.data);
+  else setNotice('Die Aufgaben haben sich seit der Verschiebung geändert. Rückgängig würde neuere Änderungen überschreiben.');
+  setMoveUndo(null);
+ };
  const createProject=()=>{const name=prompt('Name des neuen Projekts');if(!name?.trim())return;const p:Project={id:id(),name:name.trim(),color:['#5b8def','#8b6fc0','#3d9970','#d9853b'][data.projects.length%4],createdAt:new Date().toISOString()};commit({...data,projects:[...data.projects,p]});navigate({kind:'project',id:p.id})};
  const projectActions=()=>{if(view.kind!=='project')return;const project=data.projects.find(p=>p.id===view.id);if(!project)return;const name=prompt('Projekt umbenennen (leer lassen zum Löschen):',project.name);if(name===null)return;if(name.trim())commit({...data,projects:data.projects.map(p=>p.id===project.id?{...p,name:name.trim()}:p)});else if(confirm('Projekt löschen? Alle enthaltenen Aufgaben werden sicher in den Eingang verschoben.')){commit({...data,projects:data.projects.filter(p=>p.id!==project.id),tasks:data.tasks.map(t=>t.projectId===project.id?{...t,projectId:null,updatedAt:new Date().toISOString()}:t)});navigate({kind:'inbox'})}};
  return <div className="app"><Sidebar open={side} view={view} projects={data.projects} onView={navigate} onClose={()=>setSide(false)} onProject={createProject} onSettings={()=>setSettings(true)}/>
@@ -156,26 +193,35 @@ export default function App(){
   <div className="empty radar-all-clear"><div className="empty-check">✓</div><h2>Alles im Blick</h2><p>{view.kind==='today'?'Heute ist nichts dringend oder eingeplant.':'Aktuell sind keine offenen Aufgaben mit Deadline erfasst.'}</p></div>}
  {view.kind==='today'&&<div className="today-focus">
   <FocusedSteps title="Überfällige Arbeitsschritte" description="Diese Schritte waren bereits eingeplant und sind noch offen."
-   entries={focusedToday.overdue} projects={data.projects} onComplete={toggleChecklistStep}
+   entries={focusedToday.overdue} projects={data.projects} onComplete={toggleChecklistStep} onMove={requestMove}
    onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>
   <FocusedSteps title="Heute anstehende Unteraufgaben" description="Konkrete Schritte aus deinen größeren Aufgaben – direkt abhaken, ohne die Hauptaufgabe abzuschließen."
-   entries={focusedToday.today} projects={data.projects} onComplete={toggleChecklistStep}
+   entries={focusedToday.today} projects={data.projects} onComplete={toggleChecklistStep} onMove={requestMove}
    onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>
  </div>}
  {view.kind!=='templates'&&view.kind!=='week'&&visibleGroups.filter(group=>view.kind!=='upcoming'||group.tasks.length>0||focusedSteps(data.tasks,group.key).length>0).map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
   {group.title&&<h2>{group.title}<small>{group.tasks.length}</small></h2>}
   {group.description&&<p className="radar-group-description">{group.description}</p>}
   {group.tasks.length>0&&<TaskList tasks={group.tasks} today={today} projects={data.projects}
-   onComplete={finish} onEdit={setEditor} onToggleSubtask={toggleChecklistStep}
+   onComplete={finish} onEdit={setEditor} onToggleSubtask={toggleChecklistStep} onMoveSubtask={requestMove}
    showSubtasks={view.kind!=='today'&&view.kind!=='upcoming'} empty="Hier ist gerade nichts geplant."/>}
   {view.kind==='upcoming'&&<FocusedSteps
    title="Unteraufgaben für diesen Tag"
    entries={focusedSteps(data.tasks,group.key)}
    projects={data.projects} today={today} onComplete={toggleChecklistStep}
-   onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}}/>}
+   onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} onMove={requestMove}/> }
  </section>)}
  {view.kind!=='templates'&&(quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>)}</div><AppShortcutRail view={view}/></div></main>
- {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onSaveTemplate={saveTaskTemplate} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
+ {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onSaveAndMoveStep={editor?saveAndMoveStep:undefined} onSaveTemplate={saveTaskTemplate} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
+ {moveRequest&&data.tasks.some(task=>task.id===moveRequest.taskId)&&
+  <MoveSubtaskDialog key={moveRequest.taskId+':'+moveRequest.stepId}
+   source={data.tasks.find(task=>task.id===moveRequest.taskId)!}
+   stepId={moveRequest.stepId} tasks={data.tasks}
+   onTransfer={confirmMove} onClose={()=>setMoveRequest(null)}/>}
+ {moveUndo&&<div className="snackbar move-undo">„{moveUndo.title}“ verschoben.
+  <button type="button" onClick={undoMove}>Rückgängig</button>
+  <button type="button" aria-label="Verschiebungshinweis schließen" onClick={()=>setMoveUndo(null)}>×</button>
+ </div>}
  {settings&&<DataSettings data={data} cloudController={cloudRef.current} cloudStatus={cloudStatus} reminderSettings={reminderSettings} onReminderChange={updateReminderSettings} onClose={()=>setSettings(false)} onImport={async file=>{try{const next=repo.parseImport(await file.text());if(confirm('Die aktuellen lokalen Daten vollständig durch diese Sicherung ersetzen?'))commit(next)}catch(e){alert((e as Error).message)}}}/>}
  {notice&&<div className="app-notice" role="status">{notice}<button aria-label="Hinweis schließen" onClick={()=>setNotice('')}>×</button></div>}
  {inboxRun&&<InboxProcessor ids={inboxRun} tasks={data.tasks} projects={data.projects} today={today}

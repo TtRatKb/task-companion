@@ -1,4 +1,5 @@
-import { AlertTriangle, CalendarDays, Flag, RotateCw } from 'lucide-react';
+import { AlertTriangle, CalendarDays, ChevronDown, ChevronRight, Flag, MoveRight, RotateCw } from 'lucide-react';
+import {useState} from 'react';
 import { checklistProgress } from '../checklists';
 import { formatDate, todayLocal } from '../date';
 import { deadlineCountdown, deadlineState, planningAfterDeadline } from '../deadlineRadar';
@@ -6,17 +7,25 @@ import { recurrenceLabel } from '../recurrence';
 import type { Project, Task } from '../types';
 
 export function TaskList({
-  tasks, projects, onComplete, onEdit, onToggleSubtask, empty, showSubtasks = true, today = todayLocal()
+  tasks, projects, onComplete, onEdit, onToggleSubtask, onMoveSubtask, empty, showSubtasks = true, today = todayLocal()
 }: {
   tasks: Task[];
   projects: Project[];
   onComplete: (id: string) => void;
   onEdit: (task: Task) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
+  onMoveSubtask?: (taskId: string, subtaskId: string) => void;
   empty: string;
   showSubtasks?: boolean;
   today?: string;
 }) {
+  const [collapsedIds,setCollapsedIds]=useState<Set<string>>(()=>new Set());
+  const toggleCollapse=(taskId:string)=>setCollapsedIds(previous=>{
+   const next=new Set(previous);
+   if(next.has(taskId))next.delete(taskId);
+   else next.add(taskId);
+   return next;
+  });
   if (!tasks.length) return <div className="empty">
     <div className="empty-check">✓</div>
     <h2>Alles klar</h2>
@@ -56,18 +65,37 @@ export function TaskList({
           </span>}
         </span>
       </button>
-      {showSubtasks&&checklist.total>0&&<div className="subtask-inline" aria-label={`Unteraufgaben für ${task.title}`}>
-       <div className="subtask-meter" aria-hidden="true"><span style={{width:`${checklist.done/checklist.total*100}%`}}/></div>
-       {(task.subtasks??[]).map(step=><label key={step.id} className={step.completed?'subtask-line done':'subtask-line'}>
-        <input type="checkbox" checked={step.completed} disabled={!onToggleSubtask} onChange={()=>onToggleSubtask?.(task.id,step.id)}/>
-        <span>{step.title}
-         {step.plannedDate&&<small className={step.plannedDate<=today&&!step.completed?'subtask-date-due':'subtask-date-future'}>
-          {step.plannedDate<today&&!step.completed?'Geplant war ':step.plannedDate===today&&!step.completed?'Heute geplant · ':'Geplant '}
-          {formatDate(step.plannedDate)}
-         </small>}
-        </span>
-       </label>)}
-      </div>}
+      {showSubtasks&&checklist.total>0&&<>
+       <button type="button" className="subtask-collapse-toggle"
+        aria-expanded={!collapsedIds.has(task.id)}
+        aria-controls={`checklist-${task.id}`}
+        aria-label={`Unteraufgaben von ${task.title} ${collapsedIds.has(task.id)?'ausklappen':'einklappen'}`}
+        onClick={()=>toggleCollapse(task.id)}>
+        {collapsedIds.has(task.id)?<ChevronRight size={15}/>:<ChevronDown size={15}/>}
+        <span>{collapsedIds.has(task.id)?'Schritte anzeigen':'Schritte ausblenden'} · {checklist.done}/{checklist.total}</span>
+       </button>
+       {!collapsedIds.has(task.id)&&<div id={`checklist-${task.id}`}
+        className="subtask-inline" aria-label={`Unteraufgaben für ${task.title}`}>
+        <div className="subtask-meter" aria-hidden="true"><span style={{width:`${checklist.done/checklist.total*100}%`}}/></div>
+        {(task.subtasks??[]).map(step=><div key={step.id}
+         className={step.completed?'subtask-line done':'subtask-line'}>
+         <label className="subtask-check-label">
+          <input type="checkbox" checked={step.completed} disabled={!onToggleSubtask}
+           onChange={()=>onToggleSubtask?.(task.id,step.id)}/>
+          <span>{step.title}
+           {step.plannedDate&&<small className={step.plannedDate<=today&&!step.completed?'subtask-date-due':'subtask-date-future'}>
+            {step.plannedDate<today&&!step.completed?'Geplant war ':step.plannedDate===today&&!step.completed?'Heute geplant · ':'Geplant '}
+            {formatDate(step.plannedDate)}
+           </small>}
+          </span>
+         </label>
+         {onMoveSubtask&&<button className="subtask-move-inline" type="button"
+          aria-label={`„${step.title}“ aus „${task.title}“ verschieben`}
+          title="Unteraufgabe in eine andere Aufgabe verschieben"
+          onClick={()=>onMoveSubtask(task.id,step.id)}><MoveRight size={15}/><span>Verschieben</span></button>}
+        </div>)}
+       </div>}
+      </>}
     </article>;
   })}</div>;
 }
