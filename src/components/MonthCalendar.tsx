@@ -1,5 +1,5 @@
-import {useMemo,useState} from 'react';
-import {AlertTriangle,CalendarCheck2,CalendarClock,CalendarDays,ChevronLeft,ChevronRight,Clock3,Plus} from 'lucide-react';
+import {useMemo,useRef,useState,type DragEvent} from 'react';
+import {AlertTriangle,CalendarCheck2,CalendarClock,CalendarDays,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Clock3,GripVertical,ListTodo,Plus,X} from 'lucide-react';
 import {formatDate,weekdayShort} from '../date';
 import {deadlineWorkday} from '../relativePlanning';
 import {
@@ -7,6 +7,7 @@ import {
  monthShift,selectedDateAfterShift,type CalendarItem
 } from '../monthCalendar';
 import {formatDuration,violatesDeadline} from '../weeklyPlanner';
+import {calendarBacklog,type CalendarPlanStatus,type PlanningEntry} from '../calendarPlanning';
 import type {Project,Task} from '../types';
 
 const monthName=(month:string)=>new Intl.DateTimeFormat('de-DE',{
@@ -14,15 +15,24 @@ const monthName=(month:string)=>new Intl.DateTimeFormat('de-DE',{
 }).format(new Date(month+'-01T12:00:00Z'));
 
 export function MonthCalendar({
- tasks,projects,budgets,today,onEdit,onMove,onCreate,onOpenWeek
+ tasks,projects,budgets,today,onEdit,onSchedule,onCreate,onOpenWeek
 }:{
  tasks:Task[];projects:Project[];budgets:(number|null)[];today:string;
  onEdit:(task:Task)=>void;
- onMove:(taskId:string,subtaskId:string|undefined,date:string|null,expectedVersion:string)=>void;
+ onSchedule:(key:string,expectedVersion:string,date:string|null)=>CalendarPlanStatus;
  onCreate:(date:string)=>void;onOpenWeek:()=>void;
 }){
  const [month,setMonth]=useState(today.slice(0,7));
  const [selected,setSelected]=useState(today);
+ const [choosing,setChoosing]=useState<PlanningEntry|null>(null);
+ const [dragging,setDragging]=useState<PlanningEntry|null>(null);
+ const [hoverDate,setHoverDate]=useState('');
+ const [planningError,setPlanningError]=useState('');
+ const [backlogOpen,setBacklogOpen]=useState(true);
+ const [showAllBacklog,setShowAllBacklog]=useState(false);
+ const dragRef=useRef<PlanningEntry|null>(null);
+ const backlog=useMemo(()=>calendarBacklog(tasks),[tasks]);
+ const shownBacklog=backlog.slice(0,showAllBacklog?30:5);
  const dates=useMemo(()=>monthGridDates(month),[month]);
  const items=useMemo(()=>monthCalendarItems(tasks,month),[tasks,month]);
  const summary=useMemo(()=>monthCalendarSummary(items,month),[items,month]);
@@ -44,20 +54,47 @@ export function MonthCalendar({
   setSelected(date);
   if(date.slice(0,7)!==month)setMonth(date.slice(0,7));
  };
- const move=(item:Extract<CalendarItem,{kind:'work'}>,date:string|null)=>{
-  if(item.entry.date===date)return;
-  if(violatesDeadline(item.entry,date)&&
+ const clearPlanning=()=>{setChoosing(null);setDragging(null);dragRef.current=null;setHoverDate('')};
+ const chooseWork=(work:PlanningEntry)=>{clearPlanning();setChoosing(work);setPlanningError('')};
+ const plan=(work:PlanningEntry,date:string|null)=>{
+  if((work.entry.date||null)===date){clearPlanning();setPlanningError('');return}
+  if(violatesDeadline(work.entry,date)&&
    !window.confirm('Dieser Arbeitstag liegt nach dem letzten möglichen Fertigstellungstag. Trotzdem so einplanen?'))return;
-  if(item.entry.relative&&date!==item.entry.date&&
-   !window.confirm('Diese Unteraufgabe ist relativ zur Deadline geplant. Beim Verschieben wird diese Verknüpfung gelöst. Fortfahren?'))return;
-  onMove(item.taskId,item.entry.subtaskId,date,item.taskUpdatedAt);
+  if(work.entry.relative&&
+   !window.confirm('Diese Unteraufgabe ist relativ zur Deadline geplant. Durch das Verschieben wird ihre automatische Verknüpfung gelöst. Fortfahren?'))return;
+  const status=onSchedule(work.entry.key,work.version,date);
+  if(status==='moved'||status==='unchanged'){
+   clearPlanning();setPlanningError('');
+   if(date){setSelected(date);if(date.slice(0,7)!==month)setMonth(date.slice(0,7))}
+  }else setPlanningError(status==='conflict'
+   ?'Die Aufgabe wurde inzwischen geändert. Bitte die aktuelle Planung prüfen und erneut auswählen.'
+   :'Der Schritt ist nicht mehr verfügbar. Bitte die aktuelle Aufgabenliste prüfen.');
+ };
+ const dragStart=(event:DragEvent<HTMLElement>,work:PlanningEntry)=>{
+  dragRef.current=work;
+  setDragging(work);setChoosing(null);setPlanningError('');
+  event.dataTransfer.effectAllowed='move';
+  event.dataTransfer.setData('text/plain','task-companion:'+work.entry.key);
+ };
+ const dragEnd=()=>{dragRef.current=null;setDragging(null);setHoverDate('')};
+ const dropOnDay=(event:DragEvent<HTMLElement>,date:string)=>{
+  const source=dragRef.current;
+  if(!source)return;
+  event.preventDefault();event.stopPropagation();
+  dragEnd();
+  plan(source,date);
+ };
+ const dayClick=(date:string)=>{
+  if(choosing){plan(choosing,date);return}
+  changeDay(date);
  };
  const datesWithEntries=new Map<string,CalendarItem[]>();
  for(const item of items){
   const group=datesWithEntries.get(item.date)??[];
   group.push(item);datesWithEntries.set(item.date,group);
  }
- return <section className="month-calendar" aria-label="Monatskalender">
+ return <section className="month-calendar" aria-label="Monatskalender"
+  onKeyDown={event=>{if(event.key==='Escape'&&choosing){event.preventDefault();clearPlanning();setPlanningError('')}}}>
   <header className="month-toolbar">
    <div>
     <h2>Dein Monat im Überblick</h2>
@@ -83,6 +120,53 @@ export function MonthCalendar({
    <span><i className="legend-ready"/> Spätestens fertig</span>
    <span><i className="legend-required"/> Bereits benötigt</span>
   </div>
+  <section className="month-backlog" aria-label="Aufgaben ohne Arbeitstag">
+   <header className="month-backlog-heading">
+    <button type="button" className="month-backlog-toggle" aria-expanded={backlogOpen}
+     onClick={()=>setBacklogOpen(open=>!open)}>
+     <ListTodo size={17} aria-hidden="true"/>
+     <strong>Ohne Arbeitstag <small>{backlog.length}</small></strong>
+     {backlogOpen?<ChevronUp size={16} aria-hidden="true"/>:<ChevronDown size={16} aria-hidden="true"/>}
+    </button>
+    <p>Schritt am Griff auf einen Tag ziehen oder „Tag wählen“ klicken.</p>
+   </header>
+   {backlogOpen&&(backlog.length===0?
+    <p className="month-backlog-empty">Alles hat bereits einen Arbeitstag – nice! ✨</p>:
+    <>
+     <div className="month-backlog-list">
+      {shownBacklog.map(work=><div className="month-backlog-row" key={work.entry.key}>
+       <button type="button" className="month-drag-handle" draggable
+        aria-label={`„${work.entry.title}“ auf einen Kalendertag ziehen`}
+        title="Auf einen Kalendertag ziehen" onDragStart={event=>dragStart(event,work)} onDragEnd={dragEnd}>
+        <GripVertical size={16}/>
+       </button>
+       <div className="month-backlog-info">
+        <button type="button" onClick={()=>{
+         const parent=tasks.find(t=>t.id===work.entry.taskId);if(parent)onEdit(parent);
+        }} aria-label={`„${work.entry.title}“ bearbeiten`}>{work.entry.title}</button>
+        <small>{work.entry.parentTitle&&`Aus: ${work.entry.parentTitle} · `}
+         {work.entry.estimatedMinutes!==null?formatDuration(work.entry.estimatedMinutes):'ohne Zeitangabe'}
+         {work.entry.deadlineDate&&` · benötigt ${formatDate(work.entry.deadlineDate)}`}</small>
+       </div>
+       <button type="button" className="month-pick-date"
+        aria-label={`„${work.entry.title}“ Termin wählen`}
+        onClick={()=>chooseWork(work)}>Tag wählen</button>
+      </div>)}
+     </div>
+     {backlog.length>5&&!showAllBacklog&&<button className="month-more-backlog" type="button"
+      onClick={()=>setShowAllBacklog(true)}>Weitere Aufgaben anzeigen ({backlog.length-5})</button>}
+     {showAllBacklog&&backlog.length>30&&<p className="month-backlog-limit">
+      30 von {backlog.length} angezeigt. Weitere Aufgaben kannst du über die Wochenplanung einplanen.</p>}
+    </>)}
+  </section>
+  {(choosing||dragging)&&<div className="month-planning-prompt" role="status">
+   <strong>{dragging?'Auf einen Kalendertag ziehen':'Jetzt Kalendertag auswählen'}:</strong>
+   <span>{(choosing??dragging)?.entry.title}</span>
+   <button type="button" onClick={()=>{clearPlanning();setPlanningError('')}}
+    aria-label="Planungsauswahl abbrechen"><X size={15}/> Abbrechen</button>
+  </div>}
+  {planningError&&<p className="month-planning-error" role="alert">{planningError}
+   <button type="button" onClick={()=>setPlanningError('')}>Schließen</button></p>}
   <div className="month-weekdays" aria-hidden="true">
    {[1,2,3,4,5,6,0].map(i=><span key={i}>{weekdayShort[i]}</span>)}
   </div>
@@ -94,12 +178,19 @@ export function MonthCalendar({
     const required=daily.filter(e=>e.kind==='required').length;
     const examples=daily.slice(0,2);
     return <button key={date} type="button"
-     className={['month-day',date.slice(0,7)!==month?'outside':'',date===today?'current':'',date===selected?'selected':''].filter(Boolean).join(' ')}
+     className={['month-day',date.slice(0,7)!==month?'outside':'',date===today?'current':'',date===selected?'selected':'',
+      choosing||dragging?'plan-target':'',hoverDate===date?'plan-hover':''].filter(Boolean).join(' ')}
      aria-label={`${formatDate(date)}: ${work} Arbeitsaufgaben, ${ready} bis dahin fertig, ${required} benötigt`}
-     aria-pressed={date===selected} onClick={()=>changeDay(date)}>
+     aria-pressed={date===selected} onClick={()=>dayClick(date)}
+     onDragOver={event=>{if(dragRef.current){event.preventDefault();event.dataTransfer.dropEffect='move';setHoverDate(date)}}}
+     onDragLeave={()=>setHoverDate(current=>current===date?'':current)}
+     onDrop={event=>dropOnDay(event,date)}> 
      <span className="month-day-number">{Number(date.slice(-2))}{date===today&&<span className="month-today-dot" aria-label="Heute"/>}</span>
      <span className="month-day-preview">
-      {examples.map(item=><span key={item.key} className={`month-entry-chip ${item.kind}`} title={
+      {examples.map(item=><span key={item.key} className={`month-entry-chip ${item.kind}`}
+       draggable={item.kind==='work'}
+       onDragStart={event=>item.kind==='work'&&dragStart(event,{entry:item.entry,version:item.taskUpdatedAt})}
+       onDragEnd={dragEnd} title={
        item.kind==='work'?`Geplant: ${item.entry.title}`:
        item.kind==='ready'?`Spätestens fertig: ${item.title}`:`Bereits benötigt: ${item.title}`
       }>{item.kind==='work'?item.entry.title:item.kind==='ready'?'Fertig: '+item.title:'Benötigt: '+item.title}</span>)}
@@ -153,10 +244,21 @@ export function MonthCalendar({
        {item.kind==='required'&&<span className="month-detail-warning">
         Letzter Fertigstellungstag: {formatDate(deadlineWorkday(item.deadlineDate))}.</span>}
       </div>
+      {item.kind==='work'&&<div className="month-detail-grab">
+       <button type="button" draggable className="month-drag-handle"
+        aria-label={`„${item.entry.title}“ auf einen Kalendertag ziehen`}
+        title="Am Griff auf einen anderen Kalendertag ziehen"
+        onDragStart={event=>dragStart(event,{entry:item.entry,version:item.taskUpdatedAt})}
+        onDragEnd={dragEnd}><GripVertical size={16}/></button>
+       <button type="button" onClick={()=>chooseWork({entry:item.entry,version:item.taskUpdatedAt})}
+        className="month-pick-date" aria-label={`„${item.entry.title}“ durch Klicken auf einen Kalendertag verschieben`}>
+        Tag wählen
+       </button>
+      </div>}
       {item.kind==='work'&&<label className="month-detail-date">
        <span>Arbeitstag ändern</span>
        <input type="date" aria-label={`${item.entry.title} Arbeitstag im Monatskalender`}
-        value={item.entry.date} onChange={e=>move(item,e.target.value||null)}/>
+        value={item.entry.date} onChange={e=>plan({entry:item.entry,version:item.taskUpdatedAt},e.target.value||null)}/>
        {isRelative&&<small>Ändern löst relativen Abstand</small>}
       </label>}
       {item.kind!=='work'&&<button type="button" className="month-edit-deadline"
