@@ -7,9 +7,11 @@ import {DeadlineRadarSummary} from './components/DeadlineRadarSummary';
 import {useDeadlineNotifications} from './useDeadlineNotifications';
 import {makeTemplate,taskFromTemplate,templateFromTask,toggleSubtask} from './checklists';
 import {TemplatesView} from './components/TemplatesView';
+import {WeekPlanner} from './components/WeekPlanner';
+import {moveWorkItem} from './weeklyPlanner';
 import type {TaskTemplate} from './types';
 type TaskGroup={key:string;title:string|null;description?:string;tasks:Task[]};
-const repo=new LocalTaskRepository();const route=():View=>{const p=location.hash.slice(1).split('/');return p[0]==='today'?{kind:'today'}:p[0]==='upcoming'?{kind:'upcoming'}:p[0]==='deadlines'?{kind:'deadlines'}:p[0]==='templates'?{kind:'templates'}:p[0]==='project'?{kind:'project',id:p[1]}:{kind:'inbox'}};
+const repo=new LocalTaskRepository();const route=():View=>{const p=location.hash.slice(1).split('/');return p[0]==='today'?{kind:'today'}:p[0]==='upcoming'?{kind:'upcoming'}:p[0]==='week'?{kind:'week'}:p[0]==='deadlines'?{kind:'deadlines'}:p[0]==='templates'?{kind:'templates'}:p[0]==='project'?{kind:'project',id:p[1]}:{kind:'inbox'}};
 export default function App(){
  const cloudRef=useRef<CloudController|null>(null);
  const [today,setToday]=useState(()=>todayLocal());
@@ -53,6 +55,7 @@ export default function App(){
    if(view.kind==='project')return [{key:'project',title:null,tasks:active.filter(t=>t.projectId===view.id)}];
    if(view.kind==='today')return todayRadarGroups(data.tasks,today);
    if(view.kind==='deadlines')return allDeadlineGroups(data.tasks,today);
+   if(view.kind==='week')return [];
    return Array.from({length:7},(_,i)=>{
      const d=addDays(today,i);
      return {key:d,title:i===0?'Heute · '+formatDate(d):formatDate(d),tasks:active.filter(t=>t.scheduledDate===d)};
@@ -61,11 +64,20 @@ export default function App(){
  const overview=useMemo(()=>deadlineOverview(data.tasks,today),[data,today]);
  const groupedRadar=view.kind==='today'||view.kind==='deadlines';
  const visibleGroups=groupedRadar?groups.filter(group=>group.tasks.length):groups;
- const title=view.kind==='inbox'?'Eingang':view.kind==='today'?'Heute':view.kind==='upcoming'?'Anstehend':view.kind==='deadlines'?'Deadline-Radar':view.kind==='templates'?'Vorlagen':data.projects.find(p=>p.id===view.id)?.name??'Projekt';
+ const title=view.kind==='inbox'?'Eingang':view.kind==='today'?'Heute':view.kind==='upcoming'?'Anstehend':view.kind==='week'?'Wochenplanung':view.kind==='deadlines'?'Deadline-Radar':view.kind==='templates'?'Vorlagen':data.projects.find(p=>p.id===view.id)?.name??'Projekt';
  const finish=(taskId:string)=>{const next=completeTask(data,taskId);if(next===data)return;commit(next);setUndo(next.completionEvents.at(-1)!.id)};
  const saveDraft=(draft:TaskDraft,editing?:Task)=>{const now=new Date().toISOString();const next=editing?{...data,tasks:data.tasks.map(t=>t.id===editing.id?{...t,...draft,updatedAt:now}:t)}:{...data,tasks:[...data.tasks,{...draft,id:id(),completedAt:null,createdAt:now,updatedAt:now}]};commit(next)};
  const saveQuick=(draft:TaskDraft)=>{saveDraft(draft);setCaptureVersion(version=>version+1)};
  const toggleChecklistStep=(taskId:string,stepId:string)=>{const next=toggleSubtask(data,taskId,stepId);if(next!==data)commit(next)};
+ const movePlannedWork=(taskId:string,stepId:string|undefined,date:string|null)=>{
+  const next=moveWorkItem(data,taskId,stepId,date);
+  if(next!==data)commit(next);
+ };
+ const updateWorkBudget=(weekdayIndex:number,minutes:number|null)=>{
+  const budgets=[...data.weeklyBudgetMinutes];
+  budgets[weekdayIndex]=minutes;
+  commit({...data,weeklyBudgetMinutes:budgets});
+ };
  const saveTaskTemplate=(draft:TaskDraft)=>{
   const prepared=templateFromTask({...draft,id:'preview',createdAt:'',updatedAt:'',completedAt:null});
   commit({...data,templates:[...data.templates,prepared]});
@@ -96,12 +108,15 @@ export default function App(){
  <main><header className="topbar"><MenuButton onClick={()=>setSide(true)}/><h1>{title}</h1>{view.kind==='project'&&<button className="text-button" onClick={projectActions}>Projekt bearbeiten</button>}<button className="add-top" onClick={()=>setQuick(true)}><Plus/>Aufgabe</button></header>
  {error&&<div className="error" role="alert">{error} <button onClick={()=>setSettings(true)}>Sicherung importieren</button></div>}
  <div className="content">
+ {view.kind==='week'&&<WeekPlanner tasks={data.tasks} projects={data.projects}
+  budgets={data.weeklyBudgetMinutes} today={today} onMove={movePlannedWork}
+  onBudgetChange={updateWorkBudget} onEdit={setEditor}/>}
  {view.kind==='templates'&&<TemplatesView templates={data.templates} onUse={useTemplate} onSave={saveTemplateDefinition} onDelete={deleteTemplate}/>}
  {(view.kind==='today'||view.kind==='deadlines')&&
   <DeadlineRadarSummary summary={overview} compact={view.kind==='today'} onOpen={()=>navigate({kind:'deadlines'})}/>}
  {groupedRadar&&visibleGroups.length===0&&
   <div className="empty radar-all-clear"><div className="empty-check">✓</div><h2>Alles im Blick</h2><p>{view.kind==='today'?'Heute ist nichts dringend oder eingeplant.':'Aktuell sind keine offenen Aufgaben mit Deadline erfasst.'}</p></div>}
- {view.kind!=='templates'&&visibleGroups.map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
+ {view.kind!=='templates'&&view.kind!=='week'&&visibleGroups.map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
   {group.title&&<h2>{group.title}<small>{group.tasks.length}</small></h2>}
   {group.description&&<p className="radar-group-description">{group.description}</p>}
   <TaskList tasks={group.tasks} today={today} projects={data.projects} onComplete={finish} onEdit={setEditor} onToggleSubtask={toggleChecklistStep} empty="Hier ist gerade nichts geplant."/>
