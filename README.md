@@ -9,12 +9,14 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.5
+## Funktionen in v0.6
 
 - Eingang, Heute, Anstehend (7 Tage), **Deadline-Radar** und eigene Projekte
 - Neue Heute-Ansicht: **Unbedingt im Blick**, **Für heute geplant**, **Bald fällig** und **Wenn du noch Zeit hast** – ohne doppelte Aufgaben oder automatische Umplanung
 - Deadline-Radar mit überfälligen, heutigen, in den nächsten 7 Tagen und langfristigen Fristen, visuellen Countdown-Hinweisen und Warnung bei Planung nach Deadline
 - Aufgaben erstellen, bearbeiten, löschen, priorisieren, planen und mit unabhängiger Deadline versehen
+- **Unteraufgaben/Checklisten:** Schritte einzeln abhaken, direkt in der Liste aufklappen, Fortschrittsbalken, im Editor ergänzen/ändern/verschieben/entfernen
+- **Eigene Aufgabenvorlagen:** neue Vorlagen anlegen, verändern, löschen und beliebig oft neue Aufgaben mit unabhängigen Checklisten erzeugen
 - Flexible Wiederholungen: täglich, Mo–Fr, Wochenende, einzelne oder frei kombinierte Wochentage
 - Abschlussverlauf mit Schutz vor Doppelabschluss und unmittelbarem Undo
 - Inline-Schnellerfassung mit Live-Vorschau für Planung, Deadline, Priorität und Wiederholung
@@ -40,9 +42,17 @@ Beispiele:
 
 Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Schultag“ ist lediglich ein Alias für Montag bis Freitag; Ferien und Feiertage werden nicht automatisch berücksichtigt. Eine Deadline bleibt bei wiederkehrenden Aufgaben unverändert.
 
+### Unteraufgaben und Vorlagen
+
+Unteraufgaben bearbeitest du im normalen Aufgabenfenster. Danach siehst du unter der Aufgabe den Fortschritt (z. B. **2/6**) und kannst per Pfeil die vollständige Checkliste aufklappen und Schritte direkt abhaken.
+
+Unter **Vorlagen** in der Seitenleiste kannst du eigene Standardabläufe speichern. Du kannst entweder eine neue Vorlage erstellen, eine bearbeitbare Beispielvorlage für „Klassenarbeit vorbereiten“ übernehmen oder über **Als Vorlage** eine vorhandene Aufgabe in einen wiederverwendbaren Ablauf umwandeln. Die ursprüngliche Aufgabe bleibt beim Speichern einer Vorlage unverändert. Wenn du eine Vorlage anwendest, öffnet sich der Aufgaben-Editor: Passe Titel (z. B. Klasse/Fach), Projekt und **Deadline** an, bevor du speicherst. Auch im Eingang und in Projektansichten steht **Aus Vorlage erstellen** bereit, wenn Vorlagen vorhanden sind.
+
+Jede aus einer Vorlage erzeugte Aufgabe bekommt **neue IDs und eine eigene, zunächst unerledigte Checkliste**. Eine spätere Änderung oder Löschung der Vorlage beeinflusst ältere Aufgaben nicht. Bei wiederkehrenden Aufgaben setzt der Abschluss die Unteraufgaben für das nächste Vorkommen zurück; **Rückgängig** stellt ihre vorherigen Häkchen wieder her.
+
 ### Datenmigration
 
-Beim Laden und Importieren werden v1-Daten mit einer alten wöchentlichen Regel automatisch und ohne Änderung von Aufgaben-, Projekt- oder Ereignis-IDs in das v2-Regelmodell überführt. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+Beim Laden und Importieren werden Sicherungen der Versionen **v1 und v2** ohne Verlust der Aufgaben-, Projekt- und Abschluss-IDs nach **Schema v3** migriert. Alte Aufgaben erhalten eine leere Checkliste, Vorlagen werden als eigener Datenbereich hinzugefügt. Ungültige Dateien überschreiben keine gespeicherten Daten. Cloud-Sync und JSON-Backups beinhalten auch die Vorlagen und Checklisten. Nach dem Update sollten **alle Geräte** die aktuelle v0.6 laden, bevor du auf mehreren Geräten weiterarbeitest.
 
 ## Versionsanzeige und Benachrichtigungen
 
