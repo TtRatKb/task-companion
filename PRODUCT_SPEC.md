@@ -224,3 +224,14 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Bei großen Desktop-Fenstern zeigt die Hauptansicht rechts eine zusätzliche kontextabhängige Kurzanleitung (Vorlagen, Inbox, sonstige Ansichten). Auf kleinen Bildschirmen bleibt die Liste breit und die Editorhilfe wird darunter angezeigt; keine überlappenden Seitenleisten.
 - Vorlagen-Häkchen sind ausschließlich kosmetisch/interaktiv als temporäre Vorschau, nicht Teil des gespeicherten Templates. Aus der Vorlage erzeugte echte Aufgaben beginnen weiterhin mit unverbrauchten Checklisten.
 - Daten bleiben unverändert im bestehenden **Schema v5**, keine Cloud-/Firebase-Regeländerungen und kein neuer Dienst.
+
+
+## 19. v1.2 — Unteraufgaben im Heute-Fokus
+
+- Eine **offene, eigenständig datierte Unteraufgabe** wird in Heute in einer klaren, einzeln abhakbaren Liste angezeigt, wenn `plannedDate <= heute`. Bereits erledigte Schritte sowie abgeschlossene einmalige Aufgaben werden ausgeschlossen; offene wiederkehrende Aufgaben bleiben berücksichtigt.
+- Zwei Gruppen: **Überfällige Arbeitsschritte** (Planung vor heute, nach Datum und Priorität sortiert) und **Heute anstehende Unteraufgaben** (heutiges Datum, nach Priorität/Elternaufgabe/Reihenfolge sortiert).
+- Jeder Schritt zeigt eigenen Text, ursprüngliches Plandatum bei Verspätung, Elternaufgaben-Link, Fortschritt, optionales Projekt und geschätzte Dauer sowie optional die Hauptdeadline. Ein Abhaken ändert ausschließlich den Status der angeklickten Subtask und den Änderungszeitpunkt der Elternaufgabe; keine automatische Eltern-Abschlussaktion und kein Umplanen.
+- Eine kurzfristige **Rückgängig**-Aktion stellt das zuletzt abgehakte Teilziel wieder her, sofern die Elternaufgabe seitdem nicht anderweitig geändert wurde. Konflikte dürfen nicht stillschweigend überschrieben werden.
+- `Anstehend` zeigt auch reine Unteraufgabentermine für die sieben Tage der bisherigen Vorschau, selbst wenn die Hauptaufgabe selbst keinen Arbeitstag besitzt. Der vorherige TaskList-Inline-Checklistenblock wird in Heute und Anstehend ausgeblendet, um Häkchen/Darstellungen nicht zu verdoppeln.
+- Reine Elternaufgaben, die lediglich wegen eines fälligen Teilschritts zur Heute-Gruppe „Für heute geplant“ gehörten, werden aus der Eltern-Liste ausgeblendet, da der Schritt bereits oben erscheint. Real selbst geplante oder kritische Eltern bleiben sichtbar, mit weiterhin eigener Abschluss-Checkbox und Fortschrittsanzeige.
+- Keine Veränderung am bestehenden AppData **Schema v5**, an Cloud-Daten oder Task-IDs. Die Wochenplanung bleibt unabhängig von dieser Anzeige.

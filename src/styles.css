@@ -357,3 +357,31 @@
 .app-shortcut-rail kbd{font-size:10px;background:#fff;border:1px solid #ded6ce;border-radius:4px;padding:1px 5px;color:#6d5b50}
 @media(max-width:1310px){.main-content-shell{max-width:930px;display:block}.app-shortcut-rail{display:none}.main-content-shell>.content{max-width:850px;margin:auto}}
 @media(max-width:650px){.main-content-shell{padding:0}.main-content-shell>.content{padding:25px 20px 95px}}
+
+/* v1.2: make due subtasks independently actionable in Today and Upcoming */
+.today-focus{display:grid;gap:17px;margin:21px 0 27px}
+.focused-steps{border:1px solid #e5e0d9;border-radius:12px;background:#fff;overflow:hidden;margin:8px 0 16px}
+.today-focus .focused-steps{margin:0}
+.focused-steps-head{padding:13px 15px;border-bottom:1px solid #eee9e3;background:#fbfaf8}
+.focused-steps-head h2{font-size:14px;margin:0;color:#4c443e}
+.focused-steps-head h2 small{font-size:11px;color:#907f72;margin-left:7px}
+.focused-steps-head p{margin:5px 0 0;font-size:11px;line-height:1.5;color:#82776c}
+.focused-step-list{display:grid}
+.focused-step-row{display:flex;gap:12px;align-items:flex-start;padding:13px 15px}
+.focused-step-row+.focused-step-row{border-top:1px solid #f0ece7}
+.focused-step-row.missed{background:#fffaf8}
+.focused-step-row>.complete{margin-top:2px}
+.focused-step-body{min-width:0;flex:1}
+.focused-step-body>strong{font-size:14px;font-weight:650;display:block;white-space:normal;overflow-wrap:anywhere;color:#47403a}
+.focused-step-parent{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap;font-size:11px;color:#80766d}
+.focused-step-parent>svg{flex:none;color:#94867d}
+.focused-step-parent>button{border:0;padding:0;background:none;color:#6b554b;font:inherit;font-weight:600;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:transparent}
+.focused-step-parent>button:hover,.focused-step-parent>button:focus-visible{text-decoration-color:currentColor}
+.focused-step-parent>span{color:#9a8d81}
+.focused-step-meta{display:flex;align-items:center;flex-wrap:wrap;gap:7px 13px;margin-top:7px;font-size:11px;color:#81796f}
+.focused-step-meta>span{display:inline-flex;align-items:center;gap:4px}
+.focused-step-meta svg{flex:none}
+.focused-step-overdue{color:#ad4c3d!important;font-weight:600}
+.focused-step-project i{width:7px;height:7px;border-radius:50%;flex:none}
+.step-undo{z-index:79}
+@media(max-width:650px){.focused-step-row{padding:12px 11px}.focused-steps-head{padding:11px}.focused-step-body>strong{font-size:13px}}

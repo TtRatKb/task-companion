@@ -9,6 +9,8 @@ import {makeTemplate,taskFromTemplate,templateFromTask,toggleSubtask} from './ch
 import {TemplatesView} from './components/TemplatesView';
 import {WeekPlanner} from './components/WeekPlanner';
 import {AppShortcutRail} from './components/AppShortcutRail';
+import {FocusedSteps} from './components/FocusedSteps';
+import {focusedSteps,stepsDueNow,parentGroupsWithoutStepOnlyDuplicates} from './focusedSteps';
 import {moveWorkItem} from './weeklyPlanner';
 import {InboxProcessor} from './components/InboxProcessor';
 import {applyInboxTriage,inboxQueue,type InboxTriagePatch} from './inboxTriage';
@@ -20,7 +22,7 @@ export default function App(){
  const [today,setToday]=useState(()=>todayLocal());
  const localDataRef=useRef<AppData>(emptyData());
  const [cloudStatus,setCloudStatus]=useState<CloudStatus>({phase:'checking'});
- const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null),[notice,setNotice]=useState(''),[inboxRun,setInboxRun]=useState<string[]|null>(null);
+ const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null),[notice,setNotice]=useState(''),[inboxRun,setInboxRun]=useState<string[]|null>(null),[stepUndo,setStepUndo]=useState<{taskId:string;stepId:string;version:string;title:string}|null>(null);
  const {reminderSettings,updateReminderSettings}=useDeadlineNotifications(data.tasks);
  useEffect(()=>{
    let loaded:AppData;
@@ -56,7 +58,7 @@ export default function App(){
  const groups=useMemo<TaskGroup[]>(()=>{
    if(view.kind==='inbox')return [{key:'inbox',title:null,tasks:active.filter(t=>t.projectId===null)}];
    if(view.kind==='project')return [{key:'project',title:null,tasks:active.filter(t=>t.projectId===view.id)}];
-   if(view.kind==='today')return todayRadarGroups(data.tasks,today);
+   if(view.kind==='today')return parentGroupsWithoutStepOnlyDuplicates(todayRadarGroups(data.tasks,today),today);
    if(view.kind==='deadlines')return allDeadlineGroups(data.tasks,today);
    if(view.kind==='week')return [];
    return Array.from({length:7},(_,i)=>{
@@ -65,13 +67,34 @@ export default function App(){
    });
  },[data,view,today]);
  const overview=useMemo(()=>deadlineOverview(data.tasks,today),[data,today]);
+ const focusedToday=useMemo(()=>stepsDueNow(data.tasks,today),[data.tasks,today]);
  const groupedRadar=view.kind==='today'||view.kind==='deadlines';
  const visibleGroups=groupedRadar?groups.filter(group=>group.tasks.length):groups;
  const title=view.kind==='inbox'?'Eingang':view.kind==='today'?'Heute':view.kind==='upcoming'?'Anstehend':view.kind==='week'?'Wochenplanung':view.kind==='deadlines'?'Deadline-Radar':view.kind==='templates'?'Vorlagen':data.projects.find(p=>p.id===view.id)?.name??'Projekt';
- const finish=(taskId:string)=>{const next=completeTask(data,taskId);if(next===data)return;commit(next);setUndo(next.completionEvents.at(-1)!.id)};
+ const finish=(taskId:string)=>{const next=completeTask(data,taskId);if(next===data)return;commit(next);setStepUndo(null);setUndo(next.completionEvents.at(-1)!.id)};
  const saveDraft=(draft:TaskDraft,editing?:Task)=>{const now=new Date().toISOString();const next=editing?{...data,tasks:data.tasks.map(t=>t.id===editing.id?{...t,...draft,updatedAt:now}:t)}:{...data,tasks:[...data.tasks,{...draft,id:id(),completedAt:null,createdAt:now,updatedAt:now}]};commit(next)};
  const saveQuick=(draft:TaskDraft)=>{saveDraft(draft);setCaptureVersion(version=>version+1)};
- const toggleChecklistStep=(taskId:string,stepId:string)=>{const next=toggleSubtask(data,taskId,stepId);if(next!==data)commit(next)};
+ const toggleChecklistStep=(taskId:string,stepId:string)=>{
+  const task=localDataRef.current.tasks.find(t=>t.id===taskId);
+  const step=task?.subtasks?.find(s=>s.id===stepId);
+  const next=toggleSubtask(localDataRef.current,taskId,stepId);
+  if(next===localDataRef.current)return;
+  commit(next);
+  if(step&&!step.completed){
+   const changed=next.tasks.find(t=>t.id===taskId)!;
+   setStepUndo({taskId,stepId,version:changed.updatedAt,title:step.title});
+  }else setStepUndo(null);
+ };
+ const undoStep=()=>{
+  if(!stepUndo)return;
+  const latest=localDataRef.current.tasks.find(t=>t.id===stepUndo.taskId);
+  if(latest?.updatedAt===stepUndo.version &&
+     latest.subtasks?.some(s=>s.id===stepUndo.stepId&&s.completed)){
+   const next=toggleSubtask(localDataRef.current,stepUndo.taskId,stepUndo.stepId);
+   if(next!==localDataRef.current)commit(next);
+  }else setNotice('Der Schritt wurde inzwischen verändert. Es wurde nichts überschrieben.');
+  setStepUndo(null);
+ };
  const saveInboxTriage=(taskId:string,expectedUpdatedAt:string,patch:InboxTriagePatch)=>{
   const result=applyInboxTriage(localDataRef.current,taskId,expectedUpdatedAt,patch);
   if(result.status==='saved'&&result.data!==localDataRef.current)commit(result.data);
@@ -129,12 +152,27 @@ export default function App(){
  {view.kind==='templates'&&<TemplatesView templates={data.templates} onUse={useTemplate} onSave={saveTemplateDefinition} onDelete={deleteTemplate}/>}
  {(view.kind==='today'||view.kind==='deadlines')&&
   <DeadlineRadarSummary summary={overview} compact={view.kind==='today'} onOpen={()=>navigate({kind:'deadlines'})}/>}
- {groupedRadar&&visibleGroups.length===0&&
+ {groupedRadar&&visibleGroups.length===0&&(view.kind!=='today'||(focusedToday.today.length===0&&focusedToday.overdue.length===0))&&
   <div className="empty radar-all-clear"><div className="empty-check">✓</div><h2>Alles im Blick</h2><p>{view.kind==='today'?'Heute ist nichts dringend oder eingeplant.':'Aktuell sind keine offenen Aufgaben mit Deadline erfasst.'}</p></div>}
- {view.kind!=='templates'&&view.kind!=='week'&&visibleGroups.map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
+ {view.kind==='today'&&<div className="today-focus">
+  <FocusedSteps title="Überfällige Arbeitsschritte" description="Diese Schritte waren bereits eingeplant und sind noch offen."
+   entries={focusedToday.overdue} projects={data.projects} onComplete={toggleChecklistStep}
+   onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>
+  <FocusedSteps title="Heute anstehende Unteraufgaben" description="Konkrete Schritte aus deinen größeren Aufgaben – direkt abhaken, ohne die Hauptaufgabe abzuschließen."
+   entries={focusedToday.today} projects={data.projects} onComplete={toggleChecklistStep}
+   onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>
+ </div>}
+ {view.kind!=='templates'&&view.kind!=='week'&&visibleGroups.filter(group=>view.kind!=='upcoming'||group.tasks.length>0||focusedSteps(data.tasks,group.key).length>0).map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
   {group.title&&<h2>{group.title}<small>{group.tasks.length}</small></h2>}
   {group.description&&<p className="radar-group-description">{group.description}</p>}
-  <TaskList tasks={group.tasks} today={today} projects={data.projects} onComplete={finish} onEdit={setEditor} onToggleSubtask={toggleChecklistStep} empty="Hier ist gerade nichts geplant."/>
+  {group.tasks.length>0&&<TaskList tasks={group.tasks} today={today} projects={data.projects}
+   onComplete={finish} onEdit={setEditor} onToggleSubtask={toggleChecklistStep}
+   showSubtasks={view.kind!=='today'&&view.kind!=='upcoming'} empty="Hier ist gerade nichts geplant."/>}
+  {view.kind==='upcoming'&&<FocusedSteps
+   title="Unteraufgaben für diesen Tag"
+   entries={focusedSteps(data.tasks,group.key)}
+   projects={data.projects} today={today} onComplete={toggleChecklistStep}
+   onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}}/>}
  </section>)}
  {view.kind!=='templates'&&(quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>)}</div><AppShortcutRail view={view}/></div></main>
  {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onSaveTemplate={saveTaskTemplate} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
@@ -142,6 +180,10 @@ export default function App(){
  {notice&&<div className="app-notice" role="status">{notice}<button aria-label="Hinweis schließen" onClick={()=>setNotice('')}>×</button></div>}
  {inboxRun&&<InboxProcessor ids={inboxRun} tasks={data.tasks} projects={data.projects} today={today}
   onSave={saveInboxTriage} onClose={()=>setInboxRun(null)}/>}
+ {stepUndo&&<div className="snackbar step-undo">„{stepUndo.title}“ erledigt.
+  <button type="button" onClick={undoStep}>Rückgängig</button>
+  <button type="button" aria-label="Schrittmeldung schließen" onClick={()=>setStepUndo(null)}>×</button>
+ </div>}
  {undo&&<div className="snackbar">Aufgabe abgeschlossen. <button onClick={()=>{commit(undoCompletion(data,undo));setUndo(null)}}>Rückgängig</button><button aria-label="Meldung schließen" onClick={()=>setUndo(null)}>×</button></div>}
  </div>
 }

@@ -6,7 +6,7 @@ import { recurrenceLabel } from '../recurrence';
 import type { Project, Task } from '../types';
 
 export function TaskList({
-  tasks, projects, onComplete, onEdit, onToggleSubtask, empty, today = todayLocal()
+  tasks, projects, onComplete, onEdit, onToggleSubtask, empty, showSubtasks = true, today = todayLocal()
 }: {
   tasks: Task[];
   projects: Project[];
@@ -14,6 +14,7 @@ export function TaskList({
   onEdit: (task: Task) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
   empty: string;
+  showSubtasks?: boolean;
   today?: string;
 }) {
   if (!tasks.length) return <div className="empty">
@@ -55,7 +56,7 @@ export function TaskList({
           </span>}
         </span>
       </button>
-      {checklist.total>0&&<div className="subtask-inline" aria-label={`Unteraufgaben für ${task.title}`}>
+      {showSubtasks&&checklist.total>0&&<div className="subtask-inline" aria-label={`Unteraufgaben für ${task.title}`}>
        <div className="subtask-meter" aria-hidden="true"><span style={{width:`${checklist.done/checklist.total*100}%`}}/></div>
        {(task.subtasks??[]).map(step=><label key={step.id} className={step.completed?'subtask-line done':'subtask-line'}>
         <input type="checkbox" checked={step.completed} disabled={!onToggleSubtask} onChange={()=>onToggleSubtask?.(task.id,step.id)}/>
