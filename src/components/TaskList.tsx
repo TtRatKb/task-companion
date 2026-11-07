@@ -1,16 +1,18 @@
 import { AlertTriangle, CalendarDays, Flag, RotateCw } from 'lucide-react';
+import { checklistProgress } from '../checklists';
 import { formatDate, todayLocal } from '../date';
 import { deadlineCountdown, deadlineState, planningAfterDeadline } from '../deadlineRadar';
 import { recurrenceLabel } from '../recurrence';
 import type { Project, Task } from '../types';
 
 export function TaskList({
-  tasks, projects, onComplete, onEdit, empty, today = todayLocal()
+  tasks, projects, onComplete, onEdit, onToggleSubtask, empty, today = todayLocal()
 }: {
   tasks: Task[];
   projects: Project[];
   onComplete: (id: string) => void;
   onEdit: (task: Task) => void;
+  onToggleSubtask?: (taskId: string, subtaskId: string) => void;
   empty: string;
   today?: string;
 }) {
@@ -24,6 +26,7 @@ export function TaskList({
     const project = projects.find(p => p.id === task.projectId);
     const deadlineClass = task.deadlineDate ? deadlineState(task.deadlineDate, today) : null;
     const planningConflict = planningAfterDeadline(task);
+    const checklist=checklistProgress(task);
     return <article className="task-row" key={task.id}>
       <button className={'complete p' + task.priority}
         aria-label={`„${task.title}“ abschließen`}
@@ -46,11 +49,19 @@ export function TaskList({
           {planningConflict && <span className="planning-warning">
             <AlertTriangle aria-hidden="true" /> Planung nach Deadline
           </span>}
+          {checklist.total>0&&<span className="subtask-progress-label">✓ {checklist.done}/{checklist.total} Schritte</span>}
           {project && <span className="project-dot" style={{ '--color': project.color } as React.CSSProperties}>
             {project.name}
           </span>}
         </span>
       </button>
+      {checklist.total>0&&<div className="subtask-inline" aria-label={`Unteraufgaben für ${task.title}`}>
+       <div className="subtask-meter" aria-hidden="true"><span style={{width:`${checklist.done/checklist.total*100}%`}}/></div>
+       {(task.subtasks??[]).map(step=><label key={step.id} className={step.completed?'subtask-line done':'subtask-line'}>
+        <input type="checkbox" checked={step.completed} disabled={!onToggleSubtask} onChange={()=>onToggleSubtask?.(task.id,step.id)}/>
+        <span>{step.title}</span>
+       </label>)}
+      </div>}
     </article>;
   })}</div>;
 }
