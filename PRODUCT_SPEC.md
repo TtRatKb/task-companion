@@ -256,3 +256,13 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Suchergebnisse zeigen relevante Metadaten und maximal drei passende Unteraufgaben-/Vorlagenschritte als Kontext. Ein Treffer öffnet entweder den vollständigen Aufgaben-Editor oder den visuellen Vorlageneditor, unabhängig von der aktuellen Projektansicht. Ergebnisse sind stabil sortiert, jeweils 30 pro Ansicht mit explizitem „Weitere Ergebnisse“.
 - Der Filterzustand ist **rein lokal im Such-UI**, nicht persistiert. Weder die Trefferberechnung noch ein Filterwechsel verändert AppData, Firestore, IDs, Termine oder Abschlusszustände. Bearbeitung erst durch eine ausdrücklich geöffnete und gespeicherte Aufgabe/Vorlage.
 - Weiterhin **AppData Schema v5**; kein Firebase-Regelwechsel, keine zusätzliche Datenmigration oder Hintergrundsuche.
+
+
+## 22. v1.5 — flexible, kalenderfeste Wiederholungsintervalle
+
+- `Recurrence` ist nun ein typisierter Union-Wert: bestehende `{kind:'weekdays',weekdays:[...]}` sowie `{kind:'interval',every,unit,anchorDate}` mit `unit='days'|'weeks'|'months'`, gültigem ISO-Kalendertag und ganzzahligem Abstand 1–999.
+- Wiederholungen im Intervall haben ein **festes Startdatum als Kalenderanker** und ergeben immer die nächste passende Wiederholung strikt nach dem Abschlussdatum; verpasste frühere Durchläufe werden übersprungen, ohne die Phase zu verschieben. Der erste Termin liegt frühestens am Startdatum. Bei Monatsrhythmen wird das ursprüngliche Monatstagsdatum jeweils **neu aus dem Anker berechnet**: 31. Januar → 28./29. Februar → 31. März.
+- Der Aufgabeneditor bietet „Alle N Tage/Wochen/Monate“, änderbaren Abstand, eigenes Startdatum und Vorschau weiterer Termine. Ein ausdrückliches Ändern von „Geplant“ definiert den Kalenderanker neu. Die Wochentag-Auswahl funktioniert unverändert.
+- Deutsche Schnellerfassung unterstützt z. B. `alle 3 Tage`, `alle zwei Wochen`, `alle 2 Monate`, `jeden Monat am 15.`, `monatlich am 31.`; ein expliziter Starttag wie `am Dienstag` hat Vorrang. Nicht erkannte oder ungültige Formulierungen werden nicht stillschweigend in andere Wiederholungen verwandelt.
+- Bei Abschluss bleibt `deadlineDate` unverändert und die Checkliste wird wie bisher zurückgesetzt, **ohne eigene bereits eingetragene Unteraufgaben-Termine automatisch zu verschieben**. Die UI macht diese Grenze ausdrücklich sichtbar. Sonstige IDs, Schätzungen, Abschlussverlauf und Rückgängig-Funktion bleiben erhalten.
+- **Schema v6** migriert die bisherigen Versionen 1–5 verlustfrei. Import/Backup/Cloud validieren Art, Einheit, Abstand und Kalenderanker strikt; ältere Clients dürfen unbekannte v6-Inhalte nicht verarbeiten. Keine neuen Firebase-Regeln oder kostenpflichtigen Dienste.
