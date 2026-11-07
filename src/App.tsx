@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useRef,useState} from 'react';import {Plus} from 'lucide-react';
+import {useEffect,useMemo,useRef,useState} from 'react';import {Plus,Inbox as InboxIcon} from 'lucide-react';
 import {addDays,formatDate,todayLocal} from './date';import {allDeadlineGroups,deadlineOverview,todayRadarGroups} from './deadlineRadar';import {completeTask,id,undoCompletion} from './domain';import {LocalTaskRepository} from './repository';import {emptyData,type AppData,type Project,type Task} from './types';
 import {DataSettings} from './components/DataSettings';import {MenuButton,Sidebar,type View} from './components/Sidebar';import {TaskEditor} from './components/TaskEditor';import {TaskList} from './components/TaskList';
 import {QuickCapture,type TaskDraft} from './components/QuickCapture';
@@ -9,6 +9,8 @@ import {makeTemplate,taskFromTemplate,templateFromTask,toggleSubtask} from './ch
 import {TemplatesView} from './components/TemplatesView';
 import {WeekPlanner} from './components/WeekPlanner';
 import {moveWorkItem} from './weeklyPlanner';
+import {InboxProcessor} from './components/InboxProcessor';
+import {applyInboxTriage,inboxQueue,type InboxTriagePatch} from './inboxTriage';
 import type {TaskTemplate} from './types';
 type TaskGroup={key:string;title:string|null;description?:string;tasks:Task[]};
 const repo=new LocalTaskRepository();const route=():View=>{const p=location.hash.slice(1).split('/');return p[0]==='today'?{kind:'today'}:p[0]==='upcoming'?{kind:'upcoming'}:p[0]==='week'?{kind:'week'}:p[0]==='deadlines'?{kind:'deadlines'}:p[0]==='templates'?{kind:'templates'}:p[0]==='project'?{kind:'project',id:p[1]}:{kind:'inbox'}};
@@ -17,7 +19,7 @@ export default function App(){
  const [today,setToday]=useState(()=>todayLocal());
  const localDataRef=useRef<AppData>(emptyData());
  const [cloudStatus,setCloudStatus]=useState<CloudStatus>({phase:'checking'});
- const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null),[notice,setNotice]=useState('');
+ const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null),[notice,setNotice]=useState(''),[inboxRun,setInboxRun]=useState<string[]|null>(null);
  const {reminderSettings,updateReminderSettings}=useDeadlineNotifications(data.tasks);
  useEffect(()=>{
    let loaded:AppData;
@@ -47,7 +49,7 @@ export default function App(){
    return()=>{window.clearInterval(interval);window.removeEventListener('focus',updateDay);document.removeEventListener('visibilitychange',updateDay)};
  },[]);
  useEffect(()=>{const f=()=>setView(route());addEventListener('hashchange',f);return()=>removeEventListener('hashchange',f)},[]);
- useEffect(()=>{const f=(e:KeyboardEvent)=>{if(e.key.toLowerCase()==='q'&&!['INPUT','TEXTAREA','SELECT'].includes((e.target as HTMLElement).tagName)){e.preventDefault();setQuick(true)}};addEventListener('keydown',f);return()=>removeEventListener('keydown',f)},[]);
+ useEffect(()=>{const f=(e:KeyboardEvent)=>{if(e.key.toLowerCase()==='q'&&!(e.target as HTMLElement).closest('[role="dialog"]')&&!['INPUT','TEXTAREA','SELECT'].includes((e.target as HTMLElement).tagName)){e.preventDefault();setQuick(true)}};addEventListener('keydown',f);return()=>removeEventListener('keydown',f)},[]);
  const commit=(next:AppData)=>{repo.save(next);localDataRef.current=next;setData(next);cloudRef.current?.notifyLocalChange()};const navigate=(v:View)=>{location.hash=v.kind==='project'?'project/'+v.id:v.kind};
  const active=data.tasks.filter(t=>!t.completedAt||t.recurrence!==null);
  const groups=useMemo<TaskGroup[]>(()=>{
@@ -69,6 +71,11 @@ export default function App(){
  const saveDraft=(draft:TaskDraft,editing?:Task)=>{const now=new Date().toISOString();const next=editing?{...data,tasks:data.tasks.map(t=>t.id===editing.id?{...t,...draft,updatedAt:now}:t)}:{...data,tasks:[...data.tasks,{...draft,id:id(),completedAt:null,createdAt:now,updatedAt:now}]};commit(next)};
  const saveQuick=(draft:TaskDraft)=>{saveDraft(draft);setCaptureVersion(version=>version+1)};
  const toggleChecklistStep=(taskId:string,stepId:string)=>{const next=toggleSubtask(data,taskId,stepId);if(next!==data)commit(next)};
+ const saveInboxTriage=(taskId:string,expectedUpdatedAt:string,patch:InboxTriagePatch)=>{
+  const result=applyInboxTriage(localDataRef.current,taskId,expectedUpdatedAt,patch);
+  if(result.status==='saved'&&result.data!==localDataRef.current)commit(result.data);
+  return result.status;
+ };
  const movePlannedWork=(taskId:string,stepId:string|undefined,date:string|null)=>{
   const next=moveWorkItem(data,taskId,stepId,date);
   if(next!==data)commit(next);
@@ -108,6 +115,13 @@ export default function App(){
  <main><header className="topbar"><MenuButton onClick={()=>setSide(true)}/><h1>{title}</h1>{view.kind==='project'&&<button className="text-button" onClick={projectActions}>Projekt bearbeiten</button>}<button className="add-top" onClick={()=>setQuick(true)}><Plus/>Aufgabe</button></header>
  {error&&<div className="error" role="alert">{error} <button onClick={()=>setSettings(true)}>Sicherung importieren</button></div>}
  <div className="content">
+ {view.kind==='inbox'&&<section className="inbox-startbar" aria-label="Eingang effizient bearbeiten">
+  <div><strong>Eingang sortieren</strong>
+   <p>{inboxQueue(data.tasks).length===0?'Alles durchgesehen – aktuell keine offenen Eingangsaufgaben.':'Ordne offene Aufgaben nacheinander ein – per Tastatur oder mit wenigen Klicks.'}</p>
+  </div>
+  <button type="button" className="primary" disabled={inboxQueue(data.tasks).length===0}
+   onClick={()=>setInboxRun(inboxQueue(data.tasks))}><InboxIcon size={17}/> Eingang aufräumen <span className="inbox-count">{inboxQueue(data.tasks).length}</span></button>
+ </section>}
  {view.kind==='week'&&<WeekPlanner tasks={data.tasks} projects={data.projects}
   budgets={data.weeklyBudgetMinutes} today={today} onMove={movePlannedWork}
   onBudgetChange={updateWorkBudget} onEdit={setEditor}/>}
@@ -125,6 +139,8 @@ export default function App(){
  {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onSaveTemplate={saveTaskTemplate} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
  {settings&&<DataSettings data={data} cloudController={cloudRef.current} cloudStatus={cloudStatus} reminderSettings={reminderSettings} onReminderChange={updateReminderSettings} onClose={()=>setSettings(false)} onImport={async file=>{try{const next=repo.parseImport(await file.text());if(confirm('Die aktuellen lokalen Daten vollständig durch diese Sicherung ersetzen?'))commit(next)}catch(e){alert((e as Error).message)}}}/>}
  {notice&&<div className="app-notice" role="status">{notice}<button aria-label="Hinweis schließen" onClick={()=>setNotice('')}>×</button></div>}
+ {inboxRun&&<InboxProcessor ids={inboxRun} tasks={data.tasks} projects={data.projects} today={today}
+  onSave={saveInboxTriage} onClose={()=>setInboxRun(null)}/>}
  {undo&&<div className="snackbar">Aufgabe abgeschlossen. <button onClick={()=>{commit(undoCompletion(data,undo));setUndo(null)}}>Rückgängig</button><button aria-label="Meldung schließen" onClick={()=>setUndo(null)}>×</button></div>}
  </div>
 }
