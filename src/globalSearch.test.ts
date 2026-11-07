@@ -40,7 +40,7 @@ const run=(changes:Partial<SearchFilters>={})=>searchAll(data(),{...DEFAULT_SEAR
 describe('Globale Suche und Schnellfilter',()=>{
  it('finds matching subtask text even when parent title does not contain the query',()=>{
   const results=run({query:'ClassTime'});
-  expect(results.map(x=>x.id)).toEqual(['tpl','class']);
+  expect(results.map(x=>x.id)).toEqual(['class','tpl']);
   const entry=results.find(x=>x.id==='class');
   expect(entry?.kind).toBe('task');
   if(entry?.kind==='task'){
@@ -60,9 +60,9 @@ describe('Globale Suche und Schnellfilter',()=>{
   expect(run({query:'GOTtESBILDER islam'}).map(x=>x.id)).toEqual(['lesson']);
  });
  it('filters by open/done and honors recurring tasks as active',()=>{
-  expect(run({query:'Klassenarbeit'}).map(x=>x.id)).toEqual(['tpl','class']);
+  expect(run({query:'Klassenarbeit'}).map(x=>x.id)).toEqual(['class','tpl']);
   expect(run({query:'Klassenarbeit',status:'done'}).map(x=>x.id)).toEqual(['done']);
-  expect(run({query:'Klassenarbeit',status:'all'}).map(x=>x.id)).toEqual(['tpl','class','done']);
+  expect(run({query:'Klassenarbeit',status:'all'}).map(x=>x.id)).toEqual(['done','class','tpl']);
   expect(run({query:'Wöchentlich',status:'open'}).map(x=>x.id)).toEqual(['weekly']);
   expect(run({query:'Wöchentlich',status:'done'})).toHaveLength(0);
  });
@@ -80,7 +80,7 @@ describe('Globale Suche und Schnellfilter',()=>{
   fixture.tasks.unshift(task('exact',{title:'ClassTime',priority:4}));
   const hits=searchAll(fixture,{...DEFAULT_SEARCH_FILTERS,query:'ClassTime'});
   expect(hits[0].id).toBe('exact');
-  expect(hits.map(h=>h.id)).toEqual(['exact','tpl','class']);
+  expect(hits.map(h=>h.id)).toEqual(['exact','class','tpl']);
  });
  it('does not mutate tasks, templates or original ordering',()=>{
   const fixture=data();
