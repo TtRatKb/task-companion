@@ -8,6 +8,7 @@ import {useDeadlineNotifications} from './useDeadlineNotifications';
 import {makeTemplate,taskFromTemplate,templateFromTask,toggleSubtask} from './checklists';
 import {TemplatesView} from './components/TemplatesView';
 import {WeekPlanner} from './components/WeekPlanner';
+import {AppShortcutRail} from './components/AppShortcutRail';
 import {moveWorkItem} from './weeklyPlanner';
 import {InboxProcessor} from './components/InboxProcessor';
 import {applyInboxTriage,inboxQueue,type InboxTriagePatch} from './inboxTriage';
@@ -114,7 +115,7 @@ export default function App(){
  return <div className="app"><Sidebar open={side} view={view} projects={data.projects} onView={navigate} onClose={()=>setSide(false)} onProject={createProject} onSettings={()=>setSettings(true)}/>
  <main><header className="topbar"><MenuButton onClick={()=>setSide(true)}/><h1>{title}</h1>{view.kind==='project'&&<button className="text-button" onClick={projectActions}>Projekt bearbeiten</button>}<button className="add-top" onClick={()=>setQuick(true)}><Plus/>Aufgabe</button></header>
  {error&&<div className="error" role="alert">{error} <button onClick={()=>setSettings(true)}>Sicherung importieren</button></div>}
- <div className="content">
+ <div className="main-content-shell"><div className="content">
  {view.kind==='inbox'&&<section className="inbox-startbar" aria-label="Eingang effizient bearbeiten">
   <div><strong>Eingang sortieren</strong>
    <p>{inboxQueue(data.tasks).length===0?'Alles durchgesehen – aktuell keine offenen Eingangsaufgaben.':'Ordne offene Aufgaben nacheinander ein – per Tastatur oder mit wenigen Klicks.'}</p>
@@ -135,7 +136,7 @@ export default function App(){
   {group.description&&<p className="radar-group-description">{group.description}</p>}
   <TaskList tasks={group.tasks} today={today} projects={data.projects} onComplete={finish} onEdit={setEditor} onToggleSubtask={toggleChecklistStep} empty="Hier ist gerade nichts geplant."/>
  </section>)}
- {view.kind!=='templates'&&(quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>)}</div></main>
+ {view.kind!=='templates'&&(quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>)}</div><AppShortcutRail view={view}/></div></main>
  {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onSaveTemplate={saveTaskTemplate} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
  {settings&&<DataSettings data={data} cloudController={cloudRef.current} cloudStatus={cloudStatus} reminderSettings={reminderSettings} onReminderChange={updateReminderSettings} onClose={()=>setSettings(false)} onImport={async file=>{try{const next=repo.parseImport(await file.text());if(confirm('Die aktuellen lokalen Daten vollständig durch diese Sicherung ersetzen?'))commit(next)}catch(e){alert((e as Error).message)}}}/>}
  {notice&&<div className="app-notice" role="status">{notice}<button aria-label="Hinweis schließen" onClick={()=>setNotice('')}>×</button></div>}
