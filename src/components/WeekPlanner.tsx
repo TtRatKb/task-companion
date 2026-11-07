@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {AlertTriangle,CalendarClock,ChevronLeft,ChevronRight,Clock3,MoveRight} from 'lucide-react';
+import {AlertTriangle,CalendarClock,ChevronLeft,ChevronRight,Clock3} from 'lucide-react';
 import {addDays,formatDate,weekdayShort} from '../date';
 import {deadlineWorkday} from '../relativePlanning';
 import {formatDuration,mondayOf,unscheduledEntries,violatesDeadline,weekDays,type WeekEntry} from '../weeklyPlanner';
@@ -42,6 +42,7 @@ export function WeekPlanner({
      {item.title}
     </button>
     {item.parentTitle&&<small>{item.parentTitle}</small>}
+    {item.projectId&&projects.some(p=>p.id===item.projectId)&&<small>{projects.find(p=>p.id===item.projectId)?.name}</small>}
     <span className="week-entry-meta">
      {item.estimatedMinutes!==null?<span><Clock3 aria-hidden="true" size={12}/>{formatDuration(item.estimatedMinutes)}</span>:<span className="week-unsized">Dauer offen</span>}
      {item.deadlineDate&&<span className={item.date>deadlineWorkday(item.deadlineDate)?'week-late-plan':''}>
