@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v1.7
+## Funktionen in v1.8
 
 - Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Monatskalender**, **Deadline-Radar**, **globale Suche** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Im Monatskalender abhaken (v1.8)**: Aufgaben und Unteraufgaben direkt in den Tagesdetails erledigen, projektweise filtern und erledigte Einträge optional einblenden; mit sicherem Rückgängig
 - **Kalender direkt beplanen (v1.7)**: offene Aufgaben ohne Arbeitstag nach Deadline sortiert auf einen Kalendertag ziehen oder per „Tag wählen“ zuweisen; mit Terminwarnungen und Rückgängig
 - **Monatskalender (v1.6)**: Arbeitsaufgaben, einzelne Unteraufgabentermine und Deadlines im Monatsraster; Tagesdetails mit datenschutzfreundlicher Schnellbearbeitung und direkten Aufgaben für den gewählten Tag
 - **Flexible Wiederholungen (v1.5)**: alle N Tage, Wochen oder Monate, Kalenderstart und Vorschau auf nächste Termine, auch in der Schnellerfassung; feste Rhythmen trotz verspäteter Erledigung
@@ -74,6 +75,21 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 ### Datenmigration
 
 Beim Laden und Importieren werden v1-, v2-, v3-, v4- und v5-Daten automatisch in das aktuelle **v6-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Monatskalender: erledigen, filtern, Erledigtes sehen (v1.8)
+
+Deine Planung wird direkt zum Arbeitsbereich: Im **Monatskalender** kannst du in den **Tagesdetails** bei einer eingeplanten Haupt- oder Unteraufgabe auf den runden Abhak-Button klicken. Ein Unteraufgaben-Häkchen beendet **nur diesen einen Schritt**, nicht die komplette Klassenarbeit. Bei einer ganzen Hauptaufgabe wird der bestehende Abschlussmechanismus inklusive Abschlussverlauf verwendet.
+
+Bei wiederkehrenden Hauptaufgaben übernimmt die App das bekannte Verhalten: Der nächste Arbeitstag wird entsprechend der Wiederholungsregel gesetzt und die Checkliste neu geöffnet. Sind zusätzliche Unteraufgabentermine oder eine Deadline vorhanden, fragt die App ausdrücklich nach, weil diese Termine **nicht automatisch mitverschoben werden**. Eine zukünftige wiederkehrende Aufgabe kann nicht vorzeitig als nächster Durchlauf abgeschlossen werden.
+
+Ein **„Rückgängig“** nach einer Kalenderaktion setzt genau den letzten Schritt zurück. Wurde die Aufgabe zwischenzeitlich durch eine andere Aktion oder ein anderes Gerät geändert, wird nicht blind überschrieben. Alternativ lässt sich eine erledigte Unteraufgabe über die optionale Anzeige wieder öffnen.
+
+Für mehr Übersicht gibt es oberhalb des Kalenders zwei neue Filter:
+
+- **Projekt**: Alle Projekte, ein einzelnes Projekt oder nur „Ohne Projekt (Eingang)“. Die Auswahl filtert das **Monatsraster, die Tagesdetails, die angezeigte Arbeitszeit und den Pool „Ohne Arbeitstag“** zugleich.
+- **Erledigte anzeigen**: Standardmäßig aus. Bei Aktivierung erscheinen erledigte datierte Unteraufgaben an ihrem **ursprünglichen Arbeitstag** und abgeschlossene einmalige Aufgaben am **tatsächlichen Abschlusstag** in Grün. Bereits abgeschlossene Schritte werden weiterhin **nicht zur Arbeitsbelastung gezählt**. Frühere Durchläufe wiederkehrender Aufgaben werden nicht als vollständige historische Kalenderreihe ausgegeben.
+
+Die Filter sind vorübergehend nur in der Kalenderansicht aktiv und verändern keine Cloud-Einstellungen. Bestehende Aufgaben, IDs, Deadlines, Vorlagen, Wochenplanungen und JSON-Sicherungen bleiben unverändert. **Schema v6, keine Migration und kein zusätzlicher Dienst.**
 
 ## Kalender direkt beplanen (v1.7)
 
@@ -235,7 +251,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.7.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.8.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
