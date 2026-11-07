@@ -33,10 +33,11 @@ export function calendarDaysBetween(from: string, to: string): number {
 }
 
 export function planningAfterDeadline(task: Task): boolean {
-  return !!task.deadlineDate && (
-    (!!task.scheduledDate && task.scheduledDate > deadlineWorkday(task.deadlineDate)) ||
-    (task.subtasks??[]).some(step=>!step.completed&&!!step.plannedDate&&step.plannedDate>deadlineWorkday(task.deadlineDate))
-  );
+  const deadline=task.deadlineDate;
+  if (!deadline) return false;
+  const lastDay=deadlineWorkday(deadline);
+  return (!!task.scheduledDate && task.scheduledDate > lastDay) ||
+    (task.subtasks??[]).some(step=>!step.completed&&!!step.plannedDate&&step.plannedDate>lastDay);
 }
 
 export function deadlineCountdown(deadline: string, today: string): string {
