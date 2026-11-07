@@ -95,6 +95,26 @@ describe('Unteraufgaben sortieren, einklappen und verschieben',()=>{
   await user.click(within(dialog).getByRole('button',{name:/Vorlage speichern/}));
   expect(saved().templates[0].steps).toEqual([tpl.steps[0],tpl.steps[2],tpl.steps[1]]);
  });
+ it('accepts drag-and-drop reorder in the template editor without changing step text',async()=>{
+  const tpl:TaskTemplate={id:'tpl-drag',name:'Korrektur',description:'',
+   steps:['Schritt A','Schritt B','Schritt C'],createdAt:stamp,updatedAt:stamp};
+  localStorage.setItem(STORAGE_KEY,JSON.stringify({...emptyData(),templates:[tpl]}));
+  const user=userEvent.setup();render(<App/>);
+  await user.click(screen.getByRole('button',{name:'Vorlagen'}));
+  await user.click(screen.getByRole('button',{name:'Bearbeiten'}));
+  const dialog=screen.getByRole('dialog',{name:'Vorlage bearbeiten'});
+  const dataTransfer={effectAllowed:'none',dropEffect:'none',setData:vi.fn(),getData:vi.fn()};
+  const source=within(dialog).getByRole('button',{name:'Unteraufgabe 3 ziehen'});
+  const target=within(dialog).getByLabelText('Unteraufgabe 1').closest('.template-visual-row')!;
+  fireEvent.dragStart(source,{dataTransfer});
+  fireEvent.dragOver(target,{dataTransfer});
+  fireEvent.drop(target,{dataTransfer});
+  fireEvent.dragEnd(source,{dataTransfer});
+  expect(within(dialog).getByLabelText('Unteraufgabe 1')).toHaveValue('Schritt C');
+  await user.click(within(dialog).getByRole('button',{name:/Vorlage speichern/}));
+  expect(saved().templates[0].steps).toEqual(['Schritt C','Schritt A','Schritt B']);
+ });
+
  it('saves draft changes first when transferring from an open task editor',async()=>{
   setup();const user=userEvent.setup();render(<App/>);
   await waitFor(()=>expect(screen.getByText('Klassenarbeit')).toBeInTheDocument());
