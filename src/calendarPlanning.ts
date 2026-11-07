@@ -27,19 +27,19 @@ export interface CalendarPlanReceipt {
  key:string;taskId:string;subtaskId?:string;previousDate:string|null;
  previousPlannedDate?:string|null;
  previousOffset?:SubtaskOffset;
- resultDate:string;resultVersion:string;title:string;
+ resultDate:string|null;resultVersion:string;title:string;
 }
 export interface CalendarPlanResult {status:CalendarPlanStatus;data:AppData;receipt?:CalendarPlanReceipt}
 
 /** The only calendar move commit path, shared by dragging, click-to-plan and date inputs. */
 export function scheduleCalendarWork(
- data:AppData,key:string,expectedVersion:string,newDate:string,at=new Date()
+ data:AppData,key:string,expectedVersion:string,newDate:string|null,at=new Date()
 ):CalendarPlanResult {
- if(!isValidDate(newDate))return {status:'invalid',data};
+ if(newDate!==null&&!isValidDate(newDate))return {status:'invalid',data};
  const source=findPlanningEntry(data.tasks,key);
  if(!source)return {status:'invalid',data};
  if(source.version!==expectedVersion)return {status:'conflict',data};
- if(source.entry.date===newDate)return {status:'unchanged',data};
+ if((source.entry.date||null)===newDate)return {status:'unchanged',data};
  const {taskId,subtaskId,title,date}=source.entry;
  const parent=data.tasks.find(t=>t.id===taskId)!;
  const step=subtaskId?parent.subtasks?.find(s=>s.id===subtaskId):undefined;
@@ -63,7 +63,7 @@ export function undoCalendarSchedule(data:AppData,receipt:CalendarPlanReceipt,at
  let changed:Task;
  if(receipt.subtaskId){
   const step=parent.subtasks?.find(s=>s.id===receipt.subtaskId);
-  if(!step||step.completed||step.plannedDate!==receipt.resultDate||step.offset!==undefined)
+  if(!step||step.completed||(step.plannedDate??null)!==receipt.resultDate||step.offset!==undefined)
    return {status:'conflict',data};
   changed={...parent,updatedAt:timestamp,
    subtasks:parent.subtasks?.map(s=>s.id===receipt.subtaskId
