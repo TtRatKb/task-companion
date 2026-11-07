@@ -55,7 +55,7 @@ describe('cloud conflict policy', () => {
 
   it('does not unnecessarily write equivalent snapshots', () => {
     expect(resolveInitial(uid, cloudData, cloud, null)).toBe('already-equal');
-    expect(sameData({ ...cloudData, schemaVersion: 4 }, cloudData)).toBe(true);
+    expect(sameData({ ...cloudData, schemaVersion: 5 }, cloudData)).toBe(true);
   });
 
   it('considers event history when checking for unsynced data', () => {
