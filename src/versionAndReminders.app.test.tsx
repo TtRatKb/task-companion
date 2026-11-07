@@ -40,9 +40,9 @@ describe('Version & Benachrichtigungen', () => {
   it('shows the exact release and build identity in the sidebar and settings', async () => {
     const user = userEvent.setup();
     render(<App />);
-    expect(screen.getByText(/v0\.7\.0 · Build /)).toBeInTheDocument();
+    expect(screen.getByText(/v0\.8\.0 · Build /)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Daten & Einstellungen' }));
-    expect(screen.getByText(/Aktuell installiert: v0\.7\.0 · Build /)).toBeInTheDocument();
+    expect(screen.getByText(/Aktuell installiert: v0\.8\.0 · Build /)).toBeInTheDocument();
   });
 
   it('does not enable notifications until the user explicitly opts in', async () => {
