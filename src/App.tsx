@@ -145,7 +145,7 @@ export default function App(){
      {item.name} · {item.subtaskTitles.length} Schritte</button>)}
    <button className="ghost" type="button" onClick={()=>setShowTemplatePicker(false)}>Schließen</button>
  </div>}
- </>}</div></main></div></main>
+ </>}</div></main>
  {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onSaveAsTemplate={saveAsTemplate} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
  {templateDraft&&<TemplateEditor initial={templateDraft} editing={editingTemplate} onSave={newTemplate}
    onCancel={()=>{setTemplateDraft(undefined);setEditingTemplate(undefined)}}/>}
