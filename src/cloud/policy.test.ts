@@ -55,7 +55,7 @@ describe('cloud conflict policy', () => {
 
   it('does not unnecessarily write equivalent snapshots', () => {
     expect(resolveInitial(uid, cloudData, cloud, null)).toBe('already-equal');
-    expect(sameData({ ...cloudData, schemaVersion: 4 }, cloudData)).toBe(true);
+    expect(sameData({ ...cloudData, schemaVersion: 5 }, cloudData)).toBe(true);
   });
 
   it('considers event history when checking for unsynced data', () => {
@@ -65,6 +65,12 @@ describe('cloud conflict policy', () => {
       previousCompletedAt: null, undoneAt: null
     }] };
     expect(sameData(modified, local)).toBe(false);
+  });
+
+  it('keeps independent week budgets in cloud comparisons and backup decisions', () => {
+    const customized={...emptyData(),weeklyBudgetMinutes:[120,120,60,120,90,0,0]};
+    expect(isEmptyData(customized)).toBe(false);
+    expect(sameData(customized,emptyData())).toBe(false);
   });
 
   it('distinguishes truly empty local state', () => {

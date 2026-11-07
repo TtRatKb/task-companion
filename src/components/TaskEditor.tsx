@@ -15,7 +15,7 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
  onSave:(v:Draft)=>void;onDelete?:()=>void;onClose:()=>void;
  onSaveTemplate?:(draft:Draft)=>void
 }){
- const [v,setV]=useState<Draft>(task?{title:task.title,description:task.description,projectId:task.projectId,priority:task.priority,scheduledDate:task.scheduledDate,deadlineDate:task.deadlineDate,recurrence:task.recurrence,subtasks:task.subtasks?.map(s=>({...s}))??[]}:initialDraft??{...blank,projectId:initialProject??null});
+ const [v,setV]=useState<Draft>(task?{title:task.title,description:task.description,projectId:task.projectId,priority:task.priority,scheduledDate:task.scheduledDate,deadlineDate:task.deadlineDate,recurrence:task.recurrence,estimatedMinutes:task.estimatedMinutes??null,subtasks:task.subtasks?.map(s=>({...s}))??[]}:initialDraft??{...blank,projectId:initialProject??null});
  const [newStep,setNewStep]=useState('');
  const [deadlineChange,setDeadlineChange]=useState<'pending'|'adjust'|'keep'|null>(null);
  const title=useRef<HTMLInputElement>(null);useEffect(()=>title.current?.focus(),[]);
@@ -75,6 +75,12 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
          value={step.plannedDate??''}
          onChange={e=>changeStep(step.id,{plannedDate:e.target.value||null,offset:undefined})}/>
        </label>
+       <label className="subtask-estimate-label">Dauer (Min.)
+        <input type="number" min="0" max="1440" step="5" aria-label={`Dauer Unteraufgabe ${index+1} in Minuten`}
+         value={step.estimatedMinutes??''}
+         onChange={e=>changeStep(step.id,{estimatedMinutes:e.target.value===''?null:Math.max(0,Math.min(1440,Math.round(Number(e.target.value))))})}
+         placeholder="–"/>
+       </label>
        {step.plannedDate && step.plannedDate<todayLocal()&&!step.completed&&
         <span className="subtask-date-past">Termin vorbei</span>}
       </div>
@@ -87,6 +93,12 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
    <div className="form-grid">
     <label>Projekt<select value={v.projectId??''} onChange={e=>setV({...v,projectId:e.target.value||null})}><option value="">Eingang</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
     <label>Priorität<select value={v.priority} onChange={e=>setV({...v,priority:Number(e.target.value) as Priority})}>{[1,2,3,4].map(p=><option key={p} value={p}>P{p}</option>)}</select></label>
+    <label>Geschätzte Dauer (Minuten)
+     <input type="number" min="0" max="1440" step="5" aria-label="Dauer Aufgabe in Minuten"
+      placeholder="Noch nicht geschätzt" value={v.estimatedMinutes??''}
+      onChange={e=>setV({...v,estimatedMinutes:e.target.value===''?null:Math.max(0,Math.min(1440,Math.round(Number(e.target.value))))})}/>
+     <small>Bei zeitlich geschätzten Unteraufgaben zählen deren Zeiten separat. Diese Dauer wird dann nicht zusätzlich gezählt.</small>
+    </label>
     <label>Geplant<input type="date" value={v.scheduledDate??''} onChange={e=>setV({...v,scheduledDate:e.target.value||null})}/></label>
     <label>Deadline · ab diesem Tag benötigt<input type="date" value={v.deadlineDate??''}
      aria-label="Deadline" onChange={e=>changeDeadline(e.target.value||null)}/>

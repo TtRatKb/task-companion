@@ -190,3 +190,15 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Heute-Ansicht zeigt auch Aufgaben, deren noch offene Unteraufgaben jetzt oder früher geplant sind. Unteraufgabentermine sind direkt in Aufgabenzeilen sichtbar.
 - Erweiterung um optionale `Subtask.offset` und `Subtask.plannedDate` bei Migration auf Schema v4. Ältere Clients (v3) dürfen die neuen Felder nicht unbemerkt aus Cloud-Dokumenten entfernen. JSON-Export, -Import und Firestore-Validierung müssen beide Felder erhalten; andere Aufgaben, Vorlagen und historisierte Abschlussdaten bleiben unverändert.
 - No background push without a separately authorized server; bestehende v0.5-Browser-Erinnerungen werden an den tatsächlich letzten Fertigstellungstag angepasst.
+
+
+## 16. Ergänzung v0.9 — Wochenplanung und persönliche Zeitbudgets
+
+- Hauptnavigation enthält **Wochenplanung** (Montag–Sonntag) mit Vor-/Zurücknavigation, aktuellem Wochenknopf und Wochensumme. Jede Woche wird ausschließlich aus ausdrücklich gesetzten Arbeitstagen generiert.
+- Aufgaben und Unteraufgaben können optionale individuelle Aufwandsschätzungen in ganzen Minuten (0–1440) enthalten. Schätzungen sind **keine** festen Uhrzeit-Termine. Unbekannter Aufwand wird ausdrücklich als ungeschätzt markiert.
+- Jede offene, datierte Unteraufgabe erscheint am eigenen Arbeitstag; offene Hauptaufgaben am separaten Aufgaben-Arbeitstag. Abschluss von Aufgabe/Schritt entfernt die künftige Belastung. Die Dauer der Hauptaufgabe wird **nicht nochmals addiert**, wenn mindestens eine offene Unteraufgabe eine eigene Aufwandsschätzung besitzt.
+- Persönliche Zeitbudgets pro Wochentag sind 7 optionale Minutenwerte (Montag–Sonntag). `null` heißt bewusst „kein Budget festgelegt“; `0` heißt „keine verfügbare Zeit“. **Nur mit festgelegtem Budget** zeigt die Ansicht eine Überlastungswarnung, und bei fehlenden Schätzungen sind Gesamtsummen ausdrücklich Mindestwerte.
+- Aufgaben/Schritte lassen sich durch direkte Datumsauswahl verschieben oder entplanen. Hauptdeadlines ändern sich nicht, erledigte Schritte sind nicht bewegbar. Beim Verschieben einer relativ zur Deadline geplanten Unteraufgabe wird vor dem Ablösen des relativen Abstands gefragt; bei geplanten Terminen nach dem letzten Fertigstellungstag gibt es eine zusätzliche Nachfrage.
+- „Ohne Arbeitstag“ zeigt offene, nicht terminierte Aufgaben und Schritte zur schnellen Einplanung. Die UI begrenzt die Zahl sichtbarer Einträge, ohne sie zu löschen.
+- **Schema v5** erweitert Task/Subtask um `estimatedMinutes?: number|null` und AppData um `weeklyBudgetMinutes: (number|null)[]` (genau sieben Einträge). v1–v4 migrieren verlustfrei. Cloud-Sync, validierte JSON-Sicherung und Konfliktauflösung müssen Zeitwerte als normale App-Daten erhalten; ältere Clients dürfen Daten der Version 5 nicht verarbeiten.
+- Keine automatische Aufgabenumverteilung, keine Kalenderintegration, kein Push-Backend und keine Änderung der Deadline-Semantik von v0.8.

@@ -150,3 +150,57 @@
 .replan-review .settings-actions{flex-wrap:wrap}
 .subtask-hint code{font-size:11px;background:#f1ebe5;padding:1px 4px;border-radius:4px}
 @media(max-width:530px){.subtask-schedule-row input[type=date]{max-width:150px}.subtask-edit-row{align-items:flex-start}}
+
+/* v0.9: weekly workload planning with honest estimates and optional budgets */
+.week-planner{max-width:1220px;margin:0 auto;padding-bottom:40px}
+.week-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:17px}
+.week-toolbar h2{font-size:20px;margin:0 0 5px}
+.week-toolbar p,.week-unscheduled-head p{font-size:12px;color:#7b736c;line-height:1.5;margin:0}
+.week-nav{display:flex;align-items:center;gap:5px}
+.week-nav button{border:1px solid #e1dad3;background:#fff;border-radius:7px;padding:6px 10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#564e49;cursor:pointer}
+.week-nav button:hover{background:#f8f3ee}
+.week-range{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.week-range strong{font-size:14px;color:#4a433d}
+.week-range span{font-size:12px;color:#756e66}
+.week-budget-hint{display:flex;gap:7px;align-items:flex-start;font-size:12px;color:#77706a;line-height:1.5;margin:0 0 20px;max-width:850px}
+.week-budget-hint svg{flex:none;margin-top:1px}
+.week-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.week-day{min-width:0;border:1px solid #e6e0da;border-radius:12px;background:#fff;padding:14px;display:flex;flex-direction:column;gap:9px}
+.week-day.is-today{border-color:#bd6c60}
+.week-day.over-capacity{border-color:#c98573}
+.week-day-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.week-day-title{font-weight:700;font-size:13px}
+.week-today-chip{background:#efe3dc;border-radius:5px;padding:2px 6px;color:#a2453d;font-size:10px}
+.week-load{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.week-load strong{font-size:19px;font-variant-numeric:tabular-nums}
+.week-load>span{font-size:11px;color:#827971}
+.week-budget-bar{height:5px;background:#ece9e4;border-radius:20px;overflow:hidden}
+.week-budget-bar span{display:block;height:100%;background:#79a08a;transition:width .15s ease}
+.week-day.over-capacity .week-budget-bar span{background:#c97f61}
+.week-overload{color:#aa4838;font-size:11px;display:flex;align-items:center;gap:4px;margin:0}
+.week-unknown{font-size:11px;color:#8b827b}
+.week-capacity{display:flex;align-items:center;gap:8px;font-size:11px;color:#777068;font-weight:500}
+.week-capacity input{width:75px;padding:5px;border:1px solid #dad4ce;border-radius:6px;background:#fff;font-size:12px}
+.week-day-entries{border-top:1px solid #f0ebe6;margin-top:4px;padding-top:8px;display:grid;gap:9px}
+.week-day-empty{font-size:12px;color:#918983;margin:7px 0;font-style:italic}
+.week-entry{border:1px solid #ebe6e0;background:#fcfbfa;border-radius:9px;padding:9px;display:flex;align-items:flex-start;gap:9px;justify-content:space-between;min-width:0}
+.week-entry-text{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.week-entry-title{display:block;border:0;background:transparent;padding:0;text-align:left;font-size:12px;color:#514945;font-weight:650;cursor:pointer;overflow-wrap:anywhere}
+.week-entry-title:hover{text-decoration:underline}
+.week-entry-text>small{font-size:11px;color:#8b817a}
+.week-entry-meta{display:flex;flex-wrap:wrap;gap:5px 10px;font-size:10px;color:#847b73}
+.week-entry-meta>span{display:flex;align-items:center;gap:4px}
+.week-entry-meta .week-late-plan{color:#b04838}
+.week-unsized{color:#999189;font-style:italic}
+.week-move-label{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:9px;color:#8b827b;flex:none}
+.week-move-label input{width:117px;padding:4px 5px;border:1px solid #e3dcd5;border-radius:5px;background:#fff;font-size:10px;color:#655c56}
+.week-unscheduled{margin-top:25px;border-top:1px solid #e9e4de;padding-top:20px}
+.week-unscheduled-head{margin-bottom:15px}
+.week-unscheduled-head h3{font-size:16px;margin:0 0 5px}
+.week-unscheduled-head h3 small{font-size:11px;color:#837a73;margin-left:5px}
+.week-unplanned-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.subtask-estimate-label{display:inline-flex;align-items:center;gap:6px!important;margin:0!important;font-size:11px;color:#766c65}
+.subtask-estimate-label input{padding:3px 5px;width:70px;border:1px solid #ddd6d0;border-radius:5px;font-size:11px}
+@media(min-width:1200px){.week-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:810px){.week-grid,.week-unplanned-list{grid-template-columns:1fr}}
+@media(max-width:510px){.week-entry{flex-direction:column}.week-move-label{flex-direction:row;align-items:center;align-self:flex-end}.week-budget-hint{font-size:11px}.week-toolbar h2{font-size:18px}}
