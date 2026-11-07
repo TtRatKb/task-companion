@@ -67,6 +67,12 @@ describe('cloud conflict policy', () => {
     expect(sameData(modified, local)).toBe(false);
   });
 
+  it('keeps independent week budgets in cloud comparisons and backup decisions', () => {
+    const customized={...emptyData(),weeklyBudgetMinutes:[120,120,60,120,90,0,0]};
+    expect(isEmptyData(customized)).toBe(false);
+    expect(sameData(customized,emptyData())).toBe(false);
+  });
+
   it('distinguishes truly empty local state', () => {
     expect(isEmptyData(emptyData())).toBe(true);
     expect(isEmptyData(local)).toBe(false);
