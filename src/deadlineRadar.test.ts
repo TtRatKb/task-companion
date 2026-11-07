@@ -26,14 +26,17 @@ describe('Deadline-Radar', () => {
 
   it('recognizes deadline states, including exact seven-day boundary', () => {
     expect(deadlineState('2026-11-05', today)).toBe('overdue');
-    expect(deadlineState(today, today)).toBe('today');
+    expect(deadlineState(today, today)).toBe('overdue');
+    expect(deadlineState('2026-11-07', today)).toBe('today');
     expect(deadlineState('2026-11-07', today)).toBe('soon');
     expect(deadlineState('2026-11-13', today)).toBe('soon');
-    expect(deadlineState('2026-11-14', today)).toBe('later');
-    expect(deadlineCountdown(today, today)).toBe('Heute fällig');
-    expect(deadlineCountdown('2026-11-05', today)).toBe('Seit gestern überfällig');
-    expect(deadlineCountdown('2026-11-04', today)).toBe('2 Tage überfällig');
-    expect(deadlineCountdown('2026-11-07', today)).toBe('Morgen fällig');
+    expect(deadlineState('2026-11-14', today)).toBe('soon');
+    expect(deadlineState('2026-11-15', today)).toBe('later');
+    expect(deadlineCountdown(today, today)).toBe('Seit gestern fertig sein müssen');
+    expect(deadlineCountdown('2026-11-05', today)).toBe('2 Tage überfällig');
+    expect(deadlineCountdown('2026-11-04', today)).toBe('3 Tage überfällig');
+    expect(deadlineCountdown('2026-11-07', today)).toBe('Heute fertigstellen');
+    expect(deadlineCountdown('2026-11-08', today)).toBe('Morgen fertigstellen');
   });
 
   it('puts urgent deadlines ahead of the planned day, without mutating scheduledDate', () => {
@@ -66,6 +69,20 @@ describe('Deadline-Radar', () => {
     expect(displayed).not.toContain('future-scheduled');
   });
 
+  it('shows parents with a due relative subtask in Today, without changing the parent task', () => {
+    const input = task('Klassenarbeit', {
+      deadlineDate: '2026-11-27',
+      subtasks: [
+        {id:'step1',title:'Aufgaben vorbereiten',completed:false,plannedDate:today,offset:{amount:3,unit:'weeks'}},
+        {id:'step2',title:'Material kopieren',completed:false,plannedDate:'2026-11-26',offset:{amount:1,unit:'days'}}
+      ]
+    });
+    const groups=todayRadarGroups([input],today);
+    expect(groups.find(g=>g.key==='planned')?.tasks).toEqual([input]);
+    expect(groups.flatMap(g=>g.tasks).filter(t=>t.id===input.id)).toHaveLength(1);
+    expect(input.scheduledDate).toBeNull();
+  });
+
   it('limits voluntary suggestions to three and prefers priority', () => {
     const tasks = ['a', 'b', 'c', 'd', 'e'].map((name, index) => task(name, { priority: (index % 4 + 1) as Task['priority'] }));
     const suggestions = todayRadarGroups(tasks, today).find(g => g.key === 'optional')!.tasks;
@@ -84,7 +101,7 @@ describe('Deadline-Radar', () => {
   it('lists every deadline exactly once in deadline overview, ordered by urgency', () => {
     const tasks = [
       task('later', { deadlineDate: '2026-11-30' }),
-      task('today', { deadlineDate: today }),
+      task('today', { deadlineDate: addDays(today, 1) }),
       task('soon', { deadlineDate: '2026-11-09' }),
       task('overdue', { deadlineDate: '2026-11-02' }),
       task('undated'),
@@ -99,7 +116,7 @@ describe('Deadline-Radar', () => {
     const tasks = [
       task('bad', { scheduledDate: addDays(today, 3), deadlineDate: addDays(today, 2) }),
       task('good', { scheduledDate: addDays(today, 1), deadlineDate: addDays(today, 2) }),
-      task('no-schedule', { deadlineDate: today })
+      task('no-schedule', { deadlineDate: addDays(today, 1) })
     ];
     expect(deadlineOverview(tasks, today)).toEqual({ overdue: 0, today: 1, soon: 2, planningConflicts: 1 });
   });
