@@ -28,6 +28,9 @@ export function AppShortcutRail({view}:{view:View}){
    <p>Klicke auf einen Kalendertag für die Details. Dort kannst du Aufgaben öffnen, Arbeitstage ändern oder eine neue Aufgabe für diesen Tag erfassen.</p>
    <p><b>Neu:</b> Unter „Ohne Arbeitstag“ einen Schritt am Griff auf den gewünschten Tag ziehen – oder erst „Tag wählen“ anklicken und dann den Kalendertag. <kbd>Esc</kbd> bricht die Auswahl ab.</p>
    <p>Auch bereits geplante Aufgaben lassen sich aus den Tagesdetails neu zuordnen. Ein versehentlicher Schritt lässt sich direkt rückgängig machen.</p>
+   <p>In den Tagesdetails kannst du Unteraufgaben und ganze Aufgaben direkt <b>abhaken</b>. Über <b>Rückgängig</b> lässt sich ein versehentliches Häkchen zurücknehmen.</p>
+   <p>Mit <b>Projekt</b> blendest du andere Bereiche aus. <b>Erledigte anzeigen</b> macht abgeschlossene Schritte sichtbar – diese zählen nicht mehr zur geplanten Arbeitszeit.</p>
+   <p>Bei wiederkehrenden Aufgaben können Häkchen für die nächste Runde zurückgesetzt werden. Die App fragt bei vorhandenen Einzelterminen oder Deadlines vorher nach.</p>
    <p>Relative Terminverschiebungen und Planungen nach der Deadline benötigen deine ausdrückliche Bestätigung.</p>
   </section>}
   {templates&&<section>
