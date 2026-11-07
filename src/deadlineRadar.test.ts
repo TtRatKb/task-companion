@@ -10,7 +10,7 @@ const today = '2026-11-06'; // Friday
 function task(id: string, changes: Partial<Task> = {}): Task {
   return {
     id, title: id, description: '', projectId: null, priority: 4,
-    scheduledDate: null, deadlineDate: null, recurrence: null,
+    scheduledDate: null, deadlineDate: null, recurrence: null, subtasks: [],
     completedAt: null, createdAt: '2026-11-01T11:00:00Z',
     updatedAt: '2026-11-01T11:00:00Z', ...changes
   };
