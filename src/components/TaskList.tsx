@@ -41,7 +41,7 @@ export function TaskList({
           </span>}
           {task.deadlineDate && <span className={`deadline deadline-${deadlineClass}`}>
             <Flag aria-hidden="true" />
-            {deadlineCountdown(task.deadlineDate, today)} · {formatDate(task.deadlineDate)}
+            {deadlineCountdown(task.deadlineDate, today)} · benötigt {formatDate(task.deadlineDate)}
           </span>}
           {task.recurrence && <span>
             <RotateCw aria-hidden="true" />{recurrenceLabel(task.recurrence)}
@@ -59,7 +59,12 @@ export function TaskList({
        <div className="subtask-meter" aria-hidden="true"><span style={{width:`${checklist.done/checklist.total*100}%`}}/></div>
        {(task.subtasks??[]).map(step=><label key={step.id} className={step.completed?'subtask-line done':'subtask-line'}>
         <input type="checkbox" checked={step.completed} disabled={!onToggleSubtask} onChange={()=>onToggleSubtask?.(task.id,step.id)}/>
-        <span>{step.title}</span>
+        <span>{step.title}
+         {step.plannedDate&&<small className={step.plannedDate<=today&&!step.completed?'subtask-date-due':'subtask-date-future'}>
+          {step.plannedDate<today&&!step.completed?'Geplant war ':step.plannedDate===today&&!step.completed?'Heute geplant · ':'Geplant '}
+          {formatDate(step.plannedDate)}
+         </small>}
+        </span>
        </label>)}
       </div>}
     </article>;
