@@ -1,13 +1,13 @@
 import {beforeEach,describe,expect,it} from 'vitest';import {LocalTaskRepository,STORAGE_KEY} from './repository';
 const v1={schemaVersion:1,tasks:[{id:'stable',title:'Alt',description:'',projectId:null,priority:2,scheduledDate:'2026-11-09',deadlineDate:'2026-11-20',recurrence:{kind:'weekly',weekday:1},completedAt:null,createdAt:'x',updatedAt:'x'}],projects:[],completionEvents:[{id:'e1',taskId:'stable',occurredAt:'2026-11-02T09:00:00Z',previousScheduledDate:'2026-11-02',resultingScheduledDate:'2026-11-09',undoneAt:null}]};
-describe('v5-Migration',()=>{beforeEach(()=>localStorage.clear());it('migriert v1 idempotent mit IDs und Historie',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));const repo=new LocalTaskRepository(),first=repo.load(),second=repo.parseImport(repo.export(first));expect(second).toEqual(first);expect(first).toMatchObject({schemaVersion:5,tasks:[{id:'stable',deadlineDate:'2026-11-20',recurrence:{kind:'weekdays',weekdays:[1]}}],completionEvents:[{id:'e1',taskId:'stable'}]})});it('überschreibt alten Speicher beim Laden nicht',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));new LocalTaskRepository().load();expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).schemaVersion).toBe(1)});it('ungültiger Import ändert nichts',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));expect(()=>new LocalTaskRepository().parseImport('{}')).toThrow();expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).tasks[0].id).toBe('stable')})});
+describe('v6-Migration',()=>{beforeEach(()=>localStorage.clear());it('migriert v1 idempotent mit IDs und Historie',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));const repo=new LocalTaskRepository(),first=repo.load(),second=repo.parseImport(repo.export(first));expect(second).toEqual(first);expect(first).toMatchObject({schemaVersion:6,tasks:[{id:'stable',deadlineDate:'2026-11-20',recurrence:{kind:'weekdays',weekdays:[1]}}],completionEvents:[{id:'e1',taskId:'stable'}]})});it('überschreibt alten Speicher beim Laden nicht',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));new LocalTaskRepository().load();expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).schemaVersion).toBe(1)});it('ungültiger Import ändert nichts',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));expect(()=>new LocalTaskRepository().parseImport('{}')).toThrow();expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).tasks[0].id).toBe('stable')})});
 
-describe('v5 checklists and template backups',()=>{
+describe('v6 checklists and template backups',()=>{
  beforeEach(()=>localStorage.clear());
  it('imports schema v2, preserves task IDs and adds empty checklists',()=>{
   const older={...v1,schemaVersion:2,tasks:[{...v1.tasks[0],recurrence:{kind:'weekdays',weekdays:[1,3]}}]};
   const migrated=new LocalTaskRepository().parseImport(JSON.stringify(older));
-  expect(migrated.schemaVersion).toBe(5);
+  expect(migrated.schemaVersion).toBe(6);
   expect(migrated.tasks[0]).toMatchObject({id:'stable',subtasks:[],recurrence:{kind:'weekdays',weekdays:[1,3]}});
   expect(migrated.templates).toEqual([]);
  });
@@ -25,11 +25,11 @@ describe('v5 checklists and template backups',()=>{
    tasks:[{id:'old',title:'Alt',description:'',projectId:null,priority:4,scheduledDate:null,deadlineDate:'2026-11-10',recurrence:null,completedAt:null,createdAt:'x',updatedAt:'x',
      subtasks:[{id:'s1',title:'Kopieren',completed:false}]}]};
   const updated=new LocalTaskRepository().parseImport(JSON.stringify(previous));
-  expect(updated.schemaVersion).toBe(5);
+  expect(updated.schemaVersion).toBe(6);
   expect(updated.tasks[0].subtasks?.[0].id).toBe('s1');
  });
  it('does not accept a future schema version that this client cannot understand',()=>{
-  const future={...new LocalTaskRepository().load(),schemaVersion:6};
+  const future={...new LocalTaskRepository().load(),schemaVersion:7};
   expect(()=>new LocalTaskRepository().parseImport(JSON.stringify(future))).toThrow();
  });
  it('migrates the v4 cloud format and retains timing information',()=>{
@@ -40,7 +40,7 @@ describe('v5 checklists and template backups',()=>{
     subtasks:[{id:'s1',title:'Kopieren',completed:false,plannedDate:'2026-11-08',offset:{amount:2,unit:'days'}}]}]};
   delete (previous as {weeklyBudgetMinutes?:unknown}).weeklyBudgetMinutes;
   const updated=new LocalTaskRepository().parseImport(JSON.stringify(previous));
-  expect(updated.schemaVersion).toBe(5);
+  expect(updated.schemaVersion).toBe(6);
   expect(updated.tasks[0].subtasks?.[0].offset).toEqual({amount:2,unit:'days'});
   expect(updated.weeklyBudgetMinutes).toEqual([null,null,null,null,null,null,null]);
  });
@@ -66,6 +66,52 @@ describe('v5 checklists and template backups',()=>{
    createdAt:'x',updatedAt:'x',estimatedMinutes:-30}]};
   expect(()=>repo.parseImport(JSON.stringify(invalidDuration))).toThrow();
   expect(repo.load().tasks).toEqual([]);
+ });
+ it('upgrades v5 data without changing old weekday recurrence, checklists or templates',()=>{
+  const repo=new LocalTaskRepository();
+  const previous={...repo.load(),schemaVersion:5,
+   tasks:[{id:'stable-old',title:'Schulroutine',description:'',projectId:null,priority:2,
+    scheduledDate:'2026-11-07',deadlineDate:'2026-11-15',
+    recurrence:{kind:'weekdays',weekdays:[1,3,5]},completedAt:null,
+    createdAt:'x',updatedAt:'x',
+    subtasks:[{id:'sub',title:'Kopieren',completed:true,plannedDate:'2026-11-06'}]}],
+   templates:[{id:'tpl',name:'Klausur',description:'',steps:['Aufgaben schreiben'],createdAt:'x',updatedAt:'x'}]};
+  const updated=repo.parseImport(JSON.stringify(previous));
+  expect(updated.schemaVersion).toBe(6);
+  expect(updated.tasks[0]).toMatchObject({id:'stable-old',deadlineDate:'2026-11-15',
+   recurrence:{kind:'weekdays',weekdays:[1,3,5]},subtasks:[{id:'sub',completed:true}]});
+  expect(updated.templates).toEqual(previous.templates);
+ });
+ it('round-trips daily weekly and monthly interval rules to local storage and backup',()=>{
+  const repo=new LocalTaskRepository(),data=repo.load();
+  const base={id:'a',title:'Test',description:'',projectId:null,priority:3,
+   scheduledDate:'2026-11-15',deadlineDate:null,completedAt:null,createdAt:'x',updatedAt:'x'};
+  data.tasks=[
+   {...base,id:'days',recurrence:{kind:'interval',unit:'days',every:3,anchorDate:'2026-11-07'}},
+   {...base,id:'weeks',recurrence:{kind:'interval',unit:'weeks',every:2,anchorDate:'2026-11-15'}},
+   {...base,id:'months',recurrence:{kind:'interval',unit:'months',every:1,anchorDate:'2026-10-31'}}
+  ] as typeof data.tasks;
+  repo.save(data);
+  expect(repo.load()).toEqual({...data,tasks:data.tasks.map(t=>({...t,subtasks:[]}))});
+  expect(repo.parseImport(repo.export(data))).toEqual(repo.load());
+ });
+ it('rejects invalid or unfamiliar recurrence rules before overwriting local/cloud data',()=>{
+  const repo=new LocalTaskRepository();const data=repo.load();
+  const old={...data,tasks:[{id:'a',title:'Test',description:'',projectId:null,priority:2,
+   scheduledDate:'2026-11-07',deadlineDate:null,completedAt:null,createdAt:'x',updatedAt:'x',
+   recurrence:{kind:'interval',every:2,unit:'weeks',anchorDate:'2026-11-07'}}]};
+  repo.save(repo.parseImport(JSON.stringify(old)));
+  for(const bad of [
+   {kind:'interval',every:0,unit:'weeks',anchorDate:'2026-11-07'},
+   {kind:'interval',every:1.5,unit:'days',anchorDate:'2026-11-07'},
+   {kind:'interval',every:2,unit:'hours',anchorDate:'2026-11-07'},
+   {kind:'interval',every:2,unit:'months',anchorDate:'2026-02-31'},
+   {kind:'weekly2',weekdays:[2,4]}
+  ]){
+   const invalid={...old,tasks:[{...old.tasks[0],recurrence:bad}]};
+   expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow();
+  }
+  expect(repo.load().tasks[0].recurrence).toEqual(old.tasks[0].recurrence);
  });
  it('rejects unsafe offsets without modifying local content',()=>{
   const task={id:'test',title:'Unverändert',description:'',projectId:null,priority:4,scheduledDate:null,deadlineDate:null,recurrence:null,completedAt:null,createdAt:'x',updatedAt:'x',
