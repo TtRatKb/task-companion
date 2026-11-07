@@ -1,5 +1,6 @@
 import { calendarDaysBetween, isOpenTask } from './deadlineRadar';
 import { todayLocal } from './date';
+import { deadlineWorkday } from './relativePlanning';
 import type { Task } from './types';
 
 export const REMINDER_SETTINGS_KEY = 'task-companion:reminder-settings-v1';
@@ -79,7 +80,7 @@ export function remindersDue(
   const today = todayLocal(now);
   return tasks.filter(task => isOpenTask(task) && task.deadlineDate !== null)
     .flatMap(task => {
-      const daysUntil = calendarDaysBetween(today, task.deadlineDate!);
+      const daysUntil = calendarDaysBetween(today, deadlineWorkday(task.deadlineDate!));
       if (!settings.leadDays.includes(daysUntil)) return [];
       if (task.completedAt && task.recurrence &&
           todayLocal(new Date(task.completedAt)) === today) return [];
@@ -96,7 +97,7 @@ export function remindersDue(
 }
 
 export function reminderText(daysUntil: number): string {
-  if (daysUntil === 0) return 'Die Deadline ist heute.';
-  if (daysUntil === 1) return 'Die Deadline ist morgen.';
-  return `Die Deadline ist in ${daysUntil} Tagen.`;
+  if (daysUntil === 0) return 'Heute fertigstellen – ab morgen muss alles bereit sein.';
+  if (daysUntil === 1) return 'Morgen fertigstellen – anschließend muss alles bereit sein.';
+  return `Noch ${daysUntil} Tage bis zum letzten Fertigstellungstag.`;
 }

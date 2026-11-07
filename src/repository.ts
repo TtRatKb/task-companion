@@ -13,7 +13,24 @@ const safeRecord=(v:unknown):Record<string,unknown>=>{
 function parseSubtasks(value:unknown):Subtask[]{
  if(value===undefined)return [];
  if(!Array.isArray(value))throw new Error('Ungültige Unteraufgaben.');
- const items=value.map(item=>{const s=safeRecord(item);if(typeof s.id!=='string'||!s.id||typeof s.title!=='string'||!s.title.trim()||typeof s.completed!=='boolean')throw new Error('Ungültige Unteraufgabe.');return{id:s.id,title:s.title,completed:s.completed}});
+ const items=value.map(item=>{
+  const s=safeRecord(item);
+  if(typeof s.id!=='string'||!s.id||typeof s.title!=='string'||!s.title.trim()||typeof s.completed!=='boolean')
+   throw new Error('Ungültige Unteraufgabe.');
+  let offset:Subtask['offset'];
+  if(s.offset!==undefined&&s.offset!==null){
+   const o=safeRecord(s.offset);
+   if(typeof o.amount!=='number'||!Number.isInteger(o.amount)||o.amount<1||o.amount>999||
+      !['days','weeks','months'].includes(String(o.unit)))
+    throw new Error('Ungültiger relativer Termin einer Unteraufgabe.');
+   offset={amount:Number(o.amount),unit:o.unit as 'days'|'weeks'|'months'};
+  }
+  if(s.plannedDate!==undefined&&!dateOrNull(s.plannedDate))
+   throw new Error('Ungültiges Datum einer Unteraufgabe.');
+  return{id:s.id,title:s.title,completed:s.completed,
+   ...(offset?{offset}:{}),
+   ...(s.plannedDate!==undefined?{plannedDate:s.plannedDate as string|null}:{})};
+ });
  if(new Set(items.map(s=>s.id)).size!==items.length)throw new Error('Doppelte Unteraufgaben-ID.');
  return items;
 }
@@ -31,7 +48,7 @@ function parseTemplates(value:unknown):TaskTemplate[]{
 }
 export function migrateData(value:unknown):AppData{
  const raw=safeRecord(value);
- if(raw.schemaVersion!==1&&raw.schemaVersion!==2&&raw.schemaVersion!==3)throw new Error('Nicht unterstützte Datenversion.');
+ if(raw.schemaVersion!==1&&raw.schemaVersion!==2&&raw.schemaVersion!==3&&raw.schemaVersion!==4)throw new Error('Nicht unterstützte Datenversion.');
  if(!Array.isArray(raw.tasks)||!Array.isArray(raw.projects)||!Array.isArray(raw.completionEvents))throw new Error('Unvollständige Sicherung.');
  const tasks=raw.tasks.map((item):Task=>{
   const t=safeRecord(item);let days:number[]=[];
@@ -56,9 +73,9 @@ export function migrateData(value:unknown):AppData{
   if(typeof e.id!=='string'||typeof e.taskId!=='string'||typeof e.occurredAt!=='string'||!dateOrNull(e.previousScheduledDate)||!dateOrNull(e.resultingScheduledDate)||!nullableString(e.undoneAt))throw new Error('Ungültiger Abschluss.');
   return{id:e.id,taskId:e.taskId,occurredAt:e.occurredAt,previousScheduledDate:e.previousScheduledDate as string|null,resultingScheduledDate:e.resultingScheduledDate as string|null,previousCompletedAt:nullableString(e.previousCompletedAt)?e.previousCompletedAt as string|null:null,undoneAt:e.undoneAt as string|null,previousSubtasks:e.previousSubtasks===undefined?undefined:parseSubtasks(e.previousSubtasks)};
  });
- return{schemaVersion:3,tasks,projects,completionEvents,templates:parseTemplates(raw.templates)};
+ return{schemaVersion:4,tasks,projects,completionEvents,templates:parseTemplates(raw.templates)};
 }
-export function validateData(v:unknown):v is AppData{try{return migrateData(v).schemaVersion===3}catch{return false}}
+export function validateData(v:unknown):v is AppData{try{return migrateData(v).schemaVersion===4}catch{return false}}
 export class LocalTaskRepository implements TaskRepository{
  constructor(private storage:Pick<Storage,'getItem'|'setItem'>=localStorage){}
  load(){const raw=this.storage.getItem(STORAGE_KEY);if(!raw)return emptyData();try{return migrateData(JSON.parse(raw))}catch{throw new Error('Gespeicherte Daten sind beschädigt. Sie wurden nicht überschrieben.')}}

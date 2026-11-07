@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
-import { todayLocal } from './date';
+import { addDays,todayLocal } from './date';
 import { REMINDER_SENT_KEY, REMINDER_SETTINGS_KEY } from './reminders';
 import { emptyData, type Task } from './types';
 import { STORAGE_KEY } from './repository';
@@ -23,7 +23,7 @@ function dueTask(): Task {
   return {
     id: 'test-task', title: 'Wichtige Abgabe', description: '',
     projectId: null, priority: 1, scheduledDate: null,
-    deadlineDate: todayLocal(), recurrence: null, completedAt: null,
+    deadlineDate: addDays(todayLocal(),1), recurrence: null, completedAt: null,
     createdAt: '2026-11-01T10:00:00Z', updatedAt: '2026-11-01T10:00:00Z'
   };
 }
@@ -40,9 +40,9 @@ describe('Version & Benachrichtigungen', () => {
   it('shows the exact release and build identity in the sidebar and settings', async () => {
     const user = userEvent.setup();
     render(<App />);
-    expect(screen.getByText(/v0\.7\.0 · Build /)).toBeInTheDocument();
+    expect(screen.getByText(/v0\.8\.0 · Build /)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Daten & Einstellungen' }));
-    expect(screen.getByText(/Aktuell installiert: v0\.7\.0 · Build /)).toBeInTheDocument();
+    expect(screen.getByText(/Aktuell installiert: v0\.8\.0 · Build /)).toBeInTheDocument();
   });
 
   it('does not enable notifications until the user explicitly opts in', async () => {

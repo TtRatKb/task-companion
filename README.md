@@ -9,12 +9,14 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.7
+## Funktionen in v0.8
 
 - Eingang, Heute, Anstehend (7 Tage), **Deadline-Radar** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Rückwärtsplanung ab der Deadline**: Unteraufgaben können natürliche Zeitabstände wie `2 Wochen vorher`, `14 Tage vorher`, `1 Monat vorher` und `{Deadline} - 3 Tage` enthalten; sie werden einzeln geplant, ohne gleichmäßige Verteilung
+- **Deadline ist der Tag, an dem alles bereits fertig sein muss**: letzter möglicher Fertigstellungstag ist der Vortag; Deadline-Radar und lokale Erinnerungen berücksichtigen das
 - Beispielvorlage für wiederkehrende Klassenarbeitsvorbereitung, zuerst individuell anpassbar
 - Neue Heute-Ansicht: **Unbedingt im Blick**, **Für heute geplant**, **Bald fällig** und **Wenn du noch Zeit hast** – ohne doppelte Aufgaben oder automatische Umplanung
 - Deadline-Radar mit überfälligen, heutigen, in den nächsten 7 Tagen und langfristigen Fristen, visuellen Countdown-Hinweisen und Warnung bei Planung nach Deadline
@@ -46,7 +48,7 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 
 ### Datenmigration
 
-Beim Laden und Importieren werden v1- und v2-Daten automatisch in das aktuelle **v3-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+Beim Laden und Importieren werden v1-, v2- und v3-Daten automatisch in das aktuelle **v4-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
 
 ## Unteraufgaben und Vorlagen
 
@@ -66,11 +68,30 @@ Wenn du die Vorlage verwendest, fragt Task Companion **jede unterschiedliche Ang
 
 Platzhalter werden innerhalb eines Feldes durch `{Name}` gekennzeichnet; eigene Bezeichnungen (z. B. `{Schuljahr}`, `{Lerngruppe}`) sind möglich. Namen berücksichtigen Groß-/Kleinschreibung und können Buchstaben, Zahlen nach dem ersten Zeichen, Bindestriche und Unterstriche enthalten. Das erste Zeichen muss ein Buchstabe oder Unterstrich sein; Leerzeichen im Platzhalternamen sind nicht vorgesehen. Werte werden wörtlich eingesetzt, ohne Befehle auszuführen.
 
-Alternativ kannst du im Aufgabeneditor **Als Vorlage speichern** wählen. Die Vorlage wird separat zur Aufgabe in der versionierten App-Datenbank gespeichert und ist Teil des JSON-Exports und der Cloud-Synchronisation. Das alte v1/v2-Format wird beim Laden/importieren schonend nach **Schema v3** migriert, ohne vorhandene Aufgaben, Termine, Projekte oder IDs zu verlieren.
+Alternativ kannst du im Aufgabeneditor **Als Vorlage speichern** wählen. Die Vorlage wird separat zur Aufgabe in der versionierten App-Datenbank gespeichert und ist Teil des JSON-Exports und der Cloud-Synchronisation. Das alte v1/v2-Format wird beim Laden/importieren schonend nach **Schema v4** migriert, ohne vorhandene Aufgaben, Termine, Projekte oder IDs zu verlieren.
+
+## Rückwärtsplanung (v0.8)
+
+**Deine Deadline bedeutet: An diesem Datum muss die Aufgabe bereits fertig bereitstehen.** Beispiel: „Kompetenz-Checks drucken, Deadline 10.11.“ heißt: Die Checks müssen spätestens am **9.11.** ausgedruckt sein. Das Deadline-Radar zählt darum den letzten Fertigstellungstag, zeigt aber weiterhin das tatsächliche Datum an, an dem das Material benötigt wird. Es verschiebt **keine** Termine automatisch auf Werktage: Wenn der Vortag ein Sonntag ist, wird er zunächst korrekt als Sonntag angezeigt. Das kannst du im Editor manuell vorziehen.
+
+Du kannst die gewünschte Bearbeitungsplanung direkt in den Unteraufgabentext schreiben – entweder im Aufgabeneditor oder in einer wiederverwendbaren Vorlage:
+
+- `Aufgaben zusammenstellen – 2 Wochen vorher`
+- `Erwartungshorizont erstellen 14 Tage vorher`
+- `ClassTime-Aufgaben eintragen – {Deadline} - 7 Tage`
+- `ClassTime-Terminierung prüfen – 3 Tage vorher`
+- `Kompetenz-Checks kopieren – am Vortag`
+- `Layout kontrollieren – einen Monat vorher`
+
+**Wochen** bedeuten exakt 7 Kalendertage, **Monate** werden als echte Kalendermonate gerechnet (31. März minus ein Monat ist der 28./29. Februar). Der Bezugspunkt dieser Formulierungen ist **immer die eingetragene Hauptdeadline**; `{Deadline}` wird automatisch als solcher erkannt und **nicht** als normaler Eingabe-Platzhalter abgefragt. `2 Wochen vorher` und `14 Tage vorher` ergeben dasselbe Datum.
+
+Im Aufgaben-Editor werden die fertigen Termine sofort neben jedem Schritt angezeigt. Jeder Schritt kann auch ein eigenes, direkt eingegebenes Datum erhalten; dann ist er unabhängig von der relativen Planung. Beim erstmaligen Festlegen einer Deadline berechnet die App die angegebenen Abstände automatisch. Bei **nachträglicher Änderung** der Deadline musst du ausdrücklich wählen, ob du relative Unteraufgaben neu berechnen oder bisherige Termine behalten möchtest. Abgehakte Schritte und manuell gewählte Termine bleiben beim Neuberechnen unberührt.
+
+In der Heute-Ansicht werden übergeordnete Aufgaben auch dann eingeblendet, wenn eine **offene Unteraufgabe für heute** geplant ist. Die einzelnen Schritttermine stehen direkt unter den Unteraufgaben. Die bisherige Cloud-Synchronisation und JSON-Backups speichern diese Informationen mit; das erweiterte Schema v4 wird automatisch aus bestehenden v1–v3-Daten erzeugt.
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v0.7.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v0.8.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 

@@ -22,17 +22,17 @@ export function DeadlineRadarSummary({
         <strong>{summary.overdue}</strong><span>Überfällig</span>
       </div>
       <div className={summary.today ? 'radar-stat today' : 'radar-stat'}>
-        <strong>{summary.today}</strong><span>Heute fällig</span>
+        <strong>{summary.today}</strong><span>Heute fertigstellen</span>
       </div>
       <div className="radar-stat"><strong>{summary.soon}</strong><span>Nächste 7 Tage</span></div>
     </div>
     {summary.planningConflicts > 0 &&
       <p className="radar-warning"><AlertTriangle size={16} aria-hidden="true" />
-        Bei {summary.planningConflicts} {summary.planningConflicts === 1 ? 'Aufgabe liegt' : 'Aufgaben liegt'} die Planung nach der Deadline.
+        Bei {summary.planningConflicts} {summary.planningConflicts === 1 ? 'Aufgabe liegt' : 'Aufgaben liegen'} geplante Arbeitsschritte nach dem letzten möglichen Fertigstellungstag.
       </p>}
     {upcoming === 0 && <p className="radar-quiet">Keine überfälligen oder in den nächsten 7 Tagen fälligen Aufgaben. ✨</p>}
     {!compact && <p className="radar-explanation">
-      Die Anzeige betrachtet echte Deadlines, unabhängig davon, für wann du die Bearbeitung geplant hast.
+      Eine Deadline bedeutet: Am eingetragenen Tag muss alles bereits bereit sein. Task Companion setzt deshalb den letzten Fertigstellungstag auf den Vortag.
       Sie erinnert dich <strong>innerhalb der App</strong> – Push-Mitteilungen gibt es noch nicht.
     </p>}
   </section>;

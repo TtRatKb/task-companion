@@ -66,7 +66,7 @@ describe('Deadline-Radar in der Anwendung', () => {
     expect(screen.getByText('Alte Abgabe')).toBeInTheDocument();
     expect(screen.getByText('Spätere Abgabe')).toBeInTheDocument();
     expect(screen.queryByText('Ohne Deadline')).not.toBeInTheDocument();
-    expect(screen.getByText('2 Tage überfällig', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('3 Tage überfällig', { exact: false })).toBeInTheDocument();
 
     const nav = screen.getByRole('navigation', { name: 'Hauptnavigation' });
     expect(within(nav).getByRole('button', { name: /Deadline-Radar/ })).toBeInTheDocument();

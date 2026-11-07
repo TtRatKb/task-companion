@@ -1,4 +1,5 @@
 import type { AppData, Subtask, Task, TaskTemplate } from './types';
+import {parseAndResolveStep,templateStepFromSubtask} from './relativePlanning';
 
 const createId = () => crypto.randomUUID();
 export function checklistProgress(task: Task): { done: number; total: number } {
@@ -16,14 +17,14 @@ export function makeTemplate(name:string, description:string, steps:string[], no
  return {id:createId(),name:name.trim(),description:description.trim(),steps:cleaned,createdAt:now.toISOString(),updatedAt:now.toISOString()};
 }
 export function templateFromTask(task:Task, name=task.title):TaskTemplate {
- return makeTemplate(name,task.description,(task.subtasks??[]).map(s=>s.title));
+ return makeTemplate(name,task.description,(task.subtasks??[]).map(templateStepFromSubtask));
 }
 export function taskFromTemplate(template:TaskTemplate, projectId:string|null, now=new Date()):Task {
  const timestamp=now.toISOString();
  return {id:createId(),title:template.name,description:template.description,projectId,priority:4,
   scheduledDate:null,deadlineDate:null,recurrence:null,completedAt:null,createdAt:timestamp,updatedAt:timestamp,
-  subtasks:template.steps.map(title=>({id:createId(),title,completed:false}))};
+  subtasks:template.steps.map(raw=>({id:createId(),...parseAndResolveStep(raw,null),completed:false}))};
 }
 export function freshSubtask(title:string):Subtask {
- return {id:createId(),title:title.trim(),completed:false};
+ return {id:createId(),...parseAndResolveStep(title,null),completed:false};
 }

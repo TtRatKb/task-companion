@@ -52,7 +52,7 @@ export function ReminderSettings({
   return <section className="reminder-settings" aria-labelledby="reminders-title">
     <h3 id="reminders-title"><Bell size={18} aria-hidden="true" /> Deadline-Erinnerungen</h3>
     <p className="cloud-note">
-      Wähle selbst, wann du vor einer Deadline erinnert werden möchtest.
+      Wähle selbst, wann du vor dem letzten Fertigstellungstag erinnert werden möchtest.
       Die Einstellungen gelten <strong>für diesen Browser</strong>; deine Aufgaben bleiben unverändert.
     </p>
     <div className="reminder-status" aria-live="polite">
@@ -76,7 +76,7 @@ export function ReminderSettings({
         </div>}
     {message && <p role="status" className="reminder-help">{message}</p>}
     <fieldset className="reminder-days">
-      <legend>Erinnern vor der Deadline</legend>
+      <legend>Erinnern vor dem letzten Fertigstellungstag</legend>
       {REMINDER_LEADS.map(days =>
         <label key={days}>
           <input type="checkbox" checked={preferences.leadDays.includes(days)}

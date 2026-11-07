@@ -11,7 +11,7 @@ const now = new Date('2026-11-06T08:10:00Z'); // 09:10 in Berlin (winter).
 function task(id: string, fields: Partial<Task> = {}): Task {
   return {
     id, title: id, description: '', projectId: null, priority: 4,
-    scheduledDate: null, deadlineDate: today, recurrence: null,
+    scheduledDate: null, deadlineDate: addDays(today,1), recurrence: null,
     completedAt: null, createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T08:00:00Z', ...fields
   };
@@ -51,10 +51,10 @@ describe('Deadline-Browser-Erinnerungen', () => {
   it('offers reminders at exactly selected day offsets, never after the deadline', () => {
     const items = [
       task('today'),
-      task('tomorrow', { deadlineDate: addDays(today, 1) }),
-      task('three', { deadlineDate: addDays(today, 3) }),
-      task('seven', { deadlineDate: addDays(today, 7) }),
-      task('five', { deadlineDate: addDays(today, 5) }),
+      task('tomorrow', { deadlineDate: addDays(today, 2) }),
+      task('three', { deadlineDate: addDays(today, 4) }),
+      task('seven', { deadlineDate: addDays(today, 8) }),
+      task('five', { deadlineDate: addDays(today, 6) }),
       task('late', { deadlineDate: addDays(today, -1) })
     ];
     expect(remindersDue(items, now, configured).map(item => item.id))
@@ -80,13 +80,13 @@ describe('Deadline-Browser-Erinnerungen', () => {
     const item = task('test', { scheduledDate: addDays(today, 7) });
     const snapshot = JSON.stringify(item);
     const candidates = remindersDue([item], now, configured);
-    expect(candidates[0].key).toBe('test|2026-11-06|0');
+    expect(candidates[0].key).toBe('test|2026-11-07|0');
     expect(JSON.stringify(item)).toBe(snapshot);
   });
 
   it('contains short, human-readable reminder text', () => {
     expect(reminderText(0)).toMatch(/heute/i);
     expect(reminderText(1)).toMatch(/morgen/i);
-    expect(reminderText(3)).toMatch(/3 Tagen/i);
+    expect(reminderText(3)).toMatch(/3 Tage/i);
   });
 });
