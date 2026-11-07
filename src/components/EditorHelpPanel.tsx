@@ -40,7 +40,7 @@ export function EditorHelpPanel({mode,onInsert}:{
    <p className="editor-help-muted">Klicke zuerst in den Titel oder eine Unteraufgabe. Ein Tipp wird dort am Cursor eingefügt.</p>
    <div className="editor-snippets">
     {snippets.map(snippet=><button key={snippet.label} type="button"
-     className="editor-snippet" onMouseDown={e=>e.preventDefault()}
+     className="editor-snippet" aria-label={snippet.label} onMouseDown={e=>e.preventDefault()}
      onClick={()=>onInsert?.(snippet.value)} title={snippet.description}>
      <code>{snippet.label}</code><small>{snippet.description}</small>
     </button>)}
