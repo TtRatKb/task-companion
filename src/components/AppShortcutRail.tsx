@@ -5,6 +5,7 @@ import type {View} from './Sidebar';
 export function AppShortcutRail({view}:{view:View}){
  const templates=view.kind==='templates';
  const inbox=view.kind==='inbox';
+ const calendar=view.kind==='calendar';
  return <aside className="app-shortcut-rail" aria-label="Kurzanleitung und Shortcuts">
   <header><Keyboard size={17} aria-hidden="true"/>
    <div><strong>Kurzanleitung</strong><small>Immer griffbereit</small></div>
@@ -20,6 +21,12 @@ export function AppShortcutRail({view}:{view:View}){
    <h3><Keyboard size={14} aria-hidden="true"/> Eingang aufräumen</h3>
    <p>Im Inbox-Turbo: <kbd>1</kbd>–<kbd>4</kbd> für Prioritäten, <kbd>H</kbd> heute, <kbd>M</kbd> morgen und <kbd>S</kbd> zum Überspringen.</p>
    <p><kbd>Enter</kbd> speichert und öffnet die nächste Aufgabe.</p>
+  </section>}
+  {calendar&&<section>
+   <h3><CalendarClock size={14} aria-hidden="true"/> Monatskalender lesen</h3>
+   <p><b>Blau</b> zeigt eingeplante Arbeit, <b>Orange</b> den letzten Fertigstellungstag und <b>Rot</b> den Tag, an dem alles bereits benötigt wird.</p>
+   <p>Klicke auf einen Kalendertag für die Details. Dort kannst du Aufgaben öffnen, Arbeitstage ändern oder eine neue Aufgabe für diesen Tag erfassen.</p>
+   <p>Relative Terminverschiebungen und Planungen nach der Deadline benötigen deine ausdrückliche Bestätigung.</p>
   </section>}
   {templates&&<section>
    <h3><BookOpen size={14} aria-hidden="true"/> Vorlagen schreiben</h3>
