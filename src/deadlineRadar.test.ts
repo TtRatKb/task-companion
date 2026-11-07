@@ -28,7 +28,7 @@ describe('Deadline-Radar', () => {
     expect(deadlineState('2026-11-05', today)).toBe('overdue');
     expect(deadlineState(today, today)).toBe('overdue');
     expect(deadlineState('2026-11-07', today)).toBe('today');
-    expect(deadlineState('2026-11-07', today)).toBe('soon');
+    expect(deadlineState('2026-11-08', today)).toBe('soon');
     expect(deadlineState('2026-11-13', today)).toBe('soon');
     expect(deadlineState('2026-11-14', today)).toBe('soon');
     expect(deadlineState('2026-11-15', today)).toBe('later');
