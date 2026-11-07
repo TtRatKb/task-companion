@@ -57,7 +57,7 @@ export function dateBeforeDeadline(deadline:string,offset:SubtaskOffset):string 
 }
 
 export function resolveRelativeSubtasks(subtasks:Subtask[],deadline:string|null):Subtask[] {
- return subtasks.map(step=>step.offset
+ return subtasks.map(step=>step.offset && !step.completed
   ? {...step,plannedDate:deadline?dateBeforeDeadline(deadline,step.offset):null}
   : step);
 }
