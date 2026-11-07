@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
-import { todayLocal } from './date';
+import { addDays,todayLocal } from './date';
 import { REMINDER_SENT_KEY, REMINDER_SETTINGS_KEY } from './reminders';
 import { emptyData, type Task } from './types';
 import { STORAGE_KEY } from './repository';
