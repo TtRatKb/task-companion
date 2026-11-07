@@ -13,7 +13,24 @@ const safeRecord=(v:unknown):Record<string,unknown>=>{
 function parseSubtasks(value:unknown):Subtask[]{
  if(value===undefined)return [];
  if(!Array.isArray(value))throw new Error('Ungültige Unteraufgaben.');
- const items=value.map(item=>{const s=safeRecord(item);if(typeof s.id!=='string'||!s.id||typeof s.title!=='string'||!s.title.trim()||typeof s.completed!=='boolean')throw new Error('Ungültige Unteraufgabe.');return{id:s.id,title:s.title,completed:s.completed}});
+ const items=value.map(item=>{
+  const s=safeRecord(item);
+  if(typeof s.id!=='string'||!s.id||typeof s.title!=='string'||!s.title.trim()||typeof s.completed!=='boolean')
+   throw new Error('Ungültige Unteraufgabe.');
+  let offset:Subtask['offset'];
+  if(s.offset!==undefined&&s.offset!==null){
+   const o=safeRecord(s.offset);
+   if(!Number.isInteger(o.amount)||Number(o.amount)<1||Number(o.amount)>999||
+      !['days','weeks','months'].includes(String(o.unit)))
+    throw new Error('Ungültiger relativer Termin einer Unteraufgabe.');
+   offset={amount:Number(o.amount),unit:o.unit as 'days'|'weeks'|'months'};
+  }
+  if(s.plannedDate!==undefined&&!dateOrNull(s.plannedDate))
+   throw new Error('Ungültiges Datum einer Unteraufgabe.');
+  return{id:s.id,title:s.title,completed:s.completed,
+   ...(offset?{offset}:{}),
+   ...(s.plannedDate!==undefined?{plannedDate:s.plannedDate as string|null}:{})};
+ });
  if(new Set(items.map(s=>s.id)).size!==items.length)throw new Error('Doppelte Unteraufgaben-ID.');
  return items;
 }
