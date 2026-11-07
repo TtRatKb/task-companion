@@ -1,5 +1,5 @@
 import {useMemo,useRef,useState,type DragEvent} from 'react';
-import {AlertTriangle,CalendarCheck2,CalendarClock,CalendarDays,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Clock3,GripVertical,ListTodo,Plus,X} from 'lucide-react';
+import {AlertTriangle,CalendarCheck2,CalendarClock,CalendarDays,Check,CheckCircle2,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Clock3,GripVertical,ListTodo,Plus,X} from 'lucide-react';
 import {formatDate,weekdayShort} from '../date';
 import {deadlineWorkday} from '../relativePlanning';
 import {
@@ -8,6 +8,7 @@ import {
 } from '../monthCalendar';
 import {formatDuration,violatesDeadline} from '../weeklyPlanner';
 import {calendarBacklog,type CalendarPlanStatus,type PlanningEntry} from '../calendarPlanning';
+import type {CalendarExecutionStatus,CalendarExecutionMode} from '../calendarExecution';
 import type {Project,Task} from '../types';
 
 const monthName=(month:string)=>new Intl.DateTimeFormat('de-DE',{
@@ -15,15 +16,22 @@ const monthName=(month:string)=>new Intl.DateTimeFormat('de-DE',{
 }).format(new Date(month+'-01T12:00:00Z'));
 
 export function MonthCalendar({
- tasks,projects,budgets,today,onEdit,onSchedule,onCreate,onOpenWeek
+ tasks,projects,budgets,today,onEdit,onSchedule,onExecute,onCreate,onOpenWeek
 }:{
  tasks:Task[];projects:Project[];budgets:(number|null)[];today:string;
  onEdit:(task:Task)=>void;
  onSchedule:(key:string,expectedVersion:string,date:string|null)=>CalendarPlanStatus;
+ onExecute:(taskId:string,stepId:string|undefined,expectedVersion:string,mode:CalendarExecutionMode)=>CalendarExecutionStatus;
  onCreate:(date:string)=>void;onOpenWeek:()=>void;
 }){
  const [month,setMonth]=useState(today.slice(0,7));
  const [selected,setSelected]=useState(today);
+ const [projectFilter,setProjectFilter]=useState('all');
+ const [showCompleted,setShowCompleted]=useState(false);
+ const [executionError,setExecutionError]=useState('');
+ const visibleTasks=useMemo(()=>projectFilter==='all'?tasks:
+  tasks.filter(task=>projectFilter==='inbox'?task.projectId===null:task.projectId===projectFilter),
+  [tasks,projectFilter]);
  const [choosing,setChoosing]=useState<PlanningEntry|null>(null);
  const [dragging,setDragging]=useState<PlanningEntry|null>(null);
  const [hoverDate,setHoverDate]=useState('');
@@ -31,13 +39,14 @@ export function MonthCalendar({
  const [backlogOpen,setBacklogOpen]=useState(true);
  const [showAllBacklog,setShowAllBacklog]=useState(false);
  const dragRef=useRef<PlanningEntry|null>(null);
- const backlog=useMemo(()=>calendarBacklog(tasks),[tasks]);
+ const backlog=useMemo(()=>calendarBacklog(visibleTasks),[visibleTasks]);
  const shownBacklog=backlog.slice(0,showAllBacklog?30:5);
  const dates=useMemo(()=>monthGridDates(month),[month]);
- const items=useMemo(()=>monthCalendarItems(tasks,month),[tasks,month]);
+ const items=useMemo(()=>monthCalendarItems(visibleTasks,month,showCompleted),[visibleTasks,month,showCompleted]);
  const summary=useMemo(()=>monthCalendarSummary(items,month),[items,month]);
  const chosenItems=useMemo(()=>dayCalendarItems(items,selected),[items,selected]);
  const chosenWork=chosenItems.filter((x):x is Extract<CalendarItem,{kind:'work'}>=>x.kind==='work');
+ const chosenCompleted=chosenItems.filter(item=>item.kind==='done').length;
  const estimated=chosenWork.reduce((n,x)=>n+(x.entry.estimatedMinutes??0),0);
  const missing=chosenWork.filter(x=>x.entry.estimatedMinutes===null).length;
  const budget=budgetForDay(selected,budgets);
@@ -55,6 +64,22 @@ export function MonthCalendar({
   if(date.slice(0,7)!==month)setMonth(date.slice(0,7));
  };
  const clearPlanning=()=>{setChoosing(null);setDragging(null);dragRef.current=null;setHoverDate('')};
+ const execute=(item:CalendarItem,mode:CalendarExecutionMode)=>{
+  if(item.kind!=='work'&&item.kind!=='done')return;
+  if(item.kind==='done'&&!item.subtaskId)return;
+  const task=tasks.find(t=>t.id===item.taskId);
+  if(!task)return;
+  if(mode==='complete'&&!('subtaskId' in item&&item.subtaskId)&&task.recurrence&&
+   (task.deadlineDate||task.subtasks?.some(s=>!!s.plannedDate))&&
+   !window.confirm('Bei dieser wiederkehrenden Aufgabe werden die Häkchen nach Abschluss zurückgesetzt und der nächste Hauptarbeitstag eingetragen. Die Deadline und einzelne Unteraufgabentermine bleiben unverändert. Trotzdem abschließen?'))return;
+  const stepId=item.kind==='work'?item.entry.subtaskId:item.subtaskId;
+  const status=onExecute(item.taskId,stepId,item.taskUpdatedAt,mode);
+  if(status==='changed'){setExecutionError('');return}
+  setExecutionError(status==='conflict'?
+   'Die Aufgabe wurde inzwischen verändert. Bitte den aktualisierten Eintrag erneut auswählen.':
+   status==='blocked'?'Diese wiederkehrende Aufgabe kann erst ab ihrem geplanten Arbeitstag abgeschlossen werden.':
+   'Dieser Schritt kann nicht mehr so geändert werden. Bitte die aktuelle Aufgabe prüfen.');
+ };
  const chooseWork=(work:PlanningEntry)=>{clearPlanning();setChoosing(work);setPlanningError('')};
  const plan=(work:PlanningEntry,date:string|null)=>{
   if((work.entry.date||null)===date){clearPlanning();setPlanningError('');return}
@@ -115,10 +140,27 @@ export function MonthCalendar({
     {summary.unestimated>0&&<small>+ {summary.unestimated} ohne Zeitschätzung</small>}
    </div>
   </div>
+  <div className="month-display-options" role="group" aria-label="Kalenderansicht filtern">
+   <label>Projekt
+    <select aria-label="Kalender nach Projekt filtern" value={projectFilter}
+     onChange={event=>{setProjectFilter(event.target.value);clearPlanning();setPlanningError('');setExecutionError('')}}>
+     <option value="all">Alle Projekte</option>
+     <option value="inbox">Ohne Projekt (Eingang)</option>
+     {projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}
+    </select>
+   </label>
+   <label className="month-done-filter">
+    <input type="checkbox" checked={showCompleted} onChange={event=>setShowCompleted(event.target.checked)}/>
+    Erledigte anzeigen
+   </label>
+   {projectFilter!=='all'&&<button type="button" className="month-reset-project"
+    onClick={()=>{setProjectFilter('all');clearPlanning()}}>Alle Projekte zeigen</button>}
+  </div>
   <div className="month-legend" aria-label="Legende">
    <span><i className="legend-work"/> Arbeit eingeplant</span>
    <span><i className="legend-ready"/> Spätestens fertig</span>
    <span><i className="legend-required"/> Bereits benötigt</span>
+   {showCompleted&&<span><i className="legend-done"/> Erledigt</span>}
   </div>
   <section className="month-backlog" aria-label="Aufgaben ohne Arbeitstag">
    <header className="month-backlog-heading">
@@ -165,6 +207,8 @@ export function MonthCalendar({
    <button type="button" onClick={()=>{clearPlanning();setPlanningError('')}}
     aria-label="Planungsauswahl abbrechen"><X size={15}/> Abbrechen</button>
   </div>}
+  {executionError&&<p className="month-planning-error" role="alert">{executionError}
+   <button type="button" onClick={()=>setExecutionError('')}>Schließen</button></p>}
   {planningError&&<p className="month-planning-error" role="alert">{planningError}
    <button type="button" onClick={()=>setPlanningError('')}>Schließen</button></p>}
   <div className="month-weekdays" aria-hidden="true">
@@ -176,11 +220,12 @@ export function MonthCalendar({
     const work=daily.filter(e=>e.kind==='work').length;
     const ready=daily.filter(e=>e.kind==='ready').length;
     const required=daily.filter(e=>e.kind==='required').length;
+    const done=daily.filter(e=>e.kind==='done').length;
     const examples=daily.slice(0,2);
     return <button key={date} type="button"
      className={['month-day',date.slice(0,7)!==month?'outside':'',date===today?'current':'',date===selected?'selected':'',
       choosing||dragging?'plan-target':'',hoverDate===date?'plan-hover':''].filter(Boolean).join(' ')}
-     aria-label={`${formatDate(date)}: ${work} Arbeitsaufgaben, ${ready} bis dahin fertig, ${required} benötigt`}
+     aria-label={`${formatDate(date)}: ${work} Arbeitsaufgaben, ${ready} bis dahin fertig, ${required} benötigt${showCompleted?`, ${done} erledigt`:''}`}
      aria-pressed={date===selected} onClick={()=>dayClick(date)}
      onDragOver={event=>{if(dragRef.current){event.preventDefault();event.dataTransfer.dropEffect='move';setHoverDate(date)}}}
      onDragLeave={()=>setHoverDate(current=>current===date?'':current)}
@@ -192,8 +237,8 @@ export function MonthCalendar({
        onDragStart={event=>item.kind==='work'&&dragStart(event,{entry:item.entry,version:item.taskUpdatedAt})}
        onDragEnd={dragEnd} title={
        item.kind==='work'?`Geplant: ${item.entry.title}`:
-       item.kind==='ready'?`Spätestens fertig: ${item.title}`:`Bereits benötigt: ${item.title}`
-      }>{item.kind==='work'?item.entry.title:item.kind==='ready'?'Fertig: '+item.title:'Benötigt: '+item.title}</span>)}
+       item.kind==='ready'?`Spätestens fertig: ${item.title}`:item.kind==='required'?`Bereits benötigt: ${item.title}`:`Erledigt: ${item.title}`
+      }>{item.kind==='work'?item.entry.title:item.kind==='ready'?'Fertig: '+item.title:item.kind==='required'?'Benötigt: '+item.title:'✓ '+item.title}</span>)}
       {daily.length>2&&<span className="month-day-extra">+{daily.length-2} weitere</span>}
       {daily.length===0&&<span className="month-day-quiet">—</span>}
      </span>
@@ -204,7 +249,7 @@ export function MonthCalendar({
    <div className="month-selected-heading">
     <div><h3>{formatDate(selected)} {selected===today&&<small>Heute</small>}</h3>
      <p>{chosenWork.length} geplante {chosenWork.length===1?'Arbeit':'Arbeiten'} · {formatDuration(estimated)}
-      {missing? ` + ${missing} ohne Schätzung`:''}
+      {missing? ` + ${missing} ohne Schätzung`:''}{showCompleted&&chosenCompleted?` · ${chosenCompleted} erledigt`:''}
       {budget!==null?` von ${formatDuration(budget)} Tagesbudget`:''}
      </p>
     </div>
@@ -223,17 +268,26 @@ export function MonthCalendar({
      const detailTitle=item.kind==='work'?item.entry.title:item.title;
      const isRelative=item.kind==='work'&&item.entry.relative;
      return <article className={`month-detail-row ${item.kind}`} key={item.key}>
+      {item.kind==='work'&&<button type="button" className="month-complete-toggle"
+       title="Schritt erledigen" aria-label={`„${item.entry.title}“ im Kalender erledigen`}
+       onClick={()=>execute(item,'complete')}/>}
+      {item.kind==='done'&&item.subtaskId&&<button type="button" className="month-complete-toggle completed"
+       title="Unteraufgabe wieder öffnen"
+       aria-label={`„${item.title}“ im Kalender wieder öffnen`}
+       onClick={()=>execute(item,'reopen')}><Check size={13} aria-hidden="true"/></button>}
       <div className={`month-detail-symbol ${item.kind}`}>
        {item.kind==='work'?<Clock3 size={17} aria-hidden="true"/>:
         item.kind==='ready'?<CalendarCheck2 size={17} aria-hidden="true"/>:
+        item.kind==='done'?<CheckCircle2 size={17} aria-hidden="true"/>:
         <CalendarClock size={17} aria-hidden="true"/>}
       </div>
       <div className="month-detail-body">
        <span className="month-detail-kind">{item.kind==='work'?'Eingeplanter Arbeitstag':
-        item.kind==='ready'?'Spätestens an diesem Tag fertigstellen':'An diesem Tag bereits benötigt'}</span>
+        item.kind==='ready'?'Spätestens an diesem Tag fertigstellen':item.kind==='done'?'Erledigt':'An diesem Tag bereits benötigt'}</span>
        <button type="button" className="month-detail-name"
         aria-label={`Aufgabe „${detailTitle}“ öffnen`} onClick={()=>open(item)}>{detailTitle}</button>
        {item.kind==='work'&&item.entry.parentTitle&&<span className="month-detail-parent">Unteraufgabe von {item.entry.parentTitle}</span>}
+       {item.kind==='done'&&item.parentTitle&&<span className="month-detail-parent">Unteraufgabe von {item.parentTitle}</span>}
        {project&&<span className="month-detail-project"><i style={{background:project.color}} aria-hidden="true"/>{project.name}</span>}
        {item.kind==='work'&&<span className="month-detail-minutes">
         {item.entry.estimatedMinutes===null?'Dauer noch nicht geschätzt':formatDuration(item.entry.estimatedMinutes)}
@@ -241,6 +295,7 @@ export function MonthCalendar({
        </span>}
        {item.kind==='ready'&&<span className="month-detail-warning">
         Die Deadline ist {formatDate(item.deadlineDate)}. Ab diesem Tag muss alles bereit sein.</span>}
+       {item.kind==='done'&&!item.subtaskId&&<span className="month-detail-minutes">Abgeschlossene Hauptaufgabe (am Abschlusstag angezeigt).</span>}
        {item.kind==='required'&&<span className="month-detail-warning">
         Letzter Fertigstellungstag: {formatDate(deadlineWorkday(item.deadlineDate))}.</span>}
       </div>
@@ -268,6 +323,6 @@ export function MonthCalendar({
    </div>}
   </section>
   <p className="month-footnote"><CalendarDays size={15} aria-hidden="true"/>
-   Ein Kalenderpunkt ist kein automatisch erzeugter Termin: Wiederholungen zeigen nur ihren nächsten geplanten Arbeitstag. Deadlines erscheinen sowohl am letzten Fertigstellungstag als auch am Tag, an dem alles benötigt wird. Du bestimmst deine Arbeitstage selbst.</p>
+   Ein Kalenderpunkt ist kein automatisch erzeugter Termin: Wiederholungen zeigen nur ihren nächsten geplanten Arbeitstag. Erledigte Einträge werden optional angezeigt; abgeschlossene wiederkehrende Durchläufe gehören nicht zur Kalenderhistorie. Deadlines erscheinen sowohl am letzten Fertigstellungstag als auch am Tag, an dem alles benötigt wird. Du bestimmst deine Arbeitstage selbst.</p>
  </section>;
 }
