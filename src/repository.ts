@@ -48,7 +48,7 @@ function parseTemplates(value:unknown):TaskTemplate[]{
 }
 export function migrateData(value:unknown):AppData{
  const raw=safeRecord(value);
- if(raw.schemaVersion!==1&&raw.schemaVersion!==2&&raw.schemaVersion!==3)throw new Error('Nicht unterstützte Datenversion.');
+ if(raw.schemaVersion!==1&&raw.schemaVersion!==2&&raw.schemaVersion!==3&&raw.schemaVersion!==4)throw new Error('Nicht unterstützte Datenversion.');
  if(!Array.isArray(raw.tasks)||!Array.isArray(raw.projects)||!Array.isArray(raw.completionEvents))throw new Error('Unvollständige Sicherung.');
  const tasks=raw.tasks.map((item):Task=>{
   const t=safeRecord(item);let days:number[]=[];
@@ -73,9 +73,9 @@ export function migrateData(value:unknown):AppData{
   if(typeof e.id!=='string'||typeof e.taskId!=='string'||typeof e.occurredAt!=='string'||!dateOrNull(e.previousScheduledDate)||!dateOrNull(e.resultingScheduledDate)||!nullableString(e.undoneAt))throw new Error('Ungültiger Abschluss.');
   return{id:e.id,taskId:e.taskId,occurredAt:e.occurredAt,previousScheduledDate:e.previousScheduledDate as string|null,resultingScheduledDate:e.resultingScheduledDate as string|null,previousCompletedAt:nullableString(e.previousCompletedAt)?e.previousCompletedAt as string|null:null,undoneAt:e.undoneAt as string|null,previousSubtasks:e.previousSubtasks===undefined?undefined:parseSubtasks(e.previousSubtasks)};
  });
- return{schemaVersion:3,tasks,projects,completionEvents,templates:parseTemplates(raw.templates)};
+ return{schemaVersion:4,tasks,projects,completionEvents,templates:parseTemplates(raw.templates)};
 }
-export function validateData(v:unknown):v is AppData{try{return migrateData(v).schemaVersion===3}catch{return false}}
+export function validateData(v:unknown):v is AppData{try{return migrateData(v).schemaVersion===4}catch{return false}}
 export class LocalTaskRepository implements TaskRepository{
  constructor(private storage:Pick<Storage,'getItem'|'setItem'>=localStorage){}
  load(){const raw=this.storage.getItem(STORAGE_KEY);if(!raw)return emptyData();try{return migrateData(JSON.parse(raw))}catch{throw new Error('Gespeicherte Daten sind beschädigt. Sie wurden nicht überschrieben.')}}
