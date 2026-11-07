@@ -1,4 +1,4 @@
-import {addDays,isValidDate,weekday} from './date';
+import {addDays,isValidDate,weekday,todayLocal} from './date';
 import {isOpenTask} from './deadlineRadar';
 import {deadlineWorkday} from './relativePlanning';
 import {workEntries,type WeekEntry} from './weeklyPlanner';
@@ -6,7 +6,8 @@ import type {Task} from './types';
 
 export type CalendarItem=
  | {kind:'work';date:string;key:string;taskId:string;taskUpdatedAt:string;entry:WeekEntry}
- | {kind:'ready'|'required';date:string;key:string;taskId:string;taskUpdatedAt:string;title:string;deadlineDate:string;priority:Task['priority'];projectId:string|null};
+ | {kind:'ready'|'required';date:string;key:string;taskId:string;taskUpdatedAt:string;title:string;deadlineDate:string;priority:Task['priority'];projectId:string|null}
+ | {kind:'done';date:string;key:string;taskId:string;taskUpdatedAt:string;title:string;priority:Task['priority'];projectId:string|null;subtaskId?:string;parentTitle?:string};
 
 export function monthStart(month:string):string {
  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw new Error('Ungültiger Kalendermonat.');
@@ -38,7 +39,7 @@ export function selectedDateAfterShift(previousDay:string,nextMonth:string):stri
  return nextMonth+'-'+String(Math.min(day,Number(monthLast(nextMonth).slice(8,10)))).padStart(2,'0');
 }
 /** Entries are projections of existing work days and ready-by deadlines; never mutate Tasks. */
-export function monthCalendarItems(tasks:Task[],month:string):CalendarItem[] {
+export function monthCalendarItems(tasks:Task[],month:string,includeCompleted=false):CalendarItem[] {
  const first=monthGridDates(month)[0];
  const last=monthGridDates(month).at(-1)!;
  const versions=new Map(tasks.map(t=>[t.id,t.updatedAt]));
@@ -60,7 +61,29 @@ export function monthCalendarItems(tasks:Task[],month:string):CalendarItem[] {
    priority:task.priority,projectId:task.projectId
   });
  }
- const kindOrder={ready:0,work:1,required:2};
+ if(includeCompleted)for(const task of tasks){
+  const open=isOpenTask(task);
+  if(!open&&task.completedAt){
+   // A completed one-off task is shown on its actual completion day,
+   // never as an uncompleted deadline marker or recurring future instance.
+   const finished=todayLocal(new Date(task.completedAt));
+   if(finished>=first&&finished<=last)entries.push({
+    kind:'done',date:finished,key:'done:task:'+task.id,taskId:task.id,
+    taskUpdatedAt:task.updatedAt,title:task.title,priority:task.priority,projectId:task.projectId
+   });
+   continue;
+  }
+  if(!open)continue;
+  for(const step of task.subtasks??[]){
+   if(!step.completed||!step.plannedDate)continue;
+   if(step.plannedDate>=first&&step.plannedDate<=last)entries.push({
+    kind:'done',date:step.plannedDate,key:'done:subtask:'+task.id+':'+step.id,
+    taskId:task.id,subtaskId:step.id,taskUpdatedAt:task.updatedAt,title:step.title,
+    parentTitle:task.title,priority:task.priority,projectId:task.projectId
+   });
+  }
+ }
+ const kindOrder={ready:0,work:1,done:2,required:3};
  return entries.sort((a,b)=>a.date.localeCompare(b.date)||kindOrder[a.kind]-kindOrder[b.kind]||
   (a.kind==='work'?a.entry.priority:a.priority)-(b.kind==='work'?b.entry.priority:b.priority)||
   (a.kind==='work'&&b.kind==='work'&&a.taskId===b.taskId?
