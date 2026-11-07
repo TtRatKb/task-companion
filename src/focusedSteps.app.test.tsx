@@ -29,7 +29,7 @@ describe('Heute-Fokus im Task Companion',()=>{
   expect(screen.getByRole('button',{name:/„ClassTime einrichten“ erledigen/})).toBeInTheDocument();
   expect(screen.getByRole('button',{name:/„Aufgaben auswählen“ erledigen/})).toBeInTheDocument();
   expect(screen.queryByText('Kopieren')).not.toBeInTheDocument();
-  expect(screen.getByRole('button',{name:'Hauptaufgabe „Klassenarbeit Mathe 7b“ öffnen'})).toBeInTheDocument();
+  expect(screen.getAllByRole('button',{name:'Hauptaufgabe „Klassenarbeit Mathe 7b“ öffnen'})).toHaveLength(2);
   expect(screen.queryByText('Alles im Blick')).not.toBeInTheDocument();
   const user=userEvent.setup();
   await user.click(screen.getByRole('button',{name:/„ClassTime einrichten“ erledigen/}));
