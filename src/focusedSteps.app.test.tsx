@@ -66,7 +66,7 @@ describe('Heute-Fokus im Task Companion',()=>{
     {id:'step2',title:'Schon erledigt',completed:true,plannedDate:planned}
    ]})]}));
   location.hash='#upcoming';render(<App/>);
-  await waitFor(()=>expect(screen.getByRole('heading',{name:'Unteraufgaben für diesen Tag'})).toBeInTheDocument());
+  await waitFor(()=>expect(screen.getByRole('heading',{name:/Unteraufgaben für diesen Tag/})).toBeInTheDocument());
   expect(screen.getByRole('button',{name:/„Erwartungshorizont schreiben“ erledigen/})).toBeInTheDocument();
   expect(screen.queryByText('Schon erledigt')).not.toBeInTheDocument();
   const user=userEvent.setup();
