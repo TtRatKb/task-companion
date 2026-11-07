@@ -501,3 +501,93 @@
 
 .recurrence-static-note{border-left:3px solid #c98e4f;background:#fbf6eb;color:#705f48;border-radius:4px;padding:10px 12px;font-size:11px;line-height:1.6;margin:10px 0}
 .recurrence-static-note strong{color:#80573a}
+
+/* v1.6 — month calendar, separate planning / ready-by / required dates */
+.month-calendar{max-width:1120px;margin:0 auto;padding-bottom:28px}
+.month-toolbar{display:flex;justify-content:space-between;align-items:start;gap:15px;margin:0 0 16px}
+.month-toolbar h2{font-size:20px;line-height:1.35;margin:0 0 5px;color:#423b36}
+.month-toolbar p{font-size:12px;color:#84786f;margin:0;line-height:1.55}
+.month-navigation{display:flex;align-items:center;gap:6px;flex:none}
+.month-navigation button{display:inline-flex;justify-content:center;align-items:center;min-height:32px;padding:6px 9px;border:1px solid #e3d9d1;background:#fff;border-radius:7px;color:#665b53;font-size:11px}
+.month-navigation button:hover{border-color:#bb8575;background:#fbf5f1}
+.month-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border:1px solid #e9e1d9;border-radius:11px 11px 0 0;background:#fcfaf8}
+.month-summary h3{text-transform:capitalize;font-size:17px;margin:0 0 4px}
+.month-summary p{margin:0;color:#847970;font-size:11px}
+.month-summary-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right;font-size:12px}
+.month-summary-right strong{color:#835a48}
+.month-summary-right small{font-size:10px;color:#8c7d71}
+.month-legend{display:flex;flex-wrap:wrap;gap:8px 17px;padding:11px 14px;background:#fff;border-left:1px solid #e9e1d9;border-right:1px solid #e9e1d9;color:#75695f;font-size:11px}
+.month-legend span{display:flex;align-items:center;gap:6px}
+.month-legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.month-legend .legend-work{background:#789ac2}.month-legend .legend-ready{background:#c99152}.month-legend .legend-required{background:#b75a53}
+.month-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid #e5ded6;border-left:1px solid #e5ded6;background:#f5f0eb}
+.month-weekdays span{font-size:11px;font-weight:750;text-align:center;color:#6e635c;padding:9px 4px;border-right:1px solid #e5ded6}
+.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:1px solid #e8e1da;border-top:1px solid #e8e1da;background:#fff}
+.month-day{position:relative;display:flex;flex-direction:column;align-items:stretch;min-width:0;min-height:115px;padding:9px 7px 8px;border:0;border-right:1px solid #e8e1da;border-bottom:1px solid #e8e1da;background:#fff;text-align:left;font-size:11px;color:#504940;cursor:pointer}
+.month-day:hover{background:#fbf7f2}
+.month-day:focus-visible{outline:2px solid #c78368;outline-offset:-3px;z-index:1}
+.month-day.outside{background:#fbfaf9;color:#b1a69c}
+.month-day.current{background:#f6f9f6}
+.month-day.selected{box-shadow:inset 0 0 0 2px #be796b;background:#fff8f4;z-index:1}
+.month-day-number{display:flex;align-items:center;justify-content:space-between;gap:3px;font-size:12px;font-weight:700;padding:0 2px 6px}
+.month-today-dot{width:7px;height:7px;background:#6d9f71;border-radius:50%;flex:none}
+.month-day-preview{display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden}
+.month-entry-chip{display:block;width:100%;padding:4px 5px;border-radius:5px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;line-height:1.35;font-size:10px}
+.month-entry-chip.work{background:#eaf1fa;color:#4b6888}
+.month-entry-chip.ready{background:#fff0db;color:#92632f}
+.month-entry-chip.required{background:#ffebe7;color:#a44740}
+.month-day-quiet{font-size:10px;color:#c5bbb3;padding-left:4px}
+.month-day-extra{font-size:10px;font-weight:650;color:#887a6d;padding-left:4px}
+.month-selected-day{margin-top:18px;border:1px solid #e7ded6;background:#fff;border-radius:12px;overflow:hidden}
+.month-selected-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;background:#fcfaf8;padding:15px 17px;border-bottom:1px solid #eee7df}
+.month-selected-heading h3{margin:0 0 5px;font-size:16px}
+.month-selected-heading h3 small{font-size:10px;color:#62906e;padding:3px 6px;margin-left:6px;border-radius:5px;background:#e8f2e8}
+.month-selected-heading p{font-size:11px;color:#84776d;line-height:1.5;margin:0}
+.month-selected-heading button{display:flex;gap:6px;align-items:center;font-size:11px;white-space:nowrap}
+.month-budget-warning{display:flex;gap:7px;align-items:flex-start;padding:9px 16px;margin:0;color:#9a483e;background:#fff5ed;font-size:11px;line-height:1.5}
+.month-budget-warning svg{flex:none;margin-top:1px}
+.month-day-detail-rows{display:grid}
+.month-detail-row{display:flex;gap:12px;align-items:flex-start;padding:15px 17px;min-width:0}
+.month-detail-row+.month-detail-row{border-top:1px solid #f0ebe5}
+.month-detail-symbol{display:grid;place-items:center;flex:none;border-radius:8px;width:32px;height:32px;background:#eaf1fa;color:#6387ad}
+.month-detail-symbol.ready{background:#fff0db;color:#b47835}.month-detail-symbol.required{background:#ffebe7;color:#b5534b}
+.month-detail-body{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.month-detail-kind{text-transform:uppercase;letter-spacing:.03em;font-size:9px;font-weight:750;color:#8b7e73}
+.month-detail-name{display:block;border:0;background:transparent;color:#463d36;padding:0;font-size:13px;font-weight:700;line-height:1.4;text-align:left;overflow-wrap:anywhere}
+.month-detail-name:hover,.month-detail-name:focus-visible{text-decoration:underline;text-decoration-color:#a05d50}
+.month-detail-parent,.month-detail-minutes,.month-detail-project,.month-detail-warning{font-size:11px;line-height:1.5;color:#84766b}
+.month-detail-project{display:flex;align-items:center;gap:6px}
+.month-detail-project i{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}
+.month-detail-warning{color:#926a42}
+.month-detail-row.required .month-detail-warning{color:#a14b43}
+.month-detail-date{min-width:145px;max-width:180px;display:flex;flex-direction:column;gap:4px;color:#74665c;font-size:10px;font-weight:650;flex:none}
+.month-detail-date input{width:100%;max-width:165px;min-width:0;border-radius:7px;padding:6px 7px;border:1px solid #e3d8cf;background:#fff;color:#51453b;font-size:11px}
+.month-detail-date small{font-size:9px;line-height:1.35;color:#9c6b51;font-weight:400}
+.month-edit-deadline{flex:none;border:1px solid #e4dbd3;border-radius:7px;background:#fff;color:#846153;font-size:11px;padding:6px 9px}
+.month-edit-deadline:hover{background:#f9f2ed}
+.month-selected-empty{display:flex;flex-direction:column;align-items:flex-start;gap:9px;color:#81756d;font-size:12px;padding:20px 16px}
+.month-selected-empty button{padding:0;border:0;background:transparent;color:#ae6253;font-size:11px;text-decoration:underline}
+.month-footnote{display:flex;align-items:flex-start;gap:8px;margin:15px 1px;color:#8c8076;font-size:11px;line-height:1.6}
+.month-footnote svg{flex:none;margin-top:2px}
+@media(max-width:900px){.month-day{min-height:97px;padding:7px 4px}.month-entry-chip{font-size:9px;padding:3px}.month-detail-date{min-width:132px}}
+@media(max-width:690px){
+ .month-toolbar{flex-direction:column;align-items:stretch}
+ .month-navigation{align-self:flex-end}
+ .month-day{min-height:68px;padding:5px 3px}
+ .month-day-number{font-size:11px}
+ .month-day-preview{gap:3px}
+ .month-entry-chip{font-size:0;padding:0;height:6px;border-radius:3px}
+ .month-day-extra{font-size:9px;padding-left:1px}
+ .month-day-quiet{display:none}
+ .month-summary{padding:11px}
+ .month-summary h3{font-size:15px}
+ .month-summary-right{font-size:11px}
+ .month-legend{padding:10px;gap:7px 12px;font-size:10px}
+ .month-detail-row{flex-wrap:wrap;gap:8px;padding:12px}
+ .month-detail-body{flex-basis:calc(100% - 48px)}
+ .month-detail-date{margin-left:40px;max-width:100%;flex:1}
+ .month-edit-deadline{margin-left:40px}
+ .month-selected-heading{align-items:start;padding:12px;flex-wrap:wrap}
+ .month-selected-heading button{margin-left:auto}
+}
+@media(max-width:370px){.month-day{min-height:58px}.month-today-dot{width:5px;height:5px}.month-summary p{font-size:10px}.month-weekdays span{font-size:10px}}
