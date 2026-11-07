@@ -10,14 +10,17 @@ const placeholderPattern = /\{([\p{L}_][\p{L}\p{N}_-]{0,39})\}/gu;
 export function extractTemplatePlaceholders(template: Pick<TaskTemplate, 'name' | 'description' | 'steps'>): string[] {
   const found = new Set<string>();
   for (const text of [template.name, template.description, ...template.steps]) {
-    for (const match of text.matchAll(placeholderPattern)) found.add(match[1]);
+    for (const match of text.matchAll(placeholderPattern)) {
+      // Reserved schedule anchor, not a question about a task variable.
+      if (match[1] !== 'Deadline') found.add(match[1]);
+    }
   }
   return [...found];
 }
 
 export function fillTemplateText(text: string, values: Readonly<Record<string, string>>): string {
   return text.replace(placeholderPattern, (full, name: string) =>
-    typeof values[name] === 'string' && values[name].trim() ? values[name].trim() : full);
+    name !== 'Deadline' && typeof values[name] === 'string' && values[name].trim() ? values[name].trim() : full);
 }
 
 export function expandTaskTemplate(
