@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.8
+## Funktionen in v0.9
 
-- Eingang, Heute, Anstehend (7 Tage), **Deadline-Radar** und eigene Projekte
+- Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Deadline-Radar** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Wochenplanung mit Zeitbudget**: geschätzte Minuten pro Aufgabe und Unteraufgabe, frei konfigurierbares Budget je Wochentag, Überlastungsanzeige und bequemes Verschieben per Datumsfeld
 - **Rückwärtsplanung ab der Deadline**: Unteraufgaben können natürliche Zeitabstände wie `2 Wochen vorher`, `14 Tage vorher`, `1 Monat vorher` und `{Deadline} - 3 Tage` enthalten; sie werden einzeln geplant, ohne gleichmäßige Verteilung
 - **Deadline ist der Tag, an dem alles bereits fertig sein muss**: letzter möglicher Fertigstellungstag ist der Vortag; Deadline-Radar und lokale Erinnerungen berücksichtigen das
 - Beispielvorlage für wiederkehrende Klassenarbeitsvorbereitung, zuerst individuell anpassbar
@@ -48,7 +49,7 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 
 ### Datenmigration
 
-Beim Laden und Importieren werden v1-, v2- und v3-Daten automatisch in das aktuelle **v4-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+Beim Laden und Importieren werden v1-, v2-, v3- und v4-Daten automatisch in das aktuelle **v5-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
 
 ## Unteraufgaben und Vorlagen
 
@@ -68,7 +69,7 @@ Wenn du die Vorlage verwendest, fragt Task Companion **jede unterschiedliche Ang
 
 Platzhalter werden innerhalb eines Feldes durch `{Name}` gekennzeichnet; eigene Bezeichnungen (z. B. `{Schuljahr}`, `{Lerngruppe}`) sind möglich. Namen berücksichtigen Groß-/Kleinschreibung und können Buchstaben, Zahlen nach dem ersten Zeichen, Bindestriche und Unterstriche enthalten. Das erste Zeichen muss ein Buchstabe oder Unterstrich sein; Leerzeichen im Platzhalternamen sind nicht vorgesehen. Werte werden wörtlich eingesetzt, ohne Befehle auszuführen.
 
-Alternativ kannst du im Aufgabeneditor **Als Vorlage speichern** wählen. Die Vorlage wird separat zur Aufgabe in der versionierten App-Datenbank gespeichert und ist Teil des JSON-Exports und der Cloud-Synchronisation. Das alte v1/v2-Format wird beim Laden/importieren schonend nach **Schema v4** migriert, ohne vorhandene Aufgaben, Termine, Projekte oder IDs zu verlieren.
+Alternativ kannst du im Aufgabeneditor **Als Vorlage speichern** wählen. Die Vorlage wird separat zur Aufgabe in der versionierten App-Datenbank gespeichert und ist Teil des JSON-Exports und der Cloud-Synchronisation. Das alte v1/v2-Format wird beim Laden/importieren schonend nach **Schema v5** migriert, ohne vorhandene Aufgaben, Termine, Projekte oder IDs zu verlieren.
 
 ## Rückwärtsplanung (v0.8)
 
@@ -89,9 +90,23 @@ Im Aufgaben-Editor werden die fertigen Termine sofort neben jedem Schritt angeze
 
 In der Heute-Ansicht werden übergeordnete Aufgaben auch dann eingeblendet, wenn eine **offene Unteraufgabe für heute** geplant ist. Die einzelnen Schritttermine stehen direkt unter den Unteraufgaben. Die bisherige Cloud-Synchronisation und JSON-Backups speichern diese Informationen mit; das erweiterte Schema v4 wird automatisch aus bestehenden v1–v3-Daten erzeugt.
 
+## Wochenplanung und Zeitbudget (v0.9)
+
+Der neue Menüpunkt **Wochenplanung** zeigt dir eine sieben Tage umfassende Übersicht (Montag bis Sonntag) mit einer Vor-/Zurück-Navigation und einer Taste **„Diese Woche“**.
+
+- Im Aufgabeneditor kannst du bei der Hauptaufgabe sowie bei einzelnen Unteraufgaben die **geschätzte Dauer in Minuten** eintragen. Fehlende Schätzungen werden als „Dauer offen“ angezeigt – diese Einträge gelten nicht als kostenlos/zeitlos.
+- Jede geplante Hauptaufgabe erscheint am eingetragenen Arbeitstag. Jede **offene, individuell terminierte Unteraufgabe** erscheint separat auf ihrem Tag, ohne dass die Hauptdeadline verschoben wird. Bereits erledigte Schritte zählen nicht mehr.
+- Die Dauer der Hauptaufgabe wird nur dann zum Tagesbudget gezählt, wenn **keine offene Unteraufgabe eine eigene Zeitschätzung** besitzt. So werden geschätzte Arbeitsstunden bei großen Aufgaben nicht doppelt gezählt.
+- Für Montag bis Sonntag kannst du einmalig deine persönliche verfügbare Arbeitszeit in Minuten festlegen. Die Werte gelten für alle Wochen, sind vollständig optional (leeres Feld = noch kein Budget) und werden mit der Cloud/JSON-Sicherung übertragen. Der Wert `0` bedeutet ausdrücklich, dass du an diesem Wochentag gar keine Arbeitszeit einplanen möchtest.
+- Nur wenn eine konkrete Budgetgrenze gesetzt ist, signalisiert die App bei Überschreitung Überlastung. Bei unbekannten Aufwänden ist dies **eine Mindestbelastung**, kein vollständiger Zeitplan.
+- Ein Arbeitstag lässt sich direkt in der Wochenansicht durch ein Datumsfeld ändern. Das gilt auch für einzelne Unteraufgaben; diese lösen dabei ihre relative Bindung an die Deadline. Die App fragt vor dem Auflösen der Bindung oder dem Verschieben hinter den letzten Fertigstellungstag nach. **Keine eigenmächtige automatische Neuverteilung.**
+- Noch nicht terminierte Aufgaben und Unteraufgaben stehen unter **„Ohne Arbeitstag“** und lassen sich direkt dort einplanen. Zur Übersicht zeigt die App höchstens 16 davon gleichzeitig, der Rest kann im üblichen Editor terminiert werden.
+
+Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 Minuten bedeuten geschätzter Arbeitsaufwand und noch keinen festen Termin von z. B. 14:00–15:00 Uhr. Die neue Speicherung verwendet **Schema v5**. Alte v1–v4-Daten werden ohne Änderung von Aufgaben- und Projekt-IDs migriert. Ältere App-Versionen können die neue Schema-Version nicht sicher bearbeiten: vor der Verwendung auf einem zweiten Gerät deshalb die PWA dort aktualisieren.
+
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v0.8.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v0.9.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
