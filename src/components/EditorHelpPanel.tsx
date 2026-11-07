@@ -41,6 +41,12 @@ export function EditorHelpPanel({mode,onInsert}:{
    {mode==='task'&&<p>Der Pfeil nach rechts bei einem Schritt speichert deine Änderungen und öffnet die Auswahl der Zielaufgabe. Relativ geplante Termine werden nicht heimlich neu berechnet.</p>}
    {mode==='template'&&<p>Das Umsortieren verändert nur die Reihenfolge der Vorlage; ihre Texte bleiben unverändert.</p>}
   </section>
+  {mode==='task'&&<section className="editor-help-section">
+   <h3><CalendarClock size={15} aria-hidden="true"/> Flexible Wiederholungen</h3>
+   <p>Unter <b>Wiederholung</b> kannst du „Alle N Tage“, „Alle N Wochen“ oder „Alle N Monate“ wählen. Setze dazu den ersten Arbeitstag und den Abstand selbst.</p>
+   <p>In der Schnellerfassung funktionieren zum Beispiel <code>alle zwei Wochen</code>, <code>alle 3 Tage</code> und <code>jeden Monat am 15.</code>.</p>
+   <p>Ein zu spät erledigter Termin verschiebt den festen Rhythmus nicht. Deine Deadline und individuelle Unteraufgabentermine bleiben unverändert.</p>
+  </section>}
   <section className="editor-help-section">
    <h3><MousePointerClick size={15} aria-hidden="true"/> Zum Einfügen anklicken</h3>
    <p className="editor-help-muted">Klicke zuerst in den Titel oder eine Unteraufgabe. Ein Tipp wird dort am Cursor eingefügt.</p>
