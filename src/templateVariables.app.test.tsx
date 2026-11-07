@@ -38,7 +38,7 @@ describe('Vorlagen-Platzhalter im Alltag',()=>{
   expect(within(editor).getByLabelText('Beschreibung')).toHaveValue('Thema Bruchrechnung');
   expect(within(editor).getByLabelText('Unteraufgabe 1')).toHaveValue('Aufgaben zu Bruchrechnung sammeln');
   expect(within(editor).getByLabelText('Unteraufgabe 2')).toHaveValue('Erwartungshorizont für 7b erstellen');
-  fireEvent.change(within(editor).getByLabelText(/Deadline/),{target:{value:'2026-12-02'}});
+  fireEvent.change(within(editor).getByLabelText('Deadline',{selector:'input'}),{target:{value:'2026-12-02'}});
   await user.click(within(editor).getByRole('button',{name:'Speichern'}));
   await waitFor(()=>expect(screen.getByText('Klassenarbeit Mathematik 7b vorbereiten')).toBeInTheDocument());
   const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)!);
