@@ -223,6 +223,11 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
      </div>
     </div>}
    {v.recurrence&&!interval&&<p className="recurrence-preview">Nächster Termin nach dieser Ausführung: {formatDate(nextOccurrence(v.scheduledDate??todayLocal(),v.recurrence))}</p>}
+   {v.recurrence&&(!!v.deadlineDate||steps.some(s=>!!s.plannedDate))&&
+    <p className="recurrence-static-note">
+     <strong>Achtung bei der Wiederholung:</strong> Die Hauptaufgabe erhält nach dem Abhaken einen neuen Arbeitstag und die Häkchen der Unteraufgaben werden zurückgesetzt. Eine einmal eingetragene Deadline und eigene Termine der Unteraufgaben bleiben aber unverändert – bitte bei Bedarf selbst neu planen.
+    </p>}
+
    {v.recurrence&&(preset==='weekly'||preset==='custom')&&<fieldset className="weekday-picker"><legend>{preset==='weekly'?'Wochentag':'Wochentage'}</legend>{weekdayNames.map((name,index)=><label key={name}><input type={preset==='weekly'?'radio':'checkbox'} name="weekday" checked={days.includes(index as Weekday)} onChange={()=>setV({...v,recurrence:recurrence(preset==='weekly'?[index]:days.includes(index as Weekday)?days.filter(d=>d!==index):[...days,index])})}/>{name.slice(0,2)}</label>)}</fieldset>}
    {deadlineChange==='pending'&&<div className="replan-review" role="status">
     <strong>Deadline geändert: Unteraufgaben neu planen?</strong>
