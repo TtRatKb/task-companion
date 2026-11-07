@@ -54,7 +54,7 @@ describe('Globale Suche in Task Companion',()=>{
  it('supports Cmd/Ctrl+K and filters completed tasks separately from open tasks and templates',async()=>{
   seed();render(<App/>);
   fireEvent.keyDown(document,{key:'k',ctrlKey:true});
-  const input=screen.getByRole('searchbox',{name:'Aufgaben und Vorlagen suchen'});
+  const input=await screen.findByRole('searchbox',{name:'Aufgaben und Vorlagen suchen'});
   await waitFor(()=>expect(input).toHaveFocus());
   const user=userEvent.setup();
   await user.type(input,'ClassTime');
