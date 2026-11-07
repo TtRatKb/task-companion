@@ -24,6 +24,8 @@ function TriageStep({
  useEffect(()=>{focusRef.current?.focus()},[]);
  const submit=(event:FormEvent)=>{
   event.preventDefault();
+  if(draft.scheduledDate&&draft.deadlineDate&&draft.scheduledDate>=draft.deadlineDate&&
+    !window.confirm('Der geplante Arbeitstag ist am oder nach dem Tag, an dem alles bereits fertig sein muss. Trotzdem speichern?'))return;
   const result=onSave(task.id,originallyOpenedAt.current,draft);
   if(result==='conflict')setError('Diese Aufgabe wurde inzwischen auf einem anderen Gerät oder in einem anderen Fenster geändert. Schließe den Modus und prüfe die aktuelle Version, bevor du sie bearbeitest.');
   else if(result==='missing')setError('Diese Aufgabe ist inzwischen abgeschlossen oder nicht mehr verfügbar. Du kannst sie überspringen.');
