@@ -7,3 +7,28 @@ describe('flexible Wiederholung',()=>{
  it('setzt überfällige Routine nach tatsächlichem Abschluss fort',()=>expect(complete([1,2,3,4,5],'2026-11-02','2026-11-12T09:00:00+01:00').tasks[0].scheduledDate).toBe('2026-11-13'));
  it('verhindert Doppelabschluss und macht den richtigen Abschluss rückgängig',()=>{const once=complete([1,2,3,4,5],'2026-11-09','2026-11-09T09:00:00+01:00');const twice=completeTask(once,'t1',new Date('2026-11-09T10:00:00+01:00'));expect(twice.completionEvents).toHaveLength(1);expect(twice.tasks[0].completedAt).not.toBeNull();const undone=undoCompletion(twice,twice.completionEvents[0].id);expect(undone.tasks[0]).toMatchObject({scheduledDate:'2026-11-09',completedAt:null,deadlineDate:'2026-12-20'});expect(undone.completionEvents[0].undoneAt).not.toBeNull()});
 });
+
+
+describe('Wiederkehrende Checklisten',()=>{
+ it('setzt alle Unteraufgaben nach Routine-Abschluss zurück und stellt sie beim Undo wieder her',()=>{
+  const original=task({kind:'weekdays',weekdays:[1,2,3,4,5]},'2026-11-09');
+  original.subtasks=[
+   {id:'step1',title:'Eintragen',completedAt:'2026-11-09T07:00:00Z'},
+   {id:'step2',title:'Kontrolle',completedAt:null}
+  ];
+  const data={...emptyData(),tasks:[original]};
+  const next=completeTask(data,'t1',new Date('2026-11-09T09:00:00+01:00'));
+  expect(next.tasks[0].scheduledDate).toBe('2026-11-10');
+  expect(next.tasks[0].subtasks.every(step=>step.completedAt===null)).toBe(true);
+  expect(next.completionEvents[0].previousSubtasks).toEqual(original.subtasks);
+  const undone=undoCompletion(next,next.completionEvents[0].id);
+  expect(undone.tasks[0].scheduledDate).toBe('2026-11-09');
+  expect(undone.tasks[0].subtasks).toEqual(original.subtasks);
+ });
+ it('behält Unteraufgaben bei normalen abgeschlossenen Aufgaben',()=>{
+  const plain={...task({kind:'weekdays',weekdays:[1]},'2026-11-09'),recurrence:null,
+    subtasks:[{id:'s',title:'Erledigt',completedAt:'2026-11-08T09:00:00Z'}]};
+  const after=completeTask({...emptyData(),tasks:[plain]},'t1',new Date('2026-11-09T09:00:00+01:00'));
+  expect(after.tasks[0].subtasks).toEqual(plain.subtasks);
+ });
+});
