@@ -48,7 +48,7 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 
 ### Datenmigration
 
-Beim Laden und Importieren werden v1- und v2-Daten automatisch in das aktuelle **v3-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+Beim Laden und Importieren werden v1-, v2- und v3-Daten automatisch in das aktuelle **v4-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
 
 ## Unteraufgaben und Vorlagen
 
@@ -68,7 +68,7 @@ Wenn du die Vorlage verwendest, fragt Task Companion **jede unterschiedliche Ang
 
 Platzhalter werden innerhalb eines Feldes durch `{Name}` gekennzeichnet; eigene Bezeichnungen (z. B. `{Schuljahr}`, `{Lerngruppe}`) sind möglich. Namen berücksichtigen Groß-/Kleinschreibung und können Buchstaben, Zahlen nach dem ersten Zeichen, Bindestriche und Unterstriche enthalten. Das erste Zeichen muss ein Buchstabe oder Unterstrich sein; Leerzeichen im Platzhalternamen sind nicht vorgesehen. Werte werden wörtlich eingesetzt, ohne Befehle auszuführen.
 
-Alternativ kannst du im Aufgabeneditor **Als Vorlage speichern** wählen. Die Vorlage wird separat zur Aufgabe in der versionierten App-Datenbank gespeichert und ist Teil des JSON-Exports und der Cloud-Synchronisation. Das alte v1/v2-Format wird beim Laden/importieren schonend nach **Schema v3** migriert, ohne vorhandene Aufgaben, Termine, Projekte oder IDs zu verlieren.
+Alternativ kannst du im Aufgabeneditor **Als Vorlage speichern** wählen. Die Vorlage wird separat zur Aufgabe in der versionierten App-Datenbank gespeichert und ist Teil des JSON-Exports und der Cloud-Synchronisation. Das alte v1/v2-Format wird beim Laden/importieren schonend nach **Schema v4** migriert, ohne vorhandene Aufgaben, Termine, Projekte oder IDs zu verlieren.
 
 ## Rückwärtsplanung (v0.8)
 
@@ -87,7 +87,7 @@ Du kannst die gewünschte Bearbeitungsplanung direkt in den Unteraufgabentext sc
 
 Im Aufgaben-Editor werden die fertigen Termine sofort neben jedem Schritt angezeigt. Jeder Schritt kann auch ein eigenes, direkt eingegebenes Datum erhalten; dann ist er unabhängig von der relativen Planung. Beim erstmaligen Festlegen einer Deadline berechnet die App die angegebenen Abstände automatisch. Bei **nachträglicher Änderung** der Deadline musst du ausdrücklich wählen, ob du relative Unteraufgaben neu berechnen oder bisherige Termine behalten möchtest. Abgehakte Schritte und manuell gewählte Termine bleiben beim Neuberechnen unberührt.
 
-In der Heute-Ansicht werden übergeordnete Aufgaben auch dann eingeblendet, wenn eine **offene Unteraufgabe für heute** geplant ist. Die einzelnen Schritttermine stehen direkt unter den Unteraufgaben. Die bisherige Cloud-Synchronisation und JSON-Backups speichern diese Informationen mit; das vorhandene Schema v3 bleibt kompatibel.
+In der Heute-Ansicht werden übergeordnete Aufgaben auch dann eingeblendet, wenn eine **offene Unteraufgabe für heute** geplant ist. Die einzelnen Schritttermine stehen direkt unter den Unteraufgaben. Die bisherige Cloud-Synchronisation und JSON-Backups speichern diese Informationen mit; das erweiterte Schema v4 wird automatisch aus bestehenden v1–v3-Daten erzeugt.
 
 ## Versionsanzeige und Benachrichtigungen
 
