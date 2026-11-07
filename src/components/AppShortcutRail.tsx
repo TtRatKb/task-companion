@@ -26,6 +26,8 @@ export function AppShortcutRail({view}:{view:View}){
    <h3><CalendarClock size={14} aria-hidden="true"/> Monatskalender lesen</h3>
    <p><b>Blau</b> zeigt eingeplante Arbeit, <b>Orange</b> den letzten Fertigstellungstag und <b>Rot</b> den Tag, an dem alles bereits benötigt wird.</p>
    <p>Klicke auf einen Kalendertag für die Details. Dort kannst du Aufgaben öffnen, Arbeitstage ändern oder eine neue Aufgabe für diesen Tag erfassen.</p>
+   <p><b>Neu:</b> Unter „Ohne Arbeitstag“ einen Schritt am Griff auf den gewünschten Tag ziehen – oder erst „Tag wählen“ anklicken und dann den Kalendertag. <kbd>Esc</kbd> bricht die Auswahl ab.</p>
+   <p>Auch bereits geplante Aufgaben lassen sich aus den Tagesdetails neu zuordnen. Ein versehentlicher Schritt lässt sich direkt rückgängig machen.</p>
    <p>Relative Terminverschiebungen und Planungen nach der Deadline benötigen deine ausdrückliche Bestätigung.</p>
   </section>}
   {templates&&<section>
