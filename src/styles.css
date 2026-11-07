@@ -630,3 +630,30 @@
 .calendar-undo{bottom:80px}
 @media(max-width:900px){.month-backlog-heading p{max-width:280px}.month-backlog-list{grid-template-columns:1fr}.month-detail-grab{width:100%;padding-left:40px;justify-content:flex-start}.month-detail-date{margin-left:40px}}
 @media(max-width:690px){.month-backlog-heading{flex-wrap:wrap;gap:5px;padding:10px}.month-backlog-heading p{text-align:left;max-width:none}.month-backlog-row{padding:8px}.month-pick-date{font-size:10px;padding:6px}.month-detail-grab{padding-left:40px}.month-planning-prompt{top:3px}}
+
+/* v1.8 — execute work from the calendar, with project and completed-entry filters */
+.month-display-options{display:flex;align-items:end;flex-wrap:wrap;gap:10px 18px;padding:10px 14px;background:#fff;border-left:1px solid #e9e1d9;border-right:1px solid #e9e1d9;border-bottom:1px solid #efe9e2}
+.month-display-options>label:not(.month-done-filter){display:flex;flex-direction:column;gap:4px;font-weight:650;font-size:11px;color:#75695f}
+.month-display-options select{max-width:230px;min-width:155px;border:1px solid #e3d9d0;border-radius:7px;padding:6px 8px;background:#fff;color:#54473e;font-size:12px}
+.month-done-filter{display:inline-flex;align-items:center;gap:7px;min-height:34px;cursor:pointer;color:#685f56;font-size:12px;font-weight:550}
+.month-done-filter input{accent-color:#6e9c73;width:15px;height:15px}
+.month-reset-project{padding:5px 7px;border:0;background:transparent;color:#a65849;font-size:11px;text-decoration:underline;text-decoration-color:transparent}
+.month-reset-project:hover{text-decoration-color:currentColor}
+.month-legend .legend-done{background:#6d9c79}
+.month-entry-chip.done{background:#e7f2ea;color:#4e8060;text-decoration:line-through;text-decoration-color:#87a894}
+.month-detail-row.done{background:#fbfdfb}
+.month-detail-symbol.done{background:#e6f2e8;color:#598966}
+.month-detail-row.done .month-detail-name{color:#64786a;text-decoration:line-through;text-decoration-color:#a8baac}
+.month-complete-toggle{width:20px;height:20px;min-width:20px;margin-top:5px;display:grid;place-items:center;background:#fff;border:2px solid #a7aaa3;border-radius:50%;cursor:pointer;color:#fff;padding:0;flex:none}
+.month-complete-toggle:hover,.month-complete-toggle:focus-visible{border-color:#6c9e7c;background:#f0f7ef;outline-offset:2px}
+.month-complete-toggle.completed{background:#6a9774;border-color:#6a9774;color:white}
+.month-complete-toggle.completed:hover{background:#548366;border-color:#548366}
+.month-detail-row:has(>.month-complete-toggle) .month-detail-symbol{width:27px;height:27px}
+.calendar-execution-undo{bottom:82px}
+@media(max-width:690px){
+ .month-display-options{padding:9px 10px;gap:9px 13px}
+ .month-display-options select{min-width:125px;max-width:170px}
+ .month-done-filter{font-size:11px}
+ .month-complete-toggle{margin-top:4px}
+ .month-detail-row:has(>.month-complete-toggle) .month-detail-body{flex-basis:calc(100% - 72px)}
+}
