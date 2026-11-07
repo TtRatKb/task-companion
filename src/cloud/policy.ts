@@ -43,5 +43,5 @@ export function resolveInitial(
 }
 
 export function isEmptyData(data: AppData): boolean {
-  return data.tasks.length === 0 && data.projects.length === 0 && data.completionEvents.length === 0;
+  return data.tasks.length === 0 && data.projects.length === 0 && data.templates.length === 0 && data.completionEvents.length === 0;
 }
