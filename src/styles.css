@@ -498,3 +498,6 @@
 .interval-preview small{font-size:11px;color:#8d7e72;line-height:1.55;margin-top:3px}
 .recurrence-preview{padding:8px 11px;border:1px solid #eee6de;background:#faf9f7;border-radius:8px;color:#766b61;font-size:11px;margin:11px 0}
 @media(max-width:560px){.interval-recurrence{grid-template-columns:1fr;gap:12px}.interval-recurrence>label input{max-width:100%}}
+
+.recurrence-static-note{border-left:3px solid #c98e4f;background:#fbf6eb;color:#705f48;border-radius:4px;padding:10px 12px;font-size:11px;line-height:1.6;margin:10px 0}
+.recurrence-static-note strong{color:#80573a}
