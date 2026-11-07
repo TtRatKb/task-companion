@@ -178,3 +178,15 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Ersatztexte werden als reine Zeichenfolgen eingesetzt, ohne Interpretation als HTML, JavaScript oder erneute Platzhalter. Die gespeicherte Vorlage selbst wird dabei nicht verändert. Eine erneut erzeugte Aufgabe erhält weiterhin frische Aufgaben-/Unteraufgaben-IDs und leere Checklisten.
 - Vorlagen ohne Variablen behalten ihren direkten Weg zum Aufgabenentwurf. Alte Vorlagen, Aufgaben, Cloud-Datensätze und JSON-Backups bleiben mit dem bestehenden Schema v3 kompatibel; **keine weitere Migration**.
 - Die optionale Beispielvorlage für „Klassenarbeit vorbereiten“ enthält die drei Felder `{Fach}`, `{Klasse}`, `{Thema}` und bleibt beim Einfügen frei bearbeitbar.
+
+
+## 15. Ergänzung v0.8 — relative Unteraufgaben und strikte Deadline-Semantik
+
+- **Deadline** ist das Datum, an dem die Aufgabe **bereits fertig sein muss**, nicht der Tag, an dem noch daran gearbeitet werden kann. Bei Deadline T ist T−1 der letzte reguläre Fertigstellungstag. Deadline-Radar, Warnungen und lokale Benachrichtigungen orientieren sich daran; das gespeicherte Deadline-Datum T bleibt unverändert.
+- Einzelne Unteraufgaben können einen unabhängig gespeicherten Arbeitstermin besitzen. Der Termin kann manuell gesetzt werden oder durch einen ausdrücklich angegebenen Abstand zur Hauptdeadline entstehen. Zeitabstände werden **nicht automatisch gleichmäßig verteilt**.
+- Natürlich-sprachige Kurzformen am Ende des Unteraufgabentextes: `2 Wochen vorher`, `14 Tage vorher`, `einen Monat vorher`, `am Vortag`; alternativ `{Deadline} - 3 Tage`. Zahlwörter (z. B. „zwei Wochen“) sowie Tage, Wochen, Kalendermonate werden unterstützt. Die relative Berechnung verwendet T als Anker, d. h. 2 Wochen vor T bedeutet T−14.
+- Die Vorlage speichert den relativen Termin als Text. Instanziierung erzeugt eine separate Unteraufgabe mit expliziter `offset`-Eigenschaft. Sobald die Hauptdeadline gewählt wird, zeigt die App die konkreten Termine sofort an. `{Deadline}` ist ein reservierter Zeitanker, kein zu befüllender Platzhalter.
+- In bestehenden Aufgaben führt eine spätere Änderung der Hauptdeadline zunächst zu einer **sichtbaren Prüfung**. Die Nutzerin muss wählen, ob offene relative Schritte neu terminiert werden oder ihre bisherigen Termine behalten. Manuell eingegebene und bereits abgehakte Schritte werden nicht automatisch umgeplant.
+- Heute-Ansicht zeigt auch Aufgaben, deren noch offene Unteraufgaben jetzt oder früher geplant sind. Unteraufgabentermine sind direkt in Aufgabenzeilen sichtbar.
+- Erweiterung lediglich um optionale `Subtask.offset` und `Subtask.plannedDate` innerhalb des bestehenden Schema v3. JSON-Export, -Import und Firestore-Validierung müssen beide Felder erhalten; andere Aufgaben, Vorlagen und historisierte Abschlussdaten bleiben unverändert.
+- No background push without a separately authorized server; bestehende v0.5-Browser-Erinnerungen werden an den tatsächlich letzten Fertigstellungstag angepasst.
