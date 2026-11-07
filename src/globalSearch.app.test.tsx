@@ -28,7 +28,7 @@ function seed(){
 }
 const stored=()=>JSON.parse(localStorage.getItem(STORAGE_KEY)!);
 async function openSearch(user:ReturnType<typeof userEvent.setup>){
- await user.click(screen.getByRole('button',{name:'Suche',exact:true}));
+ await user.click(screen.getByRole('button',{name:'Suche'}));
  const input=screen.getByRole('searchbox',{name:'Aufgaben und Vorlagen suchen'});
  await waitFor(()=>expect(input).toHaveFocus());
  return input;
@@ -92,7 +92,7 @@ describe('Globale Suche in Task Companion',()=>{
  });
  it('does not intercept typing slash while capturing a task or within an editor',async()=>{
   seed();const user=userEvent.setup();render(<App/>);
-  await user.click(screen.getByRole('button',{name:'Aufgabe',exact:true}));
+  await user.click(screen.getByRole('button',{name:'Aufgabe'}));
   const quick=screen.getByRole('textbox');
   quick.focus();
   await user.keyboard('Mathe / Religion');
