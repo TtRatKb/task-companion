@@ -67,3 +67,53 @@
 .reminder-time small{color:#837b75;font-weight:400;font-size:11px}
 .reminder-limit,.reminder-help{font-size:12px;line-height:1.5;color:#736b64;margin:13px 0 0}
 @media(max-width:540px){.reminder-days{grid-template-columns:1fr}.sidebar-footer{padding-bottom:8px}}
+
+/* v0.6 — checklists and reusable task templates */
+.task-entry{border-bottom:1px solid #eeeae7}
+.task-entry .task-row{border-bottom:0;padding-bottom:8px;align-items:flex-start}
+.subtask-expand{display:flex;align-items:center;gap:3px;padding:4px 2px 5px 7px;color:#77706a;background:transparent;border:0;font-size:12px;white-space:nowrap;flex-shrink:0}
+.subtask-expand:hover{color:#a63d35}
+.subtask-progress{height:3px;margin:0 13px 8px 36px;border-radius:99px;overflow:hidden;background:#e8e2dd}
+.subtask-progress>div{background:#699d87;height:100%;border-radius:99px;transition:width .15s}
+.subtask-list{display:grid;gap:4px;margin:0 8px 12px 33px;padding:5px 7px 6px;background:#f4f1ed;border-radius:7px}
+.subtask-list label{display:flex;align-items:center;gap:9px;padding:6px 7px;font-size:13px;cursor:pointer;overflow-wrap:anywhere}
+.subtask-list input{accent-color:#4c9272;width:16px;height:16px;flex:none}
+.subtask-list .subtask-done span{text-decoration:line-through;color:#8f8881}
+.task-create-actions{display:flex;align-items:center;flex-wrap:wrap;column-gap:22px;row-gap:4px}
+.checklist-editor{border-top:1px solid #ece7e2;margin:15px 0;padding:14px 0 4px}
+.checklist-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
+.checklist-heading h3{margin:0;font-size:14px;color:#4d4641}
+.checklist-heading small,.checklist-editor>small{font-size:11px;color:#80776f;line-height:1.4}
+.checklist-edit-row,.template-step-row{display:flex;align-items:center;gap:5px;margin-bottom:7px;min-width:0}
+.checklist-edit-row>input[type=checkbox]{flex:none;accent-color:#4c9272;width:17px;height:17px}
+.checklist-edit-row>input:not([type=checkbox]),.template-step-row>input{flex:1;min-width:0;padding:8px 7px}
+.checklist-edit-row .icon-button,.template-step-row .icon-button{flex:none;padding:5px}
+.checklist-edit-row .icon-button svg,.template-step-row .icon-button svg{width:16px;height:16px}
+.checklist-edit-row .icon-button:disabled,.template-step-row .icon-button:disabled{opacity:.3;cursor:default}
+.checklist-add{display:flex;align-items:center;gap:7px;margin:8px 0 10px}
+.checklist-add input{min-width:0;flex:1;padding:9px}
+.checklist-add button,.task-editor-footer button,.template-step-row button{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.template-step-number{font-size:11px;color:#a8a099;width:20px;text-align:right;flex:none}
+.task-editor-footer{gap:9px;flex-wrap:wrap}
+.task-editor-footer>div{flex-wrap:wrap;justify-content:flex-end}
+.template-intro{background:#fff;border:1px solid #e8e2dc;border-radius:11px;padding:21px;margin-bottom:20px}
+.template-intro-heading{display:flex;gap:9px;align-items:center;color:#55443f}
+.template-intro-heading svg{color:#be433a;flex:none}
+.template-intro h2{margin:0;font-size:17px}
+.template-intro p{color:#726b64;font-size:13px;line-height:1.55;margin:11px 0 16px}
+.template-actions{display:flex;flex-wrap:wrap;gap:9px}
+.template-actions button{display:inline-flex;gap:7px;align-items:center}
+.template-empty{background:#fff;border:1px dashed #e4dcd4;border-radius:10px}
+.template-cards{display:grid;gap:10px}
+.template-card{display:flex;align-items:center;justify-content:space-between;gap:15px;background:#fff;border:1px solid #e8e2dc;border-radius:10px;padding:16px}
+.template-card-info{min-width:0}
+.template-card-info strong{font-size:14px}
+.template-card-info p{margin:6px 0;color:#726b64;font-size:12px}
+.template-card-info small{font-size:11px;color:#a17663}
+.template-card-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:7px}
+.template-card-actions button{display:flex;align-items:center;gap:6px;font-size:12px}
+.template-chooser{background:#fff;padding:13px;border:1px solid #e5dfd9;border-radius:10px;display:grid;gap:7px;max-width:450px}
+.template-chooser>strong{font-size:13px}
+.template-chooser>button{border:0;border-radius:6px;background:#f4f1ee;color:#473f39;padding:9px 11px;text-align:left}
+.template-chooser>button:hover{background:#e8e2dc}
+@media(max-width:650px){.template-card{align-items:stretch;flex-direction:column}.template-card-actions{justify-content:flex-start}.template-intro{padding:15px}.checklist-add{flex-wrap:wrap}.checklist-add input{flex-basis:100%}.checklist-edit-row,.template-step-row{gap:2px}}
