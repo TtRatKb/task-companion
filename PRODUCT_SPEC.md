@@ -156,3 +156,14 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Ein Reminder wird je Task-ID, Deadline und Vorwarnstufe lokal höchstens einmal angezeigt. Mehr als drei zeitgleiche Erinnerungen werden gebündelt. Abgeschlossene Aufgaben erzeugen keine Meldung. Benachrichtigungen verändern weder geplante Daten noch Deadlines, Abschlussereignisse oder Cloud-Status.
 - **Einschränkung ausdrücklich anzeigen:** Diese Browser-Erinnerungen benötigen eine gerade geöffnete/ausgeführte App. Kein garantierter Background-Push bei vollständig geschlossener App. Serverseitiger Scheduler mit FCM/Web Push bleibt ein separates Vorhaben mit Einrichtungs- und möglicher Kostenfreigabe (siehe `docs/PUSH_NEXT_STEPS.md`).
 - Keine Migration des Aufgabendatenmodells. Browser-/Geräte-Einstellungen liegen getrennt im lokalen Speicher; Cloud-Synchronisierung und JSON-Backups der Aufgaben bleiben unverändert.
+
+
+## 13. Ergänzung v0.6 — Checklisten und Aufgabenvorlagen
+
+- `Task.subtasks`: geordnete Liste eigenständiger Unteraufgaben (`id,title,completedAt`), direkt in Aufgabenlisten aufklappbar und einzeln abhackbar. Fortschritt `erledigt / gesamt` plus dezenter Fortschrittsbalken. Detail-Editor bietet Anlegen, Umbenennen, Sortieren, Entfernen und Abhaken.
+- `TaskTemplate`: unabhängig gespeicherte Vorlage (`id,name,title,description,priority,subtaskTitles,createdAt,updatedAt`); bewusst **keine** festen Fälligkeits- oder Planungsdaten. Beim Anwenden öffnet sich der normale Aufgaben-Editor, damit Fach, Klasse, Projekt, Planung und Deadline individuell gesetzt werden können.
+- Neue Aufgaben aus einer Vorlage erhalten vollständig neue Task- und Subtask-IDs. Häkchen sind leer, Änderungen am Task haben keine Wirkung auf die Vorlage oder andere Instanzen; Löschen einer Vorlage löscht keine bestehenden Aufgaben.
+- Vorlagenbibliothek in der Hauptnavigation, mit Anlegen, Bearbeiten, Löschen und Anwenden. „Als Vorlage“ im Aufgaben-Editor und „Aus Vorlage erstellen“ in der Aufgabenliste. Vorschlag „Klassenarbeit vorbereiten“ mit Beispielschritten wird erst nach Bearbeiten und ausdrücklichem Speichern angelegt, nicht automatisch.
+- Bei Abschluss einer wiederkehrenden Aufgabe werden die Schritte für das neue Vorkommen geleert. Der Abschlussverlauf enthält dafür den vorherigen Checklistenstatus, sodass Undo ihn exakt wiederherstellen kann; die bestehenden Wiederholungs- und Deadline-Regeln bleiben unberührt.
+- `AppData.schemaVersion=3` migriert v1/v2 ohne Verlust von Aufgaben, Projekten, Ereignissen oder Deadlines. Alte Aufgaben erhalten `subtasks:[]` und alte Daten `templates:[]`. Validierung verweigert ungültige IDs und Formate. JSON-Sicherung und bestehendes Cloud-Dokument transportieren die zusätzlichen Felder.
+- Wichtig für geräteübergreifende Nutzung: ältere, noch geöffnete v0.5-PWA-Instanzen vor weiterer Bearbeitung aktualisieren; der Cloud-Revisionsabgleich verhindert ein stilles Übertragen veralteter Stände.
