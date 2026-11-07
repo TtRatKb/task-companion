@@ -202,3 +202,14 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - „Ohne Arbeitstag“ zeigt offene, nicht terminierte Aufgaben und Schritte zur schnellen Einplanung. Die UI begrenzt die Zahl sichtbarer Einträge, ohne sie zu löschen.
 - **Schema v5** erweitert Task/Subtask um `estimatedMinutes?: number|null` und AppData um `weeklyBudgetMinutes: (number|null)[]` (genau sieben Einträge). v1–v4 migrieren verlustfrei. Cloud-Sync, validierte JSON-Sicherung und Konfliktauflösung müssen Zeitwerte als normale App-Daten erhalten; ältere Clients dürfen Daten der Version 5 nicht verarbeiten.
 - Keine automatische Aufgabenumverteilung, keine Kalenderintegration, kein Push-Backend und keine Änderung der Deadline-Semantik von v0.8.
+
+
+## 17. v1.0 — Inbox-Turbo: Tastaturgestütztes Einsortieren
+
+- Der **Eingang** bietet den Button „Eingang aufräumen“ und startet eine Sitzung mit einer unveränderlichen Liste der gerade offenen Eingang-Aufgaben (Projektzuordnung `null`, kein endgültiger Abschluss). Jede ID kommt im Durchlauf höchstens einmal vor.
+- In einem fokussierten Dialog wird je eine Aufgabe angezeigt. Ausschließlich **Projekt**, **Priorität**, **geplanter Arbeitstag** und **Deadline** werden editiert. Die Save-and-next-Aktion öffnet sofort die nächste Aufgabe, während Skip keinerlei Änderungen speichert. Abbrechen ist jederzeit möglich.
+- Kürzel bei nicht fokussierten Formulareingaben: `1`–`4` Priorität, `H` heute, `M` morgen, `W` in sieben Tagen, `0` Planungsdatum entfernen; `P`, `D`, `L` fokussieren Projekt/Arbeitstag/Deadline; `S` überspringen; `Enter` speichern, `Esc` schließen. Echte Text- und Datumseingaben sowie native Select-Menüs dürfen nicht gestört werden.
+- Der Dialog zeigt Schrittzähler, Fortschritt und zum Abschluss eine Bilanz von gespeicherten/bestätigten und übersprungenen Einträgen. Ein bestätigter Eingang ohne Projekt bleibt weiterhin im Eingang, wird aber **innerhalb derselben Sitzung** nicht wiederholt. Kein verstecktes „processed“-Flag und keine Migration nötig.
+- Aufgabenidentität, Wiederholungen, Unteraufgaben, Zeitbudgets und sämtliche nicht explizit angefassten Daten bleiben unverändert. Änderungen passieren durch den bestehenden lokalen `commit`-Pfad mit optionaler Cloud-Synchronisation und JSON-Sicherung. Die App prüft den `updatedAt`-Stand vor der Bearbeitung: Nach zwischenzeitlicher Cloud-/Fenster-Änderung wird die konflikthafte Eingabe nicht gespeichert.
+- Geplante Arbeitstage am bzw. nach dem Deadline-Tag benötigen eine ausdrückliche Bestätigung, weil die Deadline bedeutet, dass die Aufgabe spätestens am Vortag fertig sein muss.
+- Das Modell bleibt **Schema v5**; kein neues Backend, keine Änderung der allgemeinen Eingang-/Projektansicht und keine Löschung/automatische Planung.
