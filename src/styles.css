@@ -385,3 +385,55 @@
 .focused-step-project i{width:7px;height:7px;border-radius:50%;flex:none}
 .step-undo{z-index:79}
 @media(max-width:650px){.focused-step-row{padding:12px 11px}.focused-steps-head{padding:11px}.focused-step-body>strong{font-size:13px}}
+
+/* v1.3 — organize subtasks: drag handles, keyboard-safe arrows, collapsible lists */
+.step-order-controls{display:flex;align-items:center;gap:2px;flex:none;align-self:flex-start;margin-top:4px}
+.step-drag-handle{display:grid;place-items:center;border:0;background:transparent;border-radius:6px;color:#9b9087;padding:5px;cursor:grab;touch-action:none}
+.step-drag-handle:active{cursor:grabbing}
+.step-drag-handle:hover{background:#f0ebe5;color:#a64f41}
+.step-order-arrows{display:flex;flex-direction:column;gap:1px}
+.step-order-arrows button{display:grid;place-items:center;width:19px;height:18px;border:0;border-radius:4px;padding:1px;background:#f8f5f2;color:#7f7268}
+.step-order-arrows button:disabled{opacity:.25;cursor:default}
+.step-order-arrows button:not(:disabled):hover{background:#ece1da;color:#b14b3e}
+.template-visual-row:has(.step-drag-handle:active),.subtask-edit-row:has(.step-drag-handle:active){background:#fff8f4}
+.subtask-collapse-toggle{flex-basis:100%;display:flex;align-items:center;gap:5px;margin:0 0 2px 31px;border:0;background:none;padding:2px 5px;font-size:11px;color:#80756a;text-align:left;width:max-content}
+.subtask-collapse-toggle:hover{color:#b14f43;background:#f7f1ec;border-radius:5px}
+.subtask-check-label{min-width:0;flex:1;display:flex;align-items:center;gap:9px;cursor:pointer}
+.subtask-check-label>span{display:flex;flex-direction:column;gap:3px;overflow-wrap:anywhere;min-width:0}
+.subtask-move-inline{border:0;background:transparent;color:#82776c;padding:5px 7px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;font-size:10px;white-space:nowrap;flex:none}
+.subtask-move-inline:hover{background:#f3ede7;color:#a34a3d}
+.subtask-inline .subtask-line{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.subtask-transfer-editor{color:#8c7b6b;align-self:center}
+.subtask-transfer-editor:hover{color:#ad5749}
+.focus-move{align-self:center;margin-left:auto}
+.move-subtask-dialog{width:min(575px,100%);padding:23px}
+.move-subtask-dialog header{align-items:flex-start;gap:10px}
+.move-subtask-dialog header p{font-size:12px;color:#85796d;margin:5px 0 0}
+.move-step-name{display:flex;align-items:center;gap:9px;background:#faf7f4;border:1px solid #e9e1d9;border-radius:9px;padding:12px;margin:6px 0 17px;font-size:14px;font-weight:650;overflow-wrap:anywhere}
+.move-step-name svg{flex:none;color:#a96a5b}
+.move-subtask-dialog>label{margin-bottom:15px}
+.move-step-date-choice{border:1px solid #e7dfd8;border-radius:9px;padding:11px 13px;margin:12px 0;font-size:12px}
+.move-step-date-choice legend{font-size:12px;font-weight:700;padding:0 5px;color:#61544b}
+.move-step-date-choice label{display:flex;align-items:flex-start;gap:10px;font-weight:400;font-size:12px;margin:5px 0 9px;padding:5px;border-radius:7px}
+.move-step-date-choice label:has(input:checked){background:#f8f2ed}
+.move-step-date-choice input[type=radio]{margin-top:3px;flex:none;accent-color:#b95f50}
+.move-step-date-choice label span{display:flex;flex-direction:column;gap:4px}
+.move-step-date-choice label small{font-size:11px;line-height:1.5;color:#7e756c}
+.move-step-date-choice .move-step-disabled{opacity:.55}
+.move-step-preview{border-radius:9px;background:#f6f8f4;border:1px solid #dfebdf;padding:11px;font-size:12px;line-height:1.55}
+.move-step-preview span{display:block;margin-top:5px;color:#6e695f}
+.move-step-preview .move-step-warning{color:#a34135;font-weight:650}
+.move-step-help{font-size:11px;line-height:1.6;color:#7d7067;margin:12px 0}
+.move-step-error{border-radius:7px;background:#fff3f1;color:#ab4239;padding:10px;font-size:12px;line-height:1.5}
+.move-undo{bottom:82px}
+@media(max-width:680px){
+ .subtask-move-inline span{display:none}
+ .step-order-controls{gap:0}
+ .step-order-arrows button{width:16px;height:17px}
+ .step-drag-handle{padding:3px}
+ .subtask-edit-row{gap:5px}
+ .subtask-transfer-editor{padding:5px}
+ .template-visual-row .step-order-controls{margin-top:6px}
+ .focus-move{align-self:flex-start}
+ .move-subtask-dialog{padding:17px}
+}
