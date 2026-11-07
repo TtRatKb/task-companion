@@ -13,6 +13,7 @@ function data(title?: string): AppData {
     scheduledDate: null,
     deadlineDate: null,
     recurrence: null,
+    subtasks: [],
     completedAt: null,
     createdAt: '2026-11-06T09:00:00Z',
     updatedAt: '2026-11-06T09:00:00Z'
@@ -55,7 +56,7 @@ describe('cloud conflict policy', () => {
 
   it('does not unnecessarily write equivalent snapshots', () => {
     expect(resolveInitial(uid, cloudData, cloud, null)).toBe('already-equal');
-    expect(sameData({ ...cloudData, schemaVersion: 2 }, cloudData)).toBe(true);
+    expect(sameData({ ...cloudData, schemaVersion: 3 }, cloudData)).toBe(true);
   });
 
   it('considers event history when checking for unsynced data', () => {
