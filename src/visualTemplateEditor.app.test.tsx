@@ -54,11 +54,11 @@ describe('Intuitiver Vorlageneditor und kontextuelle Hilfe',()=>{
   const dialog=screen.getByRole('dialog',{name:'Neue Vorlage erstellen'});
   const title=within(dialog).getByLabelText('Vorlagenname');
   await user.type(title,'Klassenarbeit ');
-  await user.click(within(dialog).getByRole('button',{name:/\{Fach\} Einmal eingeben/}));
+  await user.click(within(dialog).getByRole('button',{name:'{Fach}'}));
   await waitFor(()=>expect(title).toHaveValue('Klassenarbeit {Fach}'));
   const step=within(dialog).getByLabelText('Unteraufgabe 1');
   await user.type(step,'ClassTime einrichten');
-  await user.click(within(dialog).getByRole('button',{name:/2 Wochen vorher Fester Abstand/}));
+  await user.click(within(dialog).getByRole('button',{name:'2 Wochen vorher'}));
   await waitFor(()=>expect(step).toHaveValue('ClassTime einrichten – 2 Wochen vorher'));
   expect(within(dialog).getByText(/Zeitpunkt:/)).toBeInTheDocument();
   await user.click(within(dialog).getByRole('button',{name:/Vorlage speichern/}));
@@ -83,6 +83,7 @@ describe('Intuitiver Vorlageneditor und kontextuelle Hilfe',()=>{
   expect(stored().templates[0].steps[1]).toBe(template.steps[1]+' ergänzt');
  });
  it('verhindert den unbeabsichtigten Verlust geänderter Vorlagen',async()=>{
+  seed();
   const user=await openNew();
   const dialog=screen.getByRole('dialog');
   await user.type(within(dialog).getByLabelText('Vorlagenname'),'Klassenarbeit');
@@ -103,7 +104,7 @@ describe('Intuitiver Vorlageneditor und kontextuelle Hilfe',()=>{
   expect(within(dialog).getByLabelText('Hilfe für Aufgaben')).toBeInTheDocument();
   await user.type(within(dialog).getByLabelText('Titel'),'Klassenarbeit vorbereiten');
   await user.type(within(dialog).getByLabelText('Neue Unteraufgabe'),'ClassTime eintragen');
-  await user.click(within(dialog).getByRole('button',{name:/2 Wochen vorher Vom gewählten/}));
+  await user.click(within(dialog).getByRole('button',{name:'2 Wochen vorher'}));
   await waitFor(()=>expect(within(dialog).getByLabelText('Neue Unteraufgabe')).toHaveValue('ClassTime eintragen – 2 Wochen vorher'));
   await user.keyboard('{Enter}');
   await waitFor(()=>expect(within(dialog).getByLabelText('Unteraufgabe 1')).toHaveValue('ClassTime eintragen'));
