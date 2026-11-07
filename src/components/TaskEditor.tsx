@@ -124,7 +124,7 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
      <button type="button" className="icon-button" aria-label={`Unteraufgabe ${index+1} entfernen`} onClick={()=>setV(current=>({...current,subtasks:(current.subtasks??[]).filter(s=>s.id!==step.id)}))}><X/></button>
     </div>)}
     <div className="subtask-add-row"><input ref={newStepRef} aria-label="Neue Unteraufgabe" value={newStep}
-     onFocus={()=>{activeStep.current=null}} onChange={e=>setNewStep(e.target.value)} placeholder="Weiteren Schritt eingeben" onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addStep()}}}/><button type="button" className="ghost" onClick={addStep} disabled={!newStep.trim()}><Plus size={15}/> Hinzufügen</button></div>
+     onFocus={()=>{activeStep.current=null}} onChange={e=>setNewStep(e.target.value)} placeholder="Weiteren Schritt eingeben" onKeyDown={e=>{if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();addStep()}}}/><button type="button" className="ghost" onClick={addStep} disabled={!newStep.trim()}><Plus size={15}/> Hinzufügen</button></div>
     <p className="subtask-hint">Schreib einen Abstand einfach ans Ende: „Aufgaben zusammenstellen – 2 Wochen vorher“, „ClassTime einrichten – {<code>{'{Deadline}'}</code>} - 3 Tage“ oder „14 Tage vorher“. Termine werden von der Hauptdeadline zurückgerechnet, nie gleichmäßig verteilt. Du kannst Termine jederzeit manuell ändern; das löst dann die automatische Verknüpfung.</p>
    </fieldset>
    <div className="form-grid">
