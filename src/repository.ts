@@ -20,7 +20,7 @@ function parseSubtasks(value:unknown):Subtask[]{
   let offset:Subtask['offset'];
   if(s.offset!==undefined&&s.offset!==null){
    const o=safeRecord(s.offset);
-   if(!Number.isInteger(o.amount)||Number(o.amount)<1||Number(o.amount)>999||
+   if(typeof o.amount!=='number'||!Number.isInteger(o.amount)||o.amount<1||o.amount>999||
       !['days','weeks','months'].includes(String(o.unit)))
     throw new Error('Ungültiger relativer Termin einer Unteraufgabe.');
    offset={amount:Number(o.amount),unit:o.unit as 'days'|'weeks'|'months'};
