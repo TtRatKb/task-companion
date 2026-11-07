@@ -3,6 +3,8 @@ import {Check,Plus,Trash2,X} from 'lucide-react';
 import type {TaskTemplate} from '../types';
 import {parseRelativeStep,offsetDescription} from '../relativePlanning';
 import {EditorHelpPanel} from './EditorHelpPanel';
+import {StepOrderControls} from './StepOrderControls';
+import {reorderById,stepUpDown} from '../subtaskOrganization';
 
 type StepRow={id:string;text:string;checked:boolean};
 type FocusTarget={field:'name'|'description'|'step';id?:string};
@@ -22,6 +24,7 @@ export function TemplateEditor({template,onSave,onClose}:{
  const [dirty,setDirty]=useState(false);
  const titleRef=useRef<HTMLInputElement>(null);
  const rowRefs=useRef<Record<string,HTMLInputElement|null>>({});
+ const dragging=useRef<string|null>(null);
  const active=useRef<FocusTarget>({field:'name'});
  const activeElement=useRef<HTMLInputElement|HTMLTextAreaElement|null>(null);
  const nameInput=(el:HTMLInputElement|null)=>{titleRef.current=el};
@@ -36,6 +39,14 @@ export function TemplateEditor({template,onSave,onClose}:{
   });
   setDirty(true);
   focusRow(next.id);
+ };
+ const moveRow=(id:string,direction:-1|1)=>{setRows(old=>stepUpDown(old,id,direction));setDirty(true)};
+ const dropRow=(targetId:string)=>{
+  const movingId=dragging.current;
+  dragging.current=null;
+  if(!movingId||movingId===targetId)return;
+  setRows(old=>reorderById(old,movingId,targetId));
+  setDirty(true);
  };
  const removeRow=(id:string)=>{
   const index=rows.findIndex(row=>row.id===id);
@@ -130,12 +141,18 @@ export function TemplateEditor({template,onSave,onClose}:{
      </div>
      <div className="template-step-heading">
       <h3>Unteraufgaben <small>{total} Schritte</small></h3>
-      <span>Wie bei einer normalen Aufgabe</span>
+      <span>Per Griff ziehen oder mit ↑ ↓ sortieren</span>
      </div>
      <div className="template-visual-steps" aria-label="Unteraufgaben der Vorlage">
       {rows.map((row,index)=>{
        const parsed=parseRelativeStep(row.text);
-       return <div className="template-visual-row" key={row.id}>
+       return <div className="template-visual-row" key={row.id}
+         onDragOver={e=>{if(dragging.current){e.preventDefault();e.dataTransfer.dropEffect='move'}}}
+         onDrop={e=>{e.preventDefault();dropRow(row.id)}}>
+        <StepOrderControls index={index} total={rows.length}
+         onUp={()=>moveRow(row.id,-1)} onDown={()=>moveRow(row.id,1)}
+         onDragStart={e=>{dragging.current=row.id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',row.id)}}
+         onDragEnd={()=>{dragging.current=null}}/>
         <button type="button" className={row.checked?'template-preview-toggle checked':'template-preview-toggle'}
          aria-label={`Unteraufgabe ${index+1} als Vorschau abhaken`}
          aria-pressed={row.checked} title="Vorschau-Häkchen; wird nicht gespeichert"
