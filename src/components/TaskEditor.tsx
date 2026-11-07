@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {BookmarkPlus,Plus,Trash2,X} from 'lucide-react';
+import {EditorHelpPanel} from './EditorHelpPanel';
 import {freshSubtask} from '../checklists';
 import {deadlineWorkday,dateBeforeDeadline,offsetDescription,parseRelativeStep,resolveRelativeSubtasks} from '../relativePlanning';
 import {formatDate,todayLocal} from '../date';
@@ -19,6 +20,34 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
  const [newStep,setNewStep]=useState('');
  const [deadlineChange,setDeadlineChange]=useState<'pending'|'adjust'|'keep'|null>(null);
  const title=useRef<HTMLInputElement>(null);useEffect(()=>title.current?.focus(),[]);
+ const newStepRef=useRef<HTMLInputElement>(null);
+ const stepRefs=useRef<Record<string,HTMLInputElement|null>>({});
+ const activeStep=useRef<string|null>(null);
+ const insertSnippet=(snippet:string)=>{
+  const id=activeStep.current;
+  const input=id?stepRefs.current[id]:newStepRef.current;
+  const value=id?(v.subtasks??[]).find(s=>s.id===id)?.title??'':newStep;
+  const start=input?.selectionStart??value.length;
+  const end=input?.selectionEnd??start;
+  const text=value.slice(0,start)+snippet+value.slice(end);
+  if(id)changeStep(id,{title:text});
+  else setNewStep(text);
+  window.setTimeout(()=>{
+   const next=id?stepRefs.current[id]:newStepRef.current;
+   next?.focus();next?.setSelectionRange(start+snippet.length,start+snippet.length);
+  },0);
+ };
+ const addAfter=(id:string)=>{
+  const step=freshSubtask('');
+  setV(current=>{
+   const items=current.subtasks??[];
+   const index=items.findIndex(item=>item.id===id);
+   return {...current,subtasks:index<0?[...items,step]:[
+    ...items.slice(0,index+1),step,...items.slice(index+1)
+   ]};
+  });
+  window.setTimeout(()=>stepRefs.current[step.id]?.focus(),0);
+ };
  const steps=v.subtasks??[];
  const addStep=()=>{if(!newStep.trim())return;setV(current=>({...current,subtasks:[...(current.subtasks??[]),...resolveRelativeSubtasks([freshSubtask(newStep)],current.deadlineDate)]}));setNewStep('')};
  const changeStep=(id:string,changes:Partial<Subtask>)=>setV(current=>({...current,subtasks:(current.subtasks??[]).map(s=>s.id===id?{...s,...changes}:s)}));
@@ -52,7 +81,12 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
  const preset=days.join()===DAILY.join()?'daily':days.join()===WORKDAYS.join()?'workdays':days.join()===WEEKEND.join()?'weekend':days.length===1?'weekly':'custom';
  const setPreset=(value:string)=>{if(value==='')setV({...v,recurrence:null});else if(value==='daily')setV({...v,recurrence:recurrence(DAILY)});else if(value==='workdays')setV({...v,recurrence:recurrence(WORKDAYS)});else if(value==='weekend')setV({...v,recurrence:recurrence(WEEKEND)});else if(value==='weekly')setV({...v,recurrence:recurrence([v.recurrence?.weekdays[0]??1])});else setV({...v,recurrence:recurrence(v.recurrence?.weekdays.length?v.recurrence.weekdays:[1,3,5])})};
  return <div className="modal-backdrop" role="presentation" onMouseDown={e=>e.target===e.currentTarget&&onClose()}>
-  <form className="modal" role="dialog" aria-modal="true" aria-labelledby="editor-title" onSubmit={submit} onKeyDown={e=>e.key==='Escape'&&onClose()}>
+  <form className="modal task-editor-workspace" role="dialog" aria-modal="true" aria-labelledby="editor-title" onSubmit={submit}
+  onKeyDown={e=>{
+   if(e.key==='Escape'){e.preventDefault();onClose()}
+   else if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();e.currentTarget.requestSubmit()}
+  }}>
+   <div className="editor-two-column"><div className="editor-primary">
    <header><h2 id="editor-title">{task?'Aufgabe bearbeiten':'Aufgabe hinzufügen'}</h2><button type="button" className="icon-button" aria-label="Schließen" onClick={onClose}><X/></button></header>
    <label>Titel<input ref={title} value={v.title} onChange={e=>setV({...v,title:e.target.value})} required placeholder="Was steht an?"/></label>
    <label>Beschreibung<textarea value={v.description} onChange={e=>setV({...v,description:e.target.value})} placeholder="Notizen (optional)"/></label>
@@ -61,8 +95,10 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
     {steps.map((step,index)=><div className="subtask-edit-row" key={step.id}>
      <input aria-label={`Unteraufgabe ${index+1} erledigt`} type="checkbox" checked={step.completed} onChange={e=>changeStep(step.id,{completed:e.target.checked})}/>
      <div className="subtask-edit-main">
-      <input aria-label={`Unteraufgabe ${index+1}`} value={step.title}
+      <input ref={el=>{stepRefs.current[step.id]=el}} aria-label={`Unteraufgabe ${index+1}`} value={step.title}
        onChange={e=>changeStep(step.id,{title:e.target.value})}
+       onFocus={()=>{activeStep.current=step.id}}
+       onKeyDown={e=>{if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey){e.preventDefault();addAfter(step.id)}}}
        onBlur={()=>{const parsed=parseRelativeStep(step.title);if(parsed.offset)changeStep(step.id,{title:parsed.title,offset:parsed.offset,plannedDate:v.deadlineDate?dateBeforeDeadline(v.deadlineDate,parsed.offset):null})}}/>
       <div className="subtask-schedule-row">
        {step.offset&&<span className="subtask-offset"><span>{offsetDescription(step.offset)}</span>
@@ -87,7 +123,8 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
      </div>
      <button type="button" className="icon-button" aria-label={`Unteraufgabe ${index+1} entfernen`} onClick={()=>setV(current=>({...current,subtasks:(current.subtasks??[]).filter(s=>s.id!==step.id)}))}><X/></button>
     </div>)}
-    <div className="subtask-add-row"><input aria-label="Neue Unteraufgabe" value={newStep} onChange={e=>setNewStep(e.target.value)} placeholder="Weiteren Schritt eingeben" onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addStep()}}}/><button type="button" className="ghost" onClick={addStep} disabled={!newStep.trim()}><Plus size={15}/> Hinzufügen</button></div>
+    <div className="subtask-add-row"><input ref={newStepRef} aria-label="Neue Unteraufgabe" value={newStep}
+     onFocus={()=>{activeStep.current=null}} onChange={e=>setNewStep(e.target.value)} placeholder="Weiteren Schritt eingeben" onKeyDown={e=>{if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();addStep()}}}/><button type="button" className="ghost" onClick={addStep} disabled={!newStep.trim()}><Plus size={15}/> Hinzufügen</button></div>
     <p className="subtask-hint">Schreib einen Abstand einfach ans Ende: „Aufgaben zusammenstellen – 2 Wochen vorher“, „ClassTime einrichten – {<code>{'{Deadline}'}</code>} - 3 Tage“ oder „14 Tage vorher“. Termine werden von der Hauptdeadline zurückgerechnet, nie gleichmäßig verteilt. Du kannst Termine jederzeit manuell ändern; das löst dann die automatische Verknüpfung.</p>
    </fieldset>
    <div className="form-grid">
@@ -122,6 +159,7 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
     {onSaveTemplate&&<button type="button" className="ghost" disabled={!v.title.trim()} onClick={()=>onSaveTemplate({...v,subtasks:steps.filter(s=>s.title.trim())})}><BookmarkPlus size={16}/> Als Vorlage speichern</button>}</div>
     <div><button type="button" className="ghost" onClick={onClose}>Abbrechen</button><button className="primary" disabled={deadlineChange==='pending'}>Speichern</button></div>
    </footer>
+   </div><EditorHelpPanel mode="task" onInsert={insertSnippet}/></div>
   </form>
  </div>
 }

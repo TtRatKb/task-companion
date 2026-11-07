@@ -13,8 +13,12 @@ describe('Task Companion v0.6 – Templates und Unteraufgaben',()=>{
   await user.click(screen.getByRole('button',{name:'Neue Vorlage'}));
   const dialog=screen.getByRole('dialog');
   await user.type(within(dialog).getByLabelText('Vorlagenname'),'Klassenarbeit Mathe 7');
-  await user.type(within(dialog).getByLabelText('Unteraufgaben – eine pro Zeile'),'Aufgaben schreiben{Enter}Erwartungshorizont{Enter}Drucken');
-  await user.click(within(dialog).getByRole('button',{name:'Vorlage speichern'}));
+  await user.type(within(dialog).getByLabelText('Unteraufgabe 1'),'Aufgaben schreiben');
+  await user.click(within(dialog).getByRole('button',{name:/Unteraufgabe hinzufügen/}));
+  await user.type(within(dialog).getByLabelText('Unteraufgabe 2'),'Erwartungshorizont');
+  await user.click(within(dialog).getByRole('button',{name:/Unteraufgabe hinzufügen/}));
+  await user.type(within(dialog).getByLabelText('Unteraufgabe 3'),'Drucken');
+  await user.click(within(dialog).getByRole('button',{name:/Vorlage speichern/}));
   expect(screen.getByText('Klassenarbeit Mathe 7')).toBeInTheDocument();
   await user.click(screen.getByRole('button',{name:'Aufgabe erstellen'}));
   const editor=screen.getByRole('dialog');

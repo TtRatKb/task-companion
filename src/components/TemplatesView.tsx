@@ -2,6 +2,7 @@ import {useState,type FormEvent} from 'react';
 import {BookmarkPlus,Copy,Plus,Trash2,X} from 'lucide-react';
 import type {TaskTemplate} from '../types';
 import {expandTaskTemplate,extractTemplatePlaceholders,fillTemplateText} from '../templateVariables';
+import {TemplateEditor} from './TemplateEditor';
 
 export const STARTER_TEMPLATE:TaskTemplate={
  id:'starter-class-test',name:'Klassenarbeit {Fach} {Klasse} vorbereiten',
@@ -33,17 +34,8 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
   onUse(expandTaskTemplate(instantiating,values));
   cancelUse();
  };
- const [name,setName]=useState(''),[description,setDescription]=useState(''),[steps,setSteps]=useState('');
- const edit=(template?:TaskTemplate)=>{
-  setEditing(template??null);setName(template?.name??'');setDescription(template?.description??'');
-  setSteps(template?.steps.join('\n')??'');setNewOpen(true);
- };
+ const edit=(template?:TaskTemplate)=>{setEditing(template??null);setNewOpen(true)};
  const close=()=>{setNewOpen(false);setEditing(null)};
- const submit=(event:FormEvent)=>{
-  event.preventDefault();if(!name.trim())return;
-  onSave({id:editing?.id,name:name.trim(),description:description.trim(),steps:steps.split('\n').map(s=>s.trim()).filter(Boolean)});
-  close();
- };
  return <div className="templates-view">
   <div className="templates-heading">
    <div><h2>Aufgabenvorlagen</h2><p>Einmal anlegen, beliebig oft nutzen. Jede neue Aufgabe erhält ihre eigene frische Checkliste.</p></div>
@@ -87,15 +79,6 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
     <footer><span/><div><button type="button" className="ghost" onClick={cancelUse}>Abbrechen</button><button className="primary" disabled={missing.length>0}>Weiter zum Aufgabeneditor</button></div></footer>
    </form>
   </div>}
-  {newOpen&&<div className="modal-backdrop" role="presentation" onMouseDown={e=>e.target===e.currentTarget&&close()}>
-   <form className="modal template-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="template-edit-title" onSubmit={submit} onKeyDown={e=>e.key==='Escape'&&close()}>
-    <header><h2 id="template-edit-title">{editing?.id?'Vorlage bearbeiten':'Neue Vorlage'}</h2><button type="button" className="icon-button" onClick={close} aria-label="Schließen"><X/></button></header>
-    <label>Vorlagenname<input autoFocus required value={name} onChange={e=>setName(e.target.value)} placeholder="z. B. Klassenarbeit vorbereiten"/></label>
-    <label>Beschreibung (optional)<input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Wofür nutze ich diese Vorlage?"/></label>
-    <label>Unteraufgaben – eine pro Zeile<textarea rows={9} value={steps} onChange={e=>setSteps(e.target.value)} placeholder={'Aufgaben zusammenstellen\nErwartungshorizont erstellen\nMaterial kopieren'}/></label>
-    <p className="template-help">Tipp: Mit {<code>{'{Fach}'}</code>}, {<code>{'{Klasse}'}</code>} oder {<code>{'{Thema}'}</code>} definierst du persönliche Platzhalter. Relative Unteraufgaben-Termine schreibst du einfach hinter den Schritt, z. B. „2 Wochen vorher“, „14 Tage vorher“ oder {<code>{'{Deadline} - 3 Tage'}</code>}. Die Hauptdeadline legst du bei jeder neuen Aufgabe fest; sie bedeutet, dass alles an diesem Tag bereits fertig sein muss.</p>
-    <footer><span/><div><button type="button" className="ghost" onClick={close}>Abbrechen</button><button className="primary">Vorlage speichern</button></div></footer>
-   </form>
-  </div>}
+  {newOpen&&<TemplateEditor template={editing??undefined} onSave={onSave} onClose={close}/>}
  </div>;
 }
