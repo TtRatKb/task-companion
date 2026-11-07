@@ -11,7 +11,7 @@ const now = new Date('2026-11-06T08:10:00Z'); // 09:10 in Berlin (winter).
 function task(id: string, fields: Partial<Task> = {}): Task {
   return {
     id, title: id, description: '', projectId: null, priority: 4,
-    scheduledDate: null, deadlineDate: today, recurrence: null,
+    scheduledDate: null, deadlineDate: today, recurrence: null, subtasks: [],
     completedAt: null, createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T08:00:00Z', ...fields
   };
