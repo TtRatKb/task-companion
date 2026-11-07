@@ -23,7 +23,7 @@ function dueTask(): Task {
   return {
     id: 'test-task', title: 'Wichtige Abgabe', description: '',
     projectId: null, priority: 1, scheduledDate: null,
-    deadlineDate: todayLocal(), recurrence: null, completedAt: null,
+    deadlineDate: todayLocal(), recurrence: null, subtasks: [], completedAt: null,
     createdAt: '2026-11-01T10:00:00Z', updatedAt: '2026-11-01T10:00:00Z'
   };
 }
