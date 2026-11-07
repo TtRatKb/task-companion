@@ -11,6 +11,7 @@ import {TemplateEditor} from './components/TemplateEditor';
 import {SearchView} from './components/SearchView';
 import {WeekPlanner} from './components/WeekPlanner';
 import {MonthCalendar} from './components/MonthCalendar';
+import {scheduleCalendarWork,undoCalendarSchedule,type CalendarPlanReceipt,type CalendarPlanStatus} from './calendarPlanning';
 import {AppShortcutRail} from './components/AppShortcutRail';
 import {MoveSubtaskDialog} from './components/MoveSubtaskDialog';
 import {transferSubtask,undoSubtaskTransfer,type TransferDateChoice,type TransferReceipt} from './subtaskOrganization';
@@ -31,7 +32,8 @@ export default function App(){
  const [cloudStatus,setCloudStatus]=useState<CloudStatus>({phase:'checking'});
  const [data,setData]=useState<AppData>(emptyData),[error,setError]=useState(''),[view,setView]=useState<View>(route),[side,setSide]=useState(false),[editor,setEditor]=useState<Task|undefined>(),[editorDraft,setEditorDraft]=useState<TaskDraft|undefined>(),[quick,setQuick]=useState(false),[captureVersion,setCaptureVersion]=useState(0),[settings,setSettings]=useState(false),[undo,setUndo]=useState<string|null>(null),[notice,setNotice]=useState(''),[inboxRun,setInboxRun]=useState<string[]|null>(null),[stepUndo,setStepUndo]=useState<{taskId:string;stepId:string;version:string;title:string}|null>(null),
  [moveRequest,setMoveRequest]=useState<{taskId:string;stepId:string}|null>(null),
- [moveUndo,setMoveUndo]=useState<{receipt:TransferReceipt;title:string}|null>(null);
+ [moveUndo,setMoveUndo]=useState<{receipt:TransferReceipt;title:string}|null>(null),
+ [calendarUndo,setCalendarUndo]=useState<CalendarPlanReceipt|null>(null);
  const {reminderSettings,updateReminderSettings}=useDeadlineNotifications(data.tasks);
  useEffect(()=>{
    let loaded:AppData;
@@ -131,15 +133,22 @@ export default function App(){
   const next=moveWorkItem(localDataRef.current,taskId,stepId,date);
   if(next!==localDataRef.current)commit(next);
  };
- const moveMonthWork=(taskId:string,stepId:string|undefined,date:string|null,expectedVersion:string)=>{
-  const latest=localDataRef.current;
-  const task=latest.tasks.find(item=>item.id===taskId);
-  if(!task||task.updatedAt!==expectedVersion){
+ const scheduleMonthWork=(key:string,expectedVersion:string,date:string|null):CalendarPlanStatus=>{
+  const result=scheduleCalendarWork(localDataRef.current,key,expectedVersion,date);
+  if(result.status==='moved'&&result.receipt){
+   commit(result.data);
+   setCalendarUndo(result.receipt);
+  }else if(result.status==='conflict'){
    setNotice('Diese Aufgabe wurde zwischenzeitlich geändert. Bitte den aktuellen Kalenderstand prüfen.');
-   return;
   }
-  const next=moveWorkItem(latest,taskId,stepId,date);
-  if(next!==latest)commit(next);
+  return result.status;
+ };
+ const undoCalendarMove=()=>{
+  if(!calendarUndo)return;
+  const result=undoCalendarSchedule(localDataRef.current,calendarUndo);
+  if(result.status==='moved')commit(result.data);
+  else setNotice('Die Aufgabe wurde inzwischen verändert. Rückgängig würde neuere Änderungen überschreiben.');
+  setCalendarUndo(null);
  };
  const createForCalendarDay=(date:string)=>{
   setEditor(undefined);
@@ -228,7 +237,7 @@ export default function App(){
  {view.kind==='search'&&<SearchView data={data} inputRef={searchInputRef} onOpenTask={setEditor} onOpenTemplate={setSearchTemplate}/>}
  {view.kind==='calendar'&&<MonthCalendar tasks={data.tasks} projects={data.projects}
   budgets={data.weeklyBudgetMinutes} today={today} onEdit={setEditor}
-  onMove={moveMonthWork} onCreate={createForCalendarDay}
+  onSchedule={scheduleMonthWork} onCreate={createForCalendarDay}
   onOpenWeek={()=>navigate({kind:'week'})}/>}
  {view.kind==='week'&&<WeekPlanner tasks={data.tasks} projects={data.projects}
   budgets={data.weeklyBudgetMinutes} today={today} onMove={movePlannedWork}
@@ -267,6 +276,10 @@ export default function App(){
    source={data.tasks.find(task=>task.id===moveRequest.taskId)!}
    stepId={moveRequest.stepId} tasks={data.tasks}
    onTransfer={confirmMove} onClose={()=>setMoveRequest(null)}/>}
+ {calendarUndo&&<div className="snackbar calendar-undo">„{calendarUndo.title}“ neu eingeplant.
+  <button type="button" onClick={undoCalendarMove}>Rückgängig</button>
+  <button type="button" aria-label="Kalenderhinweis schließen" onClick={()=>setCalendarUndo(null)}>×</button>
+ </div>}
  {moveUndo&&<div className="snackbar move-undo">„{moveUndo.title}“ verschoben.
   <button type="button" onClick={undoMove}>Rückgängig</button>
   <button type="button" aria-label="Verschiebungshinweis schließen" onClick={()=>setMoveUndo(null)}>×</button>

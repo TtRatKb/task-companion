@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v1.6
+## Funktionen in v1.7
 
 - Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Monatskalender**, **Deadline-Radar**, **globale Suche** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Kalender direkt beplanen (v1.7)**: offene Aufgaben ohne Arbeitstag nach Deadline sortiert auf einen Kalendertag ziehen oder per „Tag wählen“ zuweisen; mit Terminwarnungen und Rückgängig
 - **Monatskalender (v1.6)**: Arbeitsaufgaben, einzelne Unteraufgabentermine und Deadlines im Monatsraster; Tagesdetails mit datenschutzfreundlicher Schnellbearbeitung und direkten Aufgaben für den gewählten Tag
 - **Flexible Wiederholungen (v1.5)**: alle N Tage, Wochen oder Monate, Kalenderstart und Vorschau auf nächste Termine, auch in der Schnellerfassung; feste Rhythmen trotz verspäteter Erledigung
 - **Suche & Schnellfilter (v1.4)**: Aufgaben, Notizen, Projekte, einzelne Unteraufgaben und Vorlagen durchsuchen; Status, Typ, Projekt und Priorität kombinieren; mit `/` oder `Strg/⌘ + K` öffnen
@@ -73,6 +74,21 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 ### Datenmigration
 
 Beim Laden und Importieren werden v1-, v2-, v3-, v4- und v5-Daten automatisch in das aktuelle **v6-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Kalender direkt beplanen (v1.7)
+
+Der **Monatskalender** ist jetzt nicht nur eine Übersicht, sondern auch ein direktes Planungswerkzeug. Oberhalb des Rasters findest du den auf- und zuklappbaren Bereich **„Ohne Arbeitstag“** mit Aufgaben und unerledigten Unteraufgaben, die noch kein konkretes Arbeitsdatum haben. Die Liste priorisiert zuerst die nächsten Deadlines, dann die Priorität. Sie zeigt bis zu fünf Schritte sofort, auf Wunsch mehr.
+
+**Zwei Wege zum Planen:**
+
+- **Per Drag-and-drop:** Ziehe eine Aufgabe am kleinen geriffelten Griff aus „Ohne Arbeitstag“ auf den gewünschten Kalendertag. Auch bereits geplante Arbeiten lassen sich von einer Kalenderkachel oder aus den Tagesdetails auf einen anderen Tag ziehen.
+- **Ohne Ziehen:** Klicke bei einem Schritt auf **„Tag wählen“** und anschließend im Kalender auf den gewünschten Tag. Mit `Esc` oder „Abbrechen“ verlässt du diesen Modus ohne Änderung. Das ist auch mit Tastatur, Touch oder Trackpad praktikabel.
+
+Im Tagesdetail kannst du alternativ weiterhin über das vorhandene **Datumsfeld** umplanen oder den Termin entfernen. Alle drei Wege verwenden dieselbe geprüfte Terminänderung; Monats- und Wochenplanung zeigen danach dieselben Daten.
+
+**Keine heimlichen Terminänderungen:** Bei Arbeit nach dem spätesten Fertigstellungstag erscheint eine Warnung. Ein relativ zur Hauptdeadline geplanter Unteraufgabentermin wird nur nach ausdrücklicher Bestätigung von dieser Verknüpfung gelöst; die Deadline selbst und andere Unteraufgaben bleiben unverändert. Vor dem Speichern wird zudem geprüft, ob die betreffende Aufgabe seit der Auswahl auf einem anderen Gerät geändert wurde. Nach einer erfolgreichen Verschiebung gibt es **„Rückgängig“**, das gegebenenfalls auch die ursprüngliche relative Terminbindung wiederherstellt. Neuere Änderungen anderer Geräte werden dabei nicht überschrieben.
+
+Die Planung läuft weiterhin ausschließlich über **Schema v6** und die vorhandene Cloud-Synchronisation. Es gibt keine Migration, keinen neuen Dienst und keine automatische Gleichverteilung von Unteraufgaben.
 
 ## Monatskalender: Arbeitsplanung und Fristen nebeneinander (v1.6)
 
@@ -219,7 +235,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.6.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.7.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
