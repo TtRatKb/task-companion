@@ -22,9 +22,9 @@ describe('Task Companion v0.6 – Templates und Unteraufgaben',()=>{
   expect(within(editor).getByLabelText('Unteraufgabe 3')).toHaveValue('Drucken');
   await user.click(within(editor).getByRole('button',{name:'Speichern'}));
   await waitFor(()=>expect(screen.getByText('Klassenarbeit Mathe 7')).toBeInTheDocument());
-  expect(screen.getByText('0/3 Schritte')).toBeInTheDocument();
+  expect(screen.getByText(/0\/3 Schritte/)).toBeInTheDocument();
   await user.click(screen.getByRole('checkbox',{name:'Aufgaben schreiben'}));
-  expect(screen.getByText('1/3 Schritte')).toBeInTheDocument();
+  expect(screen.getByText(/1\/3 Schritte/)).toBeInTheDocument();
   const data=JSON.parse(localStorage.getItem(STORAGE_KEY)!);
   expect(data.templates).toHaveLength(1);
   expect(data.tasks[0].subtasks.map((s:{completed:boolean})=>s.completed)).toEqual([true,false,false]);
@@ -52,7 +52,7 @@ describe('Task Companion v0.6 – Templates und Unteraufgaben',()=>{
   localStorage.setItem(STORAGE_KEY,JSON.stringify(seed));
   const user=userEvent.setup();render(<App/>);
   await waitFor(()=>expect(screen.getByText('Große Aufgabe')).toBeInTheDocument());
-  await user.click(screen.getByRole('button',{name:/Große Aufgabe/}));
+  await user.click(screen.getByText('Große Aufgabe').closest('button')!);
   const dialog=screen.getByRole('dialog');
   await user.click(within(dialog).getByRole('button',{name:'Als Vorlage speichern'}));
   const data=JSON.parse(localStorage.getItem(STORAGE_KEY)!);
