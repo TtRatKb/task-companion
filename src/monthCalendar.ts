@@ -63,6 +63,8 @@ export function monthCalendarItems(tasks:Task[],month:string):CalendarItem[] {
  const kindOrder={ready:0,work:1,required:2};
  return entries.sort((a,b)=>a.date.localeCompare(b.date)||kindOrder[a.kind]-kindOrder[b.kind]||
   (a.kind==='work'?a.entry.priority:a.priority)-(b.kind==='work'?b.entry.priority:b.priority)||
+  (a.kind==='work'&&b.kind==='work'&&a.taskId===b.taskId?
+   (a.entry.kind==='task'?0:1)-(b.entry.kind==='task'?0:1):0)||
   a.key.localeCompare(b.key));
 }
 export function dayCalendarItems(items:CalendarItem[],day:string):CalendarItem[] {
