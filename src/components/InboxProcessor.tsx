@@ -17,13 +17,14 @@ function TriageStep({
  });
  const [error,setError]=useState('');
  const focusRef=useRef<HTMLFormElement>(null);
+ const originallyOpenedAt=useRef(task.updatedAt);
  const projectRef=useRef<HTMLSelectElement>(null);
  const scheduleRef=useRef<HTMLInputElement>(null);
  const deadlineRef=useRef<HTMLInputElement>(null);
  useEffect(()=>{focusRef.current?.focus()},[]);
  const submit=(event:FormEvent)=>{
   event.preventDefault();
-  const result=onSave(task.id,task.updatedAt,draft);
+  const result=onSave(task.id,originallyOpenedAt.current,draft);
   if(result==='conflict')setError('Diese Aufgabe wurde inzwischen auf einem anderen Gerät oder in einem anderen Fenster geändert. Schließe den Modus und prüfe die aktuelle Version, bevor du sie bearbeitest.');
   else if(result==='missing')setError('Diese Aufgabe ist inzwischen abgeschlossen oder nicht mehr verfügbar. Du kannst sie überspringen.');
   else if(result==='invalid')setError('Prüfe bitte das Projekt und die eingetragenen Daten.');
@@ -31,9 +32,10 @@ function TriageStep({
  const keydown=(event:KeyboardEvent<HTMLFormElement>)=>{
   if(event.key==='Escape'){event.preventDefault();onClose();return}
   // Never steal typing, native date pickers, select menus or text composition.
-  if(event.ctrlKey||event.altKey||event.metaKey||event.isComposing)return;
+  if(event.ctrlKey||event.altKey||event.metaKey||event.nativeEvent.isComposing)return;
   const target=event.target as HTMLElement;
   if(target.closest('input,select,textarea,[contenteditable="true"]'))return;
+  if(event.key==='Enter'&&target===focusRef.current){event.preventDefault();focusRef.current?.requestSubmit();return}
   if(['1','2','3','4'].includes(event.key)){
    event.preventDefault();setDraft(v=>({...v,priority:Number(event.key) as Priority}));return;
   }
