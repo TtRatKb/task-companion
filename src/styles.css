@@ -129,3 +129,24 @@
 .template-use-dialog footer button:disabled{opacity:.5;cursor:not-allowed}
 .template-help code{background:#f2ede7;border-radius:4px;padding:1px 4px;font-size:11px}
 @media(max-width:530px){.template-variable-fields{grid-template-columns:1fr}.template-live-preview{max-height:210px}}
+
+/* v0.8: explicit subtask timing, relative to the required-by date */
+.subtask-edit-main{display:flex;flex-direction:column;flex:1;min-width:0;gap:5px}
+.subtask-edit-main>input{width:100%;flex:none;min-width:0}
+.subtask-schedule-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:#766c65}
+.subtask-schedule-row>label{display:inline-flex;align-items:center;gap:6px;margin:0;font-weight:500;font-size:11px}
+.subtask-schedule-row input[type=date]{padding:3px 6px;border-radius:6px;border:1px solid #ddd6d0;background:white;font-size:11px;max-width:165px}
+.subtask-offset{display:inline-flex;align-items:center;gap:4px;background:#eaf2eb;color:#477057;border-radius:7px;padding:3px 6px;font-weight:650}
+.subtask-offset button{border:0;background:transparent;font-size:14px;color:inherit;line-height:1;cursor:pointer;padding:0 3px}
+.subtask-date-past{font-size:10px;color:#a03e35}
+.subtask-line>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.subtask-line small{font-size:10px;text-decoration:none;white-space:normal;color:#817971}
+.subtask-line .subtask-date-due{color:#aa413a;font-weight:650}
+.replan-review{border:1px solid #e1c5a6;background:#fffaf2;border-radius:9px;padding:13px;margin:15px 0 4px;font-size:12px;color:#5e5248}
+.replan-review strong{font-size:13px}
+.replan-review p{line-height:1.5;margin:7px 0}
+.replan-review ul{padding-left:18px;margin:7px 0 12px}
+.replan-review li{margin:4px 0}
+.replan-review .settings-actions{flex-wrap:wrap}
+.subtask-hint code{font-size:11px;background:#f1ebe5;padding:1px 4px;border-radius:4px}
+@media(max-width:530px){.subtask-schedule-row input[type=date]{max-width:150px}.subtask-edit-row{align-items:flex-start}}
