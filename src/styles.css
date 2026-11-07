@@ -67,3 +67,49 @@
 .reminder-time small{color:#837b75;font-weight:400;font-size:11px}
 .reminder-limit,.reminder-help{font-size:12px;line-height:1.5;color:#736b64;margin:13px 0 0}
 @media(max-width:540px){.reminder-days{grid-template-columns:1fr}.sidebar-footer{padding-bottom:8px}}
+
+/* v0.6: checklist rows and lightweight reusable templates */
+.task-row{flex-wrap:wrap}
+.subtask-progress-label{font-weight:650;color:#6e6560}
+.subtask-inline{flex-basis:100%;margin:0 0 0 32px;display:grid;gap:7px;font-size:12px}
+.subtask-meter{width:100%;max-width:230px;height:4px;overflow:hidden;background:#e9e4df;border-radius:4px}
+.subtask-meter span{display:block;height:100%;background:#548d71;border-radius:4px;transition:width .15s ease}
+.subtask-line{display:flex;align-items:center;gap:9px;max-width:100%;cursor:pointer;color:#554f49}
+.subtask-line input{accent-color:#4c946c;flex:none}
+.subtask-line.done span{text-decoration:line-through;color:#928b84}
+.subtask-editor{border:1px solid #e5e0da;border-radius:9px;padding:10px 12px 14px;margin:13px 0 18px}
+.subtask-editor legend{font-weight:700;font-size:13px;padding:0 6px}
+.subtask-editor legend small{font-weight:400;color:#8b847d;margin-left:7px}
+.subtask-edit-row,.subtask-add-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.subtask-edit-row input[type=checkbox]{accent-color:#548d71;flex:none}
+.subtask-edit-row input:not([type=checkbox]),.subtask-add-row input{flex:1;min-width:0;border:1px solid #ddd7d0;border-radius:7px;padding:8px;background:white}
+.subtask-edit-row .icon-button{flex:none}
+.subtask-add-row button{display:flex;align-items:center;gap:4px}
+.subtask-add-row button:disabled{opacity:.45}
+.subtask-hint{font-size:11px;color:#807972;line-height:1.5;margin:10px 0 0}
+.modal footer.editor-footer{gap:10px;align-items:flex-start}
+.editor-secondary-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.editor-secondary-actions .ghost{display:flex;align-items:center;gap:6px}
+.editor-secondary-actions .ghost:disabled{opacity:.5}
+.templates-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.templates-heading h2{margin:0 0 7px;font-size:18px}
+.templates-heading p,.starter-template p{font-size:13px;color:#746e67;line-height:1.5;margin:0}
+.templates-heading .primary{flex:none}
+.template-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:22px}
+.template-card{background:white;border:1px solid #e7e1da;border-radius:11px;padding:16px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.template-card h3,.starter-template h3{font-size:15px;margin:0}
+.template-card p{font-size:12px;color:#766f69;margin:0}
+.template-count{font-size:11px;color:#887c74}
+.template-card ol{font-size:12px;line-height:1.6;color:#5d5751;margin:3px 0;padding-left:19px;flex:1}
+.template-card small{color:#8d867e}
+.template-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:auto}
+.template-actions .primary,.template-actions .ghost{font-size:12px;padding:7px 10px}
+.template-actions .primary svg{width:14px;height:14px}
+.templates-empty{font-size:13px;color:#6c665f}
+.starter-template{border:1px dashed #d4c5b8;border-radius:10px;padding:15px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.starter-template h3{display:flex;gap:7px;align-items:center;margin-bottom:6px}
+.template-edit-dialog textarea{min-height:185px;resize:vertical}
+.template-help{font-size:12px;color:#7d766f;line-height:1.5}
+.app-notice{position:fixed;bottom:23px;right:25px;z-index:90;background:#35312e;color:white;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:13px;font-size:12px;box-shadow:0 6px 18px #0002}
+.app-notice button{border:0;background:transparent;color:white;font-size:18px}
+@media(max-width:650px){.templates-heading{align-items:flex-start;flex-direction:column}.template-grid{grid-template-columns:1fr}.modal footer.editor-footer{flex-wrap:wrap}.subtask-inline{margin-left:35px}.app-notice{bottom:85px;right:12px;left:12px}}

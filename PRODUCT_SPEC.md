@@ -156,3 +156,15 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Ein Reminder wird je Task-ID, Deadline und Vorwarnstufe lokal höchstens einmal angezeigt. Mehr als drei zeitgleiche Erinnerungen werden gebündelt. Abgeschlossene Aufgaben erzeugen keine Meldung. Benachrichtigungen verändern weder geplante Daten noch Deadlines, Abschlussereignisse oder Cloud-Status.
 - **Einschränkung ausdrücklich anzeigen:** Diese Browser-Erinnerungen benötigen eine gerade geöffnete/ausgeführte App. Kein garantierter Background-Push bei vollständig geschlossener App. Serverseitiger Scheduler mit FCM/Web Push bleibt ein separates Vorhaben mit Einrichtungs- und möglicher Kostenfreigabe (siehe `docs/PUSH_NEXT_STEPS.md`).
 - Keine Migration des Aufgabendatenmodells. Browser-/Geräte-Einstellungen liegen getrennt im lokalen Speicher; Cloud-Synchronisierung und JSON-Backups der Aufgaben bleiben unverändert.
+
+
+## 13. Ergänzung v0.6 — Unteraufgaben und wiederverwendbare Aufgabenvorlagen
+
+- Aufgabe besitzt optional eine Reihe von Unteraufgaben mit stabilen eigenen IDs, Text und booleschem Status. Separates Abhaken und kompakte Fortschrittsanzeige in der Aufgabenliste, vollständiges Anlegen/Bearbeiten/Entfernen im Editor.
+- Eine abgeschlossene wiederkehrende Aufgabe startet die Checkliste für die nächste Wiederholung mit leeren Häkchen; der zugehörige Undo-Eintrag bewahrt den vorherigen Checklistenstand und stellt ihn wieder her.
+- Gespeicherte Vorlagen enthalten einen Namen, eine Beschreibung und geordnete Checklisten-Schritte, aber keine bereits erledigten Häkchen und keine automatisch übertragenen Deadlines/Planungsdaten.
+- Vorlagenbibliothek über die Hauptnavigation: eigene Vorlage erstellen, bearbeiten und löschen; existierende Aufgaben bleiben beim Löschen/Ändern der Vorlage unverändert. Im Aufgabeneditor kann eine bestehende Aufgabencheckliste als neue Vorlage gespeichert werden.
+- „Klassenarbeit vorbereiten“ steht als **unverbindliches Beispiel** zum Anpassen zur Verfügung, nicht als ungefragt installierte Aufgabenliste.
+- Jede Verwendung erzeugt eine neue Aufgabe mit neuen Task-/Subtask-IDs und unabhängigen Häkchen. Termin, Deadline, Projekt und Priorität können im gewohnten Editor für den konkreten Anlass gesetzt werden.
+- Versionierte, validierte Speicherung (Schema v3) einschließlich Vorlagen und Unteraufgaben; automatische Migration der bestehenden v1/v2-Aufgaben und JSON-Sicherungen ohne Verlust von Aufgaben-IDs, Deadlines, Projektzuordnungen oder Abschlussereignissen.
+- Der Cloud-Controller verwendet weiterhin denselben privaten benutzerspezifischen AppData-Datensatz; er darf nur validierte vollständige v3-Objekte speichern und übertragen. Templates gehören zum Cloud-Sync und JSON-Backup.

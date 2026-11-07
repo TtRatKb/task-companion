@@ -1,0 +1,63 @@
+import {beforeEach,describe,expect,it,vi} from 'vitest';
+import {render,screen,waitFor,within} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import App from './App';
+import {emptyData} from './types';
+import {STORAGE_KEY} from './repository';
+
+describe('Task Companion v0.6 – Templates und Unteraufgaben',()=>{
+ beforeEach(()=>{localStorage.clear();location.hash='';vi.restoreAllMocks()});
+ it('legt eine eigene Vorlage an und erzeugt daraus eine Checkliste mit frischen Häkchen',async()=>{
+  const user=userEvent.setup();render(<App/>);
+  await user.click(screen.getByRole('button',{name:'Vorlagen'}));
+  await user.click(screen.getByRole('button',{name:'Neue Vorlage'}));
+  const dialog=screen.getByRole('dialog');
+  await user.type(within(dialog).getByLabelText('Vorlagenname'),'Klassenarbeit Mathe 7');
+  await user.type(within(dialog).getByLabelText('Unteraufgaben – eine pro Zeile'),'Aufgaben schreiben{Enter}Erwartungshorizont{Enter}Drucken');
+  await user.click(within(dialog).getByRole('button',{name:'Vorlage speichern'}));
+  expect(screen.getByText('Klassenarbeit Mathe 7')).toBeInTheDocument();
+  await user.click(screen.getByRole('button',{name:'Aufgabe erstellen'}));
+  const editor=screen.getByRole('dialog');
+  expect(within(editor).getByLabelText('Unteraufgabe 1')).toHaveValue('Aufgaben schreiben');
+  expect(within(editor).getByLabelText('Unteraufgabe 3')).toHaveValue('Drucken');
+  await user.click(within(editor).getByRole('button',{name:'Speichern'}));
+  await waitFor(()=>expect(screen.getByText('Klassenarbeit Mathe 7')).toBeInTheDocument());
+  expect(screen.getByText(/0\/3 Schritte/)).toBeInTheDocument();
+  await user.click(screen.getByRole('checkbox',{name:'Aufgaben schreiben'}));
+  expect(screen.getByText(/1\/3 Schritte/)).toBeInTheDocument();
+  const data=JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+  expect(data.templates).toHaveLength(1);
+  expect(data.tasks[0].subtasks.map((s:{completed:boolean})=>s.completed)).toEqual([true,false,false]);
+ });
+ it('verändert die Vorlage nicht durch abhaken und lässt eine zweite unabhängige Aufgabe erstellen',async()=>{
+  const seed={...emptyData(),templates:[{id:'tpl-1',name:'Planung',description:'',steps:['Schritt eins'],createdAt:'x',updatedAt:'x'}]};
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(seed));
+  const user=userEvent.setup();render(<App/>);
+  await user.click(screen.getByRole('button',{name:'Vorlagen'}));
+  await user.click(screen.getByRole('button',{name:'Aufgabe erstellen'}));
+  await user.click(within(screen.getByRole('dialog')).getByRole('button',{name:'Speichern'}));
+  await user.click(screen.getByRole('checkbox',{name:'Schritt eins'}));
+  await user.click(screen.getByRole('button',{name:'Vorlagen'}));
+  await user.click(screen.getByRole('button',{name:'Aufgabe erstellen'}));
+  await user.click(within(screen.getByRole('dialog')).getByRole('button',{name:'Speichern'}));
+  const data=JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+  expect(data.templates[0].steps).toEqual(['Schritt eins']);
+  expect(data.tasks).toHaveLength(2);
+  expect(data.tasks[0].subtasks[0].completed).toBe(true);
+  expect(data.tasks[1].subtasks[0].completed).toBe(false);
+  expect(data.tasks[0].subtasks[0].id).not.toBe(data.tasks[1].subtasks[0].id);
+ });
+ it('speichert eine Checkliste direkt aus einer bestehenden Aufgabe als Vorlage',async()=>{
+  const seed={...emptyData(),tasks:[{id:'task-1',title:'Große Aufgabe',description:'',projectId:null,priority:2,scheduledDate:null,deadlineDate:null,recurrence:null,completedAt:null,createdAt:'x',updatedAt:'x',subtasks:[{id:'s1',title:'Schritt 1',completed:true}]}]};
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(seed));
+  const user=userEvent.setup();render(<App/>);
+  await waitFor(()=>expect(screen.getByText('Große Aufgabe')).toBeInTheDocument());
+  await user.click(screen.getByText('Große Aufgabe').closest('button')!);
+  const dialog=screen.getByRole('dialog');
+  await user.click(within(dialog).getByRole('button',{name:'Als Vorlage speichern'}));
+  const data=JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+  expect(data.templates).toHaveLength(1);
+  expect(data.templates[0].steps).toEqual(['Schritt 1']);
+  expect(data.tasks[0].subtasks[0].completed).toBe(true);
+ });
+});
