@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.9
+## Funktionen in v1.0
 
 - Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Deadline-Radar** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Inbox-Turbo (v1.0)**: Eingang in einem fokussierten Tastaturdurchlauf sortieren – Projekt, Priorität, Arbeitstag und Deadline, speichern & nächste, überspringen ohne Datenverlust
 - **Wochenplanung mit Zeitbudget**: geschätzte Minuten pro Aufgabe und Unteraufgabe, frei konfigurierbares Budget je Wochentag, Überlastungsanzeige und bequemes Verschieben per Datumsfeld
 - **Rückwärtsplanung ab der Deadline**: Unteraufgaben können natürliche Zeitabstände wie `2 Wochen vorher`, `14 Tage vorher`, `1 Monat vorher` und `{Deadline} - 3 Tage` enthalten; sie werden einzeln geplant, ohne gleichmäßige Verteilung
 - **Deadline ist der Tag, an dem alles bereits fertig sein muss**: letzter möglicher Fertigstellungstag ist der Vortag; Deadline-Radar und lokale Erinnerungen berücksichtigen das
@@ -33,6 +34,22 @@ Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm 
 - Optionale, gerätespezifische Deadline-Erinnerungen als Browser-Benachrichtigung (7/3/1 Tag vor Termin oder am Termin; Uhrzeit einstellbar), solange die App im Browser ausgeführt wird
 
 **Wichtig:** Die App speichert weiterhin immer lokal. Eine optionale Cloud-Synchronisation ist nach einer einmaligen Firebase-Einrichtung verfügbar. Ohne diese Einrichtung findet noch **kein** Geräte-Sync statt. Es gibt weiterhin **keine serverseitigen Push-Erinnerungen bei vollständig geschlossener App**. Ein Cloud-Sync ersetzt keine unabhängig heruntergeladene JSON-Sicherung.
+
+### Inbox-Turbo – Eingang aufräumen (v1.0)
+
+Im **Eingang** gibt es jetzt einen eigenen Knopf **„Eingang aufräumen“**. Er öffnet einen fokussierten Bearbeitungsmodus für die offenen Aufgaben ohne Projekt. Bei jedem Schritt siehst du genau eine Aufgabe. Du kannst ihr ein Projekt zuweisen, ihre Priorität ändern sowie einen Arbeitstag oder eine Deadline festlegen. **„Speichern & nächste“** übernimmt ausschließlich diese vier Angaben und öffnet sofort die nächste Eingangsaufgabe. **„Überspringen“** behält alles unverändert. Die Reihenfolge wird beim Start des Durchlaufs eingefroren – so taucht dieselbe Aufgabe in einer Sitzung nicht mehrfach auf.
+
+**Tastenkürzel** (funktionieren, wenn gerade kein Formularfeld fokussiert ist):
+
+- `1`–`4` – Priorität P1–P4 auswählen
+- `H` / `M` / `W` – Arbeitstag auf heute / morgen / in sieben Kalendertagen setzen
+- `0` – Arbeitstag entfernen
+- `P` – Projektwahl fokussieren; `D` – Arbeitstag fokussieren; `L` – Deadline fokussieren
+- `Enter` – speichern und zur nächsten Aufgabe; `S` – überspringen; `Esc` – Durchlauf schließen
+
+Wenn du im Eingabefeld tippst, werden die Buchstabenkürzel nicht abgefangen. Einzelne bereits gespeicherte Änderungen bleiben auch bei Abbruch erhalten. **„Weiter ohne Änderung“** ist erlaubt, aber bedeutet nicht, dass die Aufgabe aus dem Eingang verschwindet: **Ohne Projektzuordnung bleibt sie dort sichtbar.** Der Modus markiert keine Aufgaben als erledigt und löscht oder verschiebt keine Unteraufgaben. Die Deadline bedeutet wie bisher: Am gewählten Tag muss die Aufgabe bereits fertig sein. Bei Planung am oder nach der Deadline fragt die App ausdrücklich nach.
+
+Wenn eine Aufgabe während des Durchlaufs auf einem anderen Gerät geändert wurde, wird das erkannt: Der Modus überschreibt die geänderte Aufgabe nicht und fordert dich zur Prüfung auf. Cloud-Sync und alle bestehenden Datensicherungen bleiben unverändert; es gibt **keine zusätzliche Datenmigration**.
 
 ### Schnellerfassung
 
@@ -106,7 +123,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v0.9.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.0.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
