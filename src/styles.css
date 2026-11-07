@@ -341,3 +341,19 @@
  .template-visual-row{padding:9px 7px;gap:6px}
  .template-visual-actions kbd{display:none}
 }
+
+/* Contextual quick-reference right of task lists, when desktop space permits */
+.main-content-shell{max-width:1380px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:28px;padding:34px 28px 100px}
+.main-content-shell>.content{max-width:none;margin:0;padding:0;min-width:0}
+.app-shortcut-rail{position:sticky;top:93px;align-self:start;max-height:calc(100vh - 113px);overflow-y:auto;border:1px solid #e8e0d8;border-radius:12px;background:#faf8f5;padding:17px 15px;font-size:11px;color:#756c64}
+.app-shortcut-rail header{display:flex;align-items:center;gap:9px;margin-bottom:15px;color:#a85547}
+.app-shortcut-rail header strong{display:block;font-size:13px;color:#4c423c}
+.app-shortcut-rail header small{font-size:10px;color:#93877c}
+.app-shortcut-rail section{border-top:1px solid #eae3dc;padding:13px 0 3px}
+.app-shortcut-rail h3{display:flex;align-items:center;gap:7px;font-size:11px;margin:0 0 8px;color:#534840}
+.app-shortcut-rail h3 svg{flex:none;color:#a46555}
+.app-shortcut-rail p{margin:5px 0 10px;line-height:1.6}
+.app-shortcut-rail code{font-size:11px;background:#eee7df;color:#754c40;padding:1px 3px;border-radius:4px;overflow-wrap:anywhere}
+.app-shortcut-rail kbd{font-size:10px;background:#fff;border:1px solid #ded6ce;border-radius:4px;padding:1px 5px;color:#6d5b50}
+@media(max-width:1310px){.main-content-shell{max-width:930px;display:block}.app-shortcut-rail{display:none}.main-content-shell>.content{max-width:850px;margin:auto}}
+@media(max-width:650px){.main-content-shell{padding:0}.main-content-shell>.content{padding:25px 20px 95px}}
