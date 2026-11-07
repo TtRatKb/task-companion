@@ -40,7 +40,7 @@ describe('Inbox-Turbo in der Anwendung',()=>{
   dialog=screen.getByRole('dialog',{name:'Dritte Aufgabe'});
   await user.click(within(dialog).getByRole('button',{name:/Weiter ohne Änderung/}));
   expect(screen.getByRole('dialog',{name:/Durchlauf abgeschlossen/})).toBeInTheDocument();
-  expect(screen.getByText('2')).toBeInTheDocument();
+  expect(within(screen.getByRole('dialog',{name:/Durchlauf abgeschlossen/})).getByText('2',{selector:'strong'})).toBeInTheDocument();
   expect(saved().tasks[0]).toMatchObject({projectId:'school',priority:1,scheduledDate:'2026-11-12'});
   expect(saved().tasks[0].subtasks).toEqual(initial().tasks[0].subtasks);
   expect(saved().tasks[1]).toEqual(initial().tasks[1]);
