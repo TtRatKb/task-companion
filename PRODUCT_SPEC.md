@@ -213,3 +213,14 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Aufgabenidentität, Wiederholungen, Unteraufgaben, Zeitbudgets und sämtliche nicht explizit angefassten Daten bleiben unverändert. Änderungen passieren durch den bestehenden lokalen `commit`-Pfad mit optionaler Cloud-Synchronisation und JSON-Sicherung. Die App prüft den `updatedAt`-Stand vor der Bearbeitung: Nach zwischenzeitlicher Cloud-/Fenster-Änderung wird die konflikthafte Eingabe nicht gespeichert.
 - Geplante Arbeitstage am bzw. nach dem Deadline-Tag benötigen eine ausdrückliche Bestätigung, weil die Deadline bedeutet, dass die Aufgabe spätestens am Vortag fertig sein muss.
 - Das Modell bleibt **Schema v5**; kein neues Backend, keine Änderung der allgemeinen Eingang-/Projektansicht und keine Löschung/automatische Planung.
+
+
+## 18. v1.1 — Visuelle Vorlagenbearbeitung und kontextuelle Kurzanleitungen
+
+- Der bisherige Mehrzeilen-Textblock zur Vorlagenbearbeitung wird durch einen **Hauptaufgaben-Editor plus eigenständige Checklisten-Zeilen** ersetzt. Jede Unteraufgabe besitzt ein separates editierbares Feld, einen sichtbaren runden Abhak-Button im Stil normaler Aufgaben (nur Vorschau, niemals persistiert) und eine Entfernen-Aktion.
+- Unteraufgaben können über einen Plus-Button, `Enter` in einer Zeile oder `Backspace` in einer leeren Zeile angelegt bzw. entfernt werden. `Strg/⌘ + Enter` speichert, `Esc` schließt nach Rückfrage bei unsaved Änderungen. Tab und normale Textfeldeingaben bleiben unverändert.
+- Direkte Hinweise an Unteraufgaben erkennen weiterhin die bestehenden natürlichen relativen Abstände (Wochen, Tage, Monate und `{Deadline}`-Anker). Die gespeicherte Reihenfolge und **der genaue Vorlagentext** bleiben erhalten; bestehende Vorlagen werden ohne Migration weiterverwendet.
+- Breite Bearbeitungsdialoge zeigen rechts eine kontextuelle Hilfe mit Platzhaltern, Deadline-Semantik, Beispielen und Tastaturkürzeln. Anklickbare Code-Beispiele fügen den Ausdruck an der letzten Cursorposition im fokussierten Feld ein; beim Aufgaben-Editor betreffen Zeitbeispiele die ausgewählte Unteraufgabe.
+- Bei großen Desktop-Fenstern zeigt die Hauptansicht rechts eine zusätzliche kontextabhängige Kurzanleitung (Vorlagen, Inbox, sonstige Ansichten). Auf kleinen Bildschirmen bleibt die Liste breit und die Editorhilfe wird darunter angezeigt; keine überlappenden Seitenleisten.
+- Vorlagen-Häkchen sind ausschließlich kosmetisch/interaktiv als temporäre Vorschau, nicht Teil des gespeicherten Templates. Aus der Vorlage erzeugte echte Aufgaben beginnen weiterhin mit unverbrauchten Checklisten.
+- Daten bleiben unverändert im bestehenden **Schema v5**, keine Cloud-/Firebase-Regeländerungen und kein neuer Dienst.
