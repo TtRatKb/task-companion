@@ -168,3 +168,13 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Jede Verwendung erzeugt eine neue Aufgabe mit neuen Task-/Subtask-IDs und unabhängigen Häkchen. Termin, Deadline, Projekt und Priorität können im gewohnten Editor für den konkreten Anlass gesetzt werden.
 - Versionierte, validierte Speicherung (Schema v3) einschließlich Vorlagen und Unteraufgaben; automatische Migration der bestehenden v1/v2-Aufgaben und JSON-Sicherungen ohne Verlust von Aufgaben-IDs, Deadlines, Projektzuordnungen oder Abschlussereignissen.
 - Der Cloud-Controller verwendet weiterhin denselben privaten benutzerspezifischen AppData-Datensatz; er darf nur validierte vollständige v3-Objekte speichern und übertragen. Templates gehören zum Cloud-Sync und JSON-Backup.
+
+
+## 14. Ergänzung v0.7 — Platzhalter in wiederverwendbaren Vorlagen
+
+- Vorlagen dürfen benannte Text-Platzhalter in **Name, Beschreibung und einzelnen Checklisten-Schritten** enthalten, z. B. `{Fach}`, `{Klasse}`, `{Thema}`. Andere selbst gewählte Bezeichnungen sind zulässig.
+- Eine Variable wird nur einmal abgefragt, auch wenn sie mehrfach vorkommt. Ein kurzer Dialog zeigt für jeden Platzhalter genau ein Textfeld und eine Vorschau von Titel, Beschreibung und Schritten; ohne alle Angaben lässt sich der Vorgang nicht fortsetzen.
+- Erst nach dem Befüllen öffnet sich der existierende **Aufgabeneditor**, in dem Projekt, Planung und Deadline wie bisher frei wählbar sind. Der reine Vorschau-/Eingabeschritt speichert noch keine Aufgabe.
+- Ersatztexte werden als reine Zeichenfolgen eingesetzt, ohne Interpretation als HTML, JavaScript oder erneute Platzhalter. Die gespeicherte Vorlage selbst wird dabei nicht verändert. Eine erneut erzeugte Aufgabe erhält weiterhin frische Aufgaben-/Unteraufgaben-IDs und leere Checklisten.
+- Vorlagen ohne Variablen behalten ihren direkten Weg zum Aufgabenentwurf. Alte Vorlagen, Aufgaben, Cloud-Datensätze und JSON-Backups bleiben mit dem bestehenden Schema v3 kompatibel; **keine weitere Migration**.
+- Die optionale Beispielvorlage für „Klassenarbeit vorbereiten“ enthält die drei Felder `{Fach}`, `{Klasse}`, `{Thema}` und bleibt beim Einfügen frei bearbeitbar.
