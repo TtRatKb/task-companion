@@ -9,11 +9,12 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v0.6
+## Funktionen in v0.7
 
 - Eingang, Heute, Anstehend (7 Tage), **Deadline-Radar** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
+- **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
 - Beispielvorlage für wiederkehrende Klassenarbeitsvorbereitung, zuerst individuell anpassbar
 - Neue Heute-Ansicht: **Unbedingt im Blick**, **Für heute geplant**, **Bald fällig** und **Wenn du noch Zeit hast** – ohne doppelte Aufgaben oder automatische Umplanung
 - Deadline-Radar mit überfälligen, heutigen, in den nächsten 7 Tagen und langfristigen Fristen, visuellen Countdown-Hinweisen und Warnung bei Planung nach Deadline
@@ -53,11 +54,23 @@ In jeder Aufgabe findest du unter **Weitere Einstellungen / Aufgabe bearbeiten �
 
 Unter **Vorlagen** erstellst du wiederverwendbare Abläufe, zum Beispiel „Klassenarbeit vorbereiten“. Jeder Schritt steht in der Vorlage in einer eigenen Zeile. Beim Auswählen einer Vorlage öffnet sich ein **neuer Aufgabenentwurf** mit frischen, noch nicht abgehakten Unteraufgaben. Dort legst du individuell Projekt, geplanten Arbeitstag und Deadline fest. Eine Vorlage beeinflusst bereits angelegte Aufgaben nicht, selbst wenn du sie nachträglich bearbeitest oder löschst.
 
+### Intelligente Platzhalter (v0.7)
+
+Du kannst beliebige wiederverwendbare Angaben in geschweiften Klammern in die Vorlage schreiben, z. B.:
+
+- **Titel:** `Klassenarbeit {Fach} {Klasse} vorbereiten`
+- **Beschreibung:** `Thema: {Thema}`
+- **Unteraufgabe:** `Erwartungshorizont zu {Thema} erstellen`
+
+Wenn du die Vorlage verwendest, fragt Task Companion **jede unterschiedliche Angabe nur einmal** ab, zeigt sofort eine Vorschau des fertig eingesetzten Titels und aller Schritte und öffnet danach den üblichen Aufgabeneditor für Planung, Deadline, Projekt und Priorität. Zum Beispiel ergeben `Fach = Mathematik`, `Klasse = 7b` und `Thema = Bruchrechnung` den Titel „Klassenarbeit Mathematik 7b vorbereiten“. Die gespeicherte Vorlage bleibt unverändert. **Bestehende Vorlagen ohne Platzhalter funktionieren weiterhin ohne zusätzliches Formular.**
+
+Platzhalter werden innerhalb eines Feldes durch `{Name}` gekennzeichnet; eigene Bezeichnungen (z. B. `{Schuljahr}`, `{Lerngruppe}`) sind möglich. Namen berücksichtigen Groß-/Kleinschreibung und können Buchstaben, Zahlen nach dem ersten Zeichen, Bindestriche und Unterstriche enthalten. Das erste Zeichen muss ein Buchstabe oder Unterstrich sein; Leerzeichen im Platzhalternamen sind nicht vorgesehen. Werte werden wörtlich eingesetzt, ohne Befehle auszuführen.
+
 Alternativ kannst du im Aufgabeneditor **Als Vorlage speichern** wählen. Die Vorlage wird separat zur Aufgabe in der versionierten App-Datenbank gespeichert und ist Teil des JSON-Exports und der Cloud-Synchronisation. Das alte v1/v2-Format wird beim Laden/importieren schonend nach **Schema v3** migriert, ohne vorhandene Aufgaben, Termine, Projekte oder IDs zu verlieren.
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v0.5.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v0.7.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
