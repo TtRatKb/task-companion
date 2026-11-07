@@ -10,7 +10,7 @@ function sample(id: string, changes: Partial<Task> = {}): Task {
   const time = '2026-11-01T07:00:00Z';
   return {
     id, title: id, description: '', projectId: null, priority: 4,
-    scheduledDate: null, deadlineDate: null, recurrence: null,
+    scheduledDate: null, deadlineDate: null, recurrence: null, subtasks: [],
     completedAt: null, createdAt: time, updatedAt: time, ...changes
   };
 }
