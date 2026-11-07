@@ -1,5 +1,7 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
-import {BookmarkPlus,Plus,Trash2,X} from 'lucide-react';
+import {BookmarkPlus,MoveRight,Plus,Trash2,X} from 'lucide-react';
+import {StepOrderControls} from './StepOrderControls';
+import {reorderById,stepUpDown} from '../subtaskOrganization';
 import {EditorHelpPanel} from './EditorHelpPanel';
 import {freshSubtask} from '../checklists';
 import {deadlineWorkday,dateBeforeDeadline,offsetDescription,parseRelativeStep,resolveRelativeSubtasks} from '../relativePlanning';
@@ -11,10 +13,11 @@ import type {Priority,Project,Task,Subtask,Weekday} from '../types';
 type Draft=Omit<Task,'id'|'createdAt'|'updatedAt'|'completedAt'>;
 const blank:Draft={title:'',description:'',projectId:null,priority:4,scheduledDate:null,deadlineDate:null,recurrence:null,subtasks:[]};
 
-export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onDelete,onClose,onSaveTemplate}:{
+export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onDelete,onClose,onSaveTemplate,onSaveAndMoveStep}:{
  task?:Task;initialDraft?:Draft;projects:Project[];initialProject?:string|null;
  onSave:(v:Draft)=>void;onDelete?:()=>void;onClose:()=>void;
- onSaveTemplate?:(draft:Draft)=>void
+ onSaveTemplate?:(draft:Draft)=>void;
+ onSaveAndMoveStep?:(draft:Draft,stepId:string)=>void;
 }){
  const [v,setV]=useState<Draft>(task?{title:task.title,description:task.description,projectId:task.projectId,priority:task.priority,scheduledDate:task.scheduledDate,deadlineDate:task.deadlineDate,recurrence:task.recurrence,estimatedMinutes:task.estimatedMinutes??null,subtasks:task.subtasks?.map(s=>({...s}))??[]}:initialDraft??{...blank,projectId:initialProject??null});
  const [newStep,setNewStep]=useState('');
@@ -22,6 +25,7 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
  const title=useRef<HTMLInputElement>(null);useEffect(()=>title.current?.focus(),[]);
  const newStepRef=useRef<HTMLInputElement>(null);
  const stepRefs=useRef<Record<string,HTMLInputElement|null>>({});
+ const dragging=useRef<string|null>(null);
  const activeStep=useRef<string|null>(null);
  const insertSnippet=(snippet:string)=>{
   const id=activeStep.current;
@@ -48,6 +52,12 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
   });
   window.setTimeout(()=>stepRefs.current[step.id]?.focus(),0);
  };
+ const moveRow=(id:string,direction:-1|1)=>setV(current=>({...current,subtasks:stepUpDown(current.subtasks??[],id,direction)}));
+ const dropRow=(targetId:string)=>{
+  const movingId=dragging.current;dragging.current=null;
+  if(movingId&&movingId!==targetId)
+   setV(current=>({...current,subtasks:reorderById(current.subtasks??[],movingId,targetId)}));
+ };
  const steps=v.subtasks??[];
  const addStep=()=>{if(!newStep.trim())return;setV(current=>({...current,subtasks:[...(current.subtasks??[]),...resolveRelativeSubtasks([freshSubtask(newStep)],current.deadlineDate)]}));setNewStep('')};
  const changeStep=(id:string,changes:Partial<Subtask>)=>setV(current=>({...current,subtasks:(current.subtasks??[]).map(s=>s.id===id?{...s,...changes}:s)}));
@@ -57,12 +67,19 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
   return {...step,title:parsed.title,offset:parsed.offset,
    plannedDate:v.deadlineDate?dateBeforeDeadline(v.deadlineDate,parsed.offset):null};
  };
+ const preparedDraft=():Draft|null=>{
+  if(!v.title.trim()||deadlineChange==='pending')return null;
+  return {...v,title:v.title.trim(),subtasks:steps.filter(s=>s.title.trim()).map(processStepText)};
+ };
  const submit=(e:FormEvent)=>{
   e.preventDefault();
-  if(!v.title.trim()||deadlineChange==='pending')return;
-  const prepared={...v,title:v.title.trim(),subtasks:steps
-   .filter(s=>s.title.trim()).map(processStepText)};
-  onSave(prepared);
+  const prepared=preparedDraft();
+  if(prepared)onSave(prepared);
+ };
+ const startTransfer=(stepId:string)=>{
+  const prepared=preparedDraft();
+  if(!prepared||!prepared.subtasks?.some(s=>s.id===stepId)||!onSaveAndMoveStep)return;
+  onSaveAndMoveStep(prepared,stepId);
  };
  const changeDeadline=(nextDeadline:string|null)=>{
   const needsDecision=!!task?.deadlineDate && task.deadlineDate!==nextDeadline &&
@@ -91,8 +108,14 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
    <label>Titel<input ref={title} value={v.title} onChange={e=>setV({...v,title:e.target.value})} required placeholder="Was steht an?"/></label>
    <label>Beschreibung<textarea value={v.description} onChange={e=>setV({...v,description:e.target.value})} placeholder="Notizen (optional)"/></label>
    <fieldset className="subtask-editor">
-    <legend>Unteraufgaben <small>{steps.filter(s=>s.completed).length}/{steps.length} erledigt</small></legend>
-    {steps.map((step,index)=><div className="subtask-edit-row" key={step.id}>
+    <legend>Unteraufgaben <small>{steps.filter(s=>s.completed).length}/{steps.length} erledigt · Per Griff ziehen oder Pfeile nutzen</small></legend>
+    {steps.map((step,index)=><div className="subtask-edit-row" key={step.id}
+     onDragOver={e=>{if(dragging.current){e.preventDefault();e.dataTransfer.dropEffect='move'}}}
+     onDrop={e=>{e.preventDefault();dropRow(step.id)}}>
+     <StepOrderControls index={index} total={steps.length}
+      onUp={()=>moveRow(step.id,-1)} onDown={()=>moveRow(step.id,1)}
+      onDragStart={e=>{dragging.current=step.id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',step.id)}}
+      onDragEnd={()=>{dragging.current=null}}/>
      <input aria-label={`Unteraufgabe ${index+1} erledigt`} type="checkbox" checked={step.completed} onChange={e=>changeStep(step.id,{completed:e.target.checked})}/>
      <div className="subtask-edit-main">
       <input ref={el=>{stepRefs.current[step.id]=el}} aria-label={`Unteraufgabe ${index+1}`} value={step.title}
@@ -121,6 +144,11 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
         <span className="subtask-date-past">Termin vorbei</span>}
       </div>
      </div>
+     {task&&onSaveAndMoveStep&&step.title.trim()&&<button type="button"
+      className="icon-button subtask-transfer-editor"
+      aria-label={`Unteraufgabe ${index+1} speichern und in andere Aufgabe verschieben`}
+      title="Änderungen speichern und Schritt in eine andere Aufgabe verschieben"
+      onClick={()=>startTransfer(step.id)}><MoveRight size={17}/></button>}
      <button type="button" className="icon-button" aria-label={`Unteraufgabe ${index+1} entfernen`} onClick={()=>setV(current=>({...current,subtasks:(current.subtasks??[]).filter(s=>s.id!==step.id)}))}><X/></button>
     </div>)}
     <div className="subtask-add-row"><input ref={newStepRef} aria-label="Neue Unteraufgabe" value={newStep}
