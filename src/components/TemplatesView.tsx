@@ -6,7 +6,7 @@ import {expandTaskTemplate,extractTemplatePlaceholders,fillTemplateText} from '.
 export const STARTER_TEMPLATE:TaskTemplate={
  id:'starter-class-test',name:'Klassenarbeit {Fach} {Klasse} vorbereiten',
  description:'Klassenarbeit zum Thema {Thema} – individuell anpassbar.',
- steps:['Aufgaben für {Thema} zusammenstellen','Erwartungshorizont zu {Thema} erstellen','Aufgaben und Punkteverteilung prüfen','Differenzierung und Hilfsmittel für {Klasse} prüfen','Layout und Lösungen kontrollieren','Material für {Klasse} drucken oder kopieren'],
+ steps:['Aufgaben für {Thema} zusammenstellen – 2 Wochen vorher','Erwartungshorizont zu {Thema} erstellen – {Deadline} - 10 Tage','Aufgaben und Punkteverteilung prüfen – 1 Woche vorher','ClassTime-Aufgaben eintragen – 1 Woche vorher','ClassTime-Terminierung prüfen – 3 Tage vorher','Differenzierung und Layout kontrollieren – 2 Tage vorher','Material für {Klasse} drucken oder kopieren – am Vortag'],
  createdAt:'2026-11-07T00:00:00.000Z',updatedAt:'2026-11-07T00:00:00.000Z'
 };
 
@@ -93,7 +93,7 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
     <label>Vorlagenname<input autoFocus required value={name} onChange={e=>setName(e.target.value)} placeholder="z. B. Klassenarbeit vorbereiten"/></label>
     <label>Beschreibung (optional)<input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Wofür nutze ich diese Vorlage?"/></label>
     <label>Unteraufgaben – eine pro Zeile<textarea rows={9} value={steps} onChange={e=>setSteps(e.target.value)} placeholder={'Aufgaben zusammenstellen\nErwartungshorizont erstellen\nMaterial kopieren'}/></label>
-    <p className="template-help">Tipp: Schreibe {<code>{'{Fach}'}</code>}, {<code>{'{Klasse}'}</code>} oder {<code>{'{Thema}'}</code>} in Name, Beschreibung oder Unteraufgaben. Beim Verwenden fragt dich die App danach. Eigene Namen wie {<code>{'{Lerngruppe}'}</code>} gehen auch. Termine bleiben individuell.</p>
+    <p className="template-help">Tipp: Mit {<code>{'{Fach}'}</code>}, {<code>{'{Klasse}'}</code>} oder {<code>{'{Thema}'}</code>} definierst du persönliche Platzhalter. Relative Unteraufgaben-Termine schreibst du einfach hinter den Schritt, z. B. „2 Wochen vorher“, „14 Tage vorher“ oder {<code>{'{Deadline} - 3 Tage'}</code>}. Die Hauptdeadline legst du bei jeder neuen Aufgabe fest; sie bedeutet, dass alles an diesem Tag bereits fertig sein muss.</p>
     <footer><span/><div><button type="button" className="ghost" onClick={close}>Abbrechen</button><button className="primary">Vorlage speichern</button></div></footer>
    </form>
   </div>}
