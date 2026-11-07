@@ -9,12 +9,13 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v1.1
+## Funktionen in v1.2
 
 - Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Deadline-Radar** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
 - **Aufgabenvorlagen**: eigene Vorlagen erstellen, bearbeiten, löschen, als Checkliste aus bestehenden Aufgaben speichern und beliebig oft zu frischen Aufgaben machen
 - **Platzhalter in Vorlagen**: z. B. `{Fach}`, `{Klasse}` und `{Thema}` in Titel, Beschreibung oder einzelnen Schritten; beim Verwenden einmal ausfüllen, live prüfen und anschließend Termine im normalen Editor setzen
+- **Heute-Fokus (v1.2)**: einzeln geplante Unteraufgaben werden direkt in Heute (einschließlich überfälliger Schritte) und Anstehend angezeigt und können separat abgehakt werden, mit Rückgängig und ohne doppelte Checkboxen
 - **Visueller Vorlageneditor (v1.1)**: Hauptaufgabe und einzelne Checklisten-Zeilen statt eines Zeilen-Textfelds, Enter für neue Unteraufgaben, per Klick einsetzbare Syntaxbeispiele und dauerhaft sichtbare Kurzreferenz in breiten Desktop-Ansichten
 - **Inbox-Turbo (v1.0)**: Eingang in einem fokussierten Tastaturdurchlauf sortieren – Projekt, Priorität, Arbeitstag und Deadline, speichern & nächste, überspringen ohne Datenverlust
 - **Wochenplanung mit Zeitbudget**: geschätzte Minuten pro Aufgabe und Unteraufgabe, frei konfigurierbares Budget je Wochentag, Überlastungsanzeige und bequemes Verschieben per Datumsfeld
@@ -68,6 +69,18 @@ Erkannte Angaben erscheinen vor dem Speichern als editierbare Chips. „Jeden Sc
 ### Datenmigration
 
 Beim Laden und Importieren werden v1-, v2-, v3- und v4-Daten automatisch in das aktuelle **v5-Datenmodell** mit Unteraufgaben und Vorlagen überführt. Frühere Wiederholungen werden dabei weiter unterstützt, und Aufgaben-, Projekt- und Ereignis-IDs bleiben erhalten. Eine fehlgeschlagene Migration überschreibt den lokalen Speicher nicht. Vor einem Import ist weiterhin eine ausdrückliche Bestätigung erforderlich.
+
+## Heute-Fokus: Unteraufgaben wirklich erledigen (v1.2)
+
+**Heute** zeigt nun eigenständig terminierte Unteraufgaben mit Arbeitstermin heute oder früher als separate, direkt abhakbare Einträge. Damit musst du die übergeordnete Klassenarbeit nicht jedes Mal öffnen, um beispielsweise „ClassTime einrichten“ als erledigt zu markieren.
+
+- **Überfällige Arbeitsschritte** stehen vor den heute geplanten Schritten und zeigen, wann die Bearbeitung ursprünglich geplant war.
+- **Heute anstehende Unteraufgaben** erscheinen mit ihrem Namen, Link zur Hauptaufgabe, deren Checklistenfortschritt, optionalem Projekt, Aufwandsschätzung und benötigt-am-Deadline.
+- Mit dem **Abhak-Button** erledigst du ausschließlich diesen Schritt. Die Hauptaufgabe bleibt offen, die übrigen Schritte unverändert. Das eingeblendete **Rückgängig** kann ein versehentliches Häkchen zurücknehmen, solange die betreffende Aufgabe seitdem nicht wieder verändert wurde.
+- **Anstehend** zeigt Unteraufgaben am jeweils geplanten Tag der nächsten sieben Tage, **auch wenn die Hauptaufgabe selbst noch keinen Arbeitstag hat**. Erledigte Schritte sowie abgeschlossene einmalige Hauptaufgaben erscheinen nicht.
+- Eltern-Aufgaben erscheinen in der Heute-Planungsgruppe nur, wenn sie **selbst** auf heute oder früher eingeplant sind. Eltern mit lediglich einem fälligen Unteraufgabentermin werden nicht zusätzlich dort aufgelistet. In Heute und Anstehend werden die gesamten Unteraufgaben nicht noch einmal direkt unter der Hauptaufgabe wiederholt. In den übrigen Ansichten bleiben die gewohnten aufklappbaren bzw. direkt abhakbaren Checklisten unverändert.
+
+Die Funktion berechnet die Anzeige aus den vorhandenen Task-/Subtask-Daten. **Kein neues Schema, keine Migration und keine neue Cloud-Konfiguration.** Das Zeitbudget der Wochenplanung bleibt eine separate, ebenfalls bereits vorhandene Funktion.
 
 ## Intuitiver Vorlageneditor und Kurzanleitungen (v1.1)
 
@@ -140,7 +153,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.1.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.2.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
