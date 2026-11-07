@@ -12,6 +12,7 @@ export function AppShortcutRail({view}:{view:View}){
   <section>
    <h3><Lightbulb size={14} aria-hidden="true"/> Schnellstart</h3>
    <p><kbd>Q</kbd> Neue Aufgabe schnell erfassen – solange du kein Textfeld bearbeitest.</p>
+   <p><kbd>/</kbd> oder <kbd>Strg/⌘ + K</kbd> öffnet die globale Suche nach Aufgaben, Schritten und Vorlagen.</p>
    <p>Für zusätzliche Angaben nutze <b>Weitere Einstellungen</b> oder klicke auf eine bestehende Aufgabe.</p>
    <p>Unteraufgaben kannst du über den kleinen Pfeil ein- und ausklappen. Mit <b>Verschieben</b> ordnest du einen Schritt einer anderen Hauptaufgabe zu.</p>
   </section>
