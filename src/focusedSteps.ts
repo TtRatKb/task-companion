@@ -55,6 +55,6 @@ export function stepsDueNow(tasks:Task[],today:string):{overdue:FocusedStep[];to
  */
 export function parentGroupsWithoutStepOnlyDuplicates(groups:RadarGroup[],today:string):RadarGroup[] {
  return groups.map(group=>group.key==='planned'
-  ? {...group,tasks:group.tasks.filter(t=>t.scheduledDate!==null&&t.scheduledDate<=today)}
+  ? {...group,description:'Eigenständig eingeplante Hauptaufgaben; fällige Unteraufgaben stehen oben als einzelne Schritte.',tasks:group.tasks.filter(t=>t.scheduledDate!==null&&t.scheduledDate<=today)}
   : group);
 }
