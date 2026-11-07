@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useRef,useState} from 'react';import {Plus,Inbox as InboxIcon} from 'lucide-react';
+import {useEffect,useMemo,useRef,useState} from 'react';import {Plus,Inbox as InboxIcon,Search as SearchIcon} from 'lucide-react';
 import {addDays,formatDate,todayLocal} from './date';import {allDeadlineGroups,deadlineOverview,todayRadarGroups} from './deadlineRadar';import {completeTask,id,undoCompletion} from './domain';import {LocalTaskRepository} from './repository';import {emptyData,type AppData,type Project,type Task} from './types';
 import {DataSettings} from './components/DataSettings';import {MenuButton,Sidebar,type View} from './components/Sidebar';import {TaskEditor} from './components/TaskEditor';import {TaskList} from './components/TaskList';
 import {QuickCapture,type TaskDraft} from './components/QuickCapture';
@@ -7,6 +7,8 @@ import {DeadlineRadarSummary} from './components/DeadlineRadarSummary';
 import {useDeadlineNotifications} from './useDeadlineNotifications';
 import {makeTemplate,taskFromTemplate,templateFromTask,toggleSubtask} from './checklists';
 import {TemplatesView} from './components/TemplatesView';
+import {TemplateEditor} from './components/TemplateEditor';
+import {SearchView} from './components/SearchView';
 import {WeekPlanner} from './components/WeekPlanner';
 import {AppShortcutRail} from './components/AppShortcutRail';
 import {MoveSubtaskDialog} from './components/MoveSubtaskDialog';
@@ -18,9 +20,11 @@ import {InboxProcessor} from './components/InboxProcessor';
 import {applyInboxTriage,inboxQueue,type InboxTriagePatch} from './inboxTriage';
 import type {TaskTemplate} from './types';
 type TaskGroup={key:string;title:string|null;description?:string;tasks:Task[]};
-const repo=new LocalTaskRepository();const route=():View=>{const p=location.hash.slice(1).split('/');return p[0]==='today'?{kind:'today'}:p[0]==='upcoming'?{kind:'upcoming'}:p[0]==='week'?{kind:'week'}:p[0]==='deadlines'?{kind:'deadlines'}:p[0]==='templates'?{kind:'templates'}:p[0]==='project'?{kind:'project',id:p[1]}:{kind:'inbox'}};
+const repo=new LocalTaskRepository();const route=():View=>{const p=location.hash.slice(1).split('/');return p[0]==='today'?{kind:'today'}:p[0]==='upcoming'?{kind:'upcoming'}:p[0]==='week'?{kind:'week'}:p[0]==='deadlines'?{kind:'deadlines'}:p[0]==='templates'?{kind:'templates'}:p[0]==='search'?{kind:'search'}:p[0]==='project'?{kind:'project',id:p[1]}:{kind:'inbox'}};
 export default function App(){
  const cloudRef=useRef<CloudController|null>(null);
+ const searchInputRef=useRef<HTMLInputElement>(null);
+ const [searchTemplate,setSearchTemplate]=useState<TaskTemplate|undefined>();
  const [today,setToday]=useState(()=>todayLocal());
  const localDataRef=useRef<AppData>(emptyData());
  const [cloudStatus,setCloudStatus]=useState<CloudStatus>({phase:'checking'});
@@ -56,7 +60,25 @@ export default function App(){
    return()=>{window.clearInterval(interval);window.removeEventListener('focus',updateDay);document.removeEventListener('visibilitychange',updateDay)};
  },[]);
  useEffect(()=>{const f=()=>setView(route());addEventListener('hashchange',f);return()=>removeEventListener('hashchange',f)},[]);
- useEffect(()=>{const f=(e:KeyboardEvent)=>{if(e.key.toLowerCase()==='q'&&!(e.target as HTMLElement).closest('[role="dialog"]')&&!['INPUT','TEXTAREA','SELECT'].includes((e.target as HTMLElement).tagName)){e.preventDefault();setQuick(true)}};addEventListener('keydown',f);return()=>removeEventListener('keydown',f)},[]);
+ useEffect(()=>{
+  const f=(e:KeyboardEvent)=>{
+   const target=e.target as HTMLElement|null;
+   const canSearchAncestors=!!target&&typeof target.closest==='function';
+   if(canSearchAncestors&&target.closest('[role="dialog"]'))return;
+   const editing=canSearchAncestors&&!!target.closest('input,textarea,select,[contenteditable="true"]');
+   const searchCombo=(e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='k';
+   if(searchCombo||(e.key==='/'&&!editing&&!e.ctrlKey&&!e.metaKey&&!e.altKey)){
+    e.preventDefault();location.hash='search';
+    window.setTimeout(()=>searchInputRef.current?.focus(),0);
+    return;
+   }
+   if(!editing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.toLowerCase()==='q'){
+    e.preventDefault();setQuick(true);
+   }
+  };
+  addEventListener('keydown',f);
+  return()=>removeEventListener('keydown',f);
+ },[]);
  const commit=(next:AppData)=>{repo.save(next);localDataRef.current=next;setData(next);cloudRef.current?.notifyLocalChange()};const navigate=(v:View)=>{location.hash=v.kind==='project'?'project/'+v.id:v.kind};
  const active=data.tasks.filter(t=>!t.completedAt||t.recurrence!==null);
  const groups=useMemo<TaskGroup[]>(()=>{
@@ -64,7 +86,7 @@ export default function App(){
    if(view.kind==='project')return [{key:'project',title:null,tasks:active.filter(t=>t.projectId===view.id)}];
    if(view.kind==='today')return parentGroupsWithoutStepOnlyDuplicates(todayRadarGroups(data.tasks,today),today);
    if(view.kind==='deadlines')return allDeadlineGroups(data.tasks,today);
-   if(view.kind==='week')return [];
+   if(view.kind==='week'||view.kind==='search'||view.kind==='templates')return [];
    return Array.from({length:7},(_,i)=>{
      const d=addDays(today,i);
      return {key:d,title:i===0?'Heute · '+formatDate(d):formatDate(d),tasks:active.filter(t=>t.scheduledDate===d)};
@@ -74,7 +96,7 @@ export default function App(){
  const focusedToday=useMemo(()=>stepsDueNow(data.tasks,today),[data.tasks,today]);
  const groupedRadar=view.kind==='today'||view.kind==='deadlines';
  const visibleGroups=groupedRadar?groups.filter(group=>group.tasks.length):groups;
- const title=view.kind==='inbox'?'Eingang':view.kind==='today'?'Heute':view.kind==='upcoming'?'Anstehend':view.kind==='week'?'Wochenplanung':view.kind==='deadlines'?'Deadline-Radar':view.kind==='templates'?'Vorlagen':data.projects.find(p=>p.id===view.id)?.name??'Projekt';
+ const title=view.kind==='inbox'?'Eingang':view.kind==='today'?'Heute':view.kind==='upcoming'?'Anstehend':view.kind==='week'?'Wochenplanung':view.kind==='deadlines'?'Deadline-Radar':view.kind==='templates'?'Vorlagen':view.kind==='search'?'Suche':data.projects.find(p=>p.id===view.id)?.name??'Projekt';
  const finish=(taskId:string)=>{const next=completeTask(data,taskId);if(next===data)return;commit(next);setStepUndo(null);setUndo(next.completionEvents.at(-1)!.id)};
  const saveDraft=(draft:TaskDraft,editing?:Task)=>{const now=new Date().toISOString();const next=editing?{...data,tasks:data.tasks.map(t=>t.id===editing.id?{...t,...draft,updatedAt:now}:t)}:{...data,tasks:[...data.tasks,{...draft,id:id(),completedAt:null,createdAt:now,updatedAt:now}]};commit(next)};
  const saveQuick=(draft:TaskDraft)=>{saveDraft(draft);setCaptureVersion(version=>version+1)};
@@ -173,7 +195,11 @@ export default function App(){
  const createProject=()=>{const name=prompt('Name des neuen Projekts');if(!name?.trim())return;const p:Project={id:id(),name:name.trim(),color:['#5b8def','#8b6fc0','#3d9970','#d9853b'][data.projects.length%4],createdAt:new Date().toISOString()};commit({...data,projects:[...data.projects,p]});navigate({kind:'project',id:p.id})};
  const projectActions=()=>{if(view.kind!=='project')return;const project=data.projects.find(p=>p.id===view.id);if(!project)return;const name=prompt('Projekt umbenennen (leer lassen zum Löschen):',project.name);if(name===null)return;if(name.trim())commit({...data,projects:data.projects.map(p=>p.id===project.id?{...p,name:name.trim()}:p)});else if(confirm('Projekt löschen? Alle enthaltenen Aufgaben werden sicher in den Eingang verschoben.')){commit({...data,projects:data.projects.filter(p=>p.id!==project.id),tasks:data.tasks.map(t=>t.projectId===project.id?{...t,projectId:null,updatedAt:new Date().toISOString()}:t)});navigate({kind:'inbox'})}};
  return <div className="app"><Sidebar open={side} view={view} projects={data.projects} onView={navigate} onClose={()=>setSide(false)} onProject={createProject} onSettings={()=>setSettings(true)}/>
- <main><header className="topbar"><MenuButton onClick={()=>setSide(true)}/><h1>{title}</h1>{view.kind==='project'&&<button className="text-button" onClick={projectActions}>Projekt bearbeiten</button>}<button className="add-top" onClick={()=>setQuick(true)}><Plus/>Aufgabe</button></header>
+ <main><header className="topbar"><MenuButton onClick={()=>setSide(true)}/><h1>{title}</h1>{view.kind==='project'&&<button className="text-button" onClick={projectActions}>Projekt bearbeiten</button>}
+ <button type="button" className="topbar-search" aria-label="Globale Suche öffnen" title="Suche öffnen (Strg/⌘ + K)"
+  onClick={()=>{navigate({kind:'search'});window.setTimeout(()=>searchInputRef.current?.focus(),0)}}>
+  <SearchIcon size={18}/> <span>Suche</span> <kbd>⌘K</kbd>
+ </button><button className="add-top" onClick={()=>setQuick(true)}><Plus/>Aufgabe</button></header>
  {error&&<div className="error" role="alert">{error} <button onClick={()=>setSettings(true)}>Sicherung importieren</button></div>}
  <div className="main-content-shell"><div className="content">
  {view.kind==='inbox'&&<section className="inbox-startbar" aria-label="Eingang effizient bearbeiten">
@@ -183,6 +209,7 @@ export default function App(){
   <button type="button" className="primary" disabled={inboxQueue(data.tasks).length===0}
    onClick={()=>setInboxRun(inboxQueue(data.tasks))}><InboxIcon size={17}/> Eingang aufräumen <span className="inbox-count">{inboxQueue(data.tasks).length}</span></button>
  </section>}
+ {view.kind==='search'&&<SearchView data={data} inputRef={searchInputRef} onOpenTask={setEditor} onOpenTemplate={setSearchTemplate}/>}
  {view.kind==='week'&&<WeekPlanner tasks={data.tasks} projects={data.projects}
   budgets={data.weeklyBudgetMinutes} today={today} onMove={movePlannedWork}
   onBudgetChange={updateWorkBudget} onEdit={setEditor}/>}
@@ -199,7 +226,7 @@ export default function App(){
    entries={focusedToday.today} projects={data.projects} onComplete={toggleChecklistStep} onMove={requestMove}
    onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>
  </div>}
- {view.kind!=='templates'&&view.kind!=='week'&&visibleGroups.filter(group=>view.kind!=='upcoming'||group.tasks.length>0||focusedSteps(data.tasks,group.key).length>0).map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
+ {view.kind!=='templates'&&view.kind!=='week'&&view.kind!=='search'&&visibleGroups.filter(group=>view.kind!=='upcoming'||group.tasks.length>0||focusedSteps(data.tasks,group.key).length>0).map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
   {group.title&&<h2>{group.title}<small>{group.tasks.length}</small></h2>}
   {group.description&&<p className="radar-group-description">{group.description}</p>}
   {group.tasks.length>0&&<TaskList tasks={group.tasks} today={today} projects={data.projects}
@@ -211,7 +238,9 @@ export default function App(){
    projects={data.projects} today={today} onComplete={toggleChecklistStep}
    onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} onMove={requestMove}/> }
  </section>)}
- {view.kind!=='templates'&&(quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>)}</div><AppShortcutRail view={view}/></div></main>
+ {view.kind!=='templates'&&view.kind!=='search'&&(quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>)}</div><AppShortcutRail view={view}/></div></main>
+ {searchTemplate&&<TemplateEditor key={searchTemplate.id} template={searchTemplate}
+  onSave={saveTemplateDefinition} onClose={()=>setSearchTemplate(undefined)}/>}
  {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onSaveAndMoveStep={editor?saveAndMoveStep:undefined} onSaveTemplate={saveTaskTemplate} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
  {moveRequest&&data.tasks.some(task=>task.id===moveRequest.taskId)&&
   <MoveSubtaskDialog key={moveRequest.taskId+':'+moveRequest.stepId}
