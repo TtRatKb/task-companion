@@ -62,9 +62,10 @@ export default function App(){
  useEffect(()=>{const f=()=>setView(route());addEventListener('hashchange',f);return()=>removeEventListener('hashchange',f)},[]);
  useEffect(()=>{
   const f=(e:KeyboardEvent)=>{
-   const target=e.target as HTMLElement;
-   if(target.closest('[role="dialog"]'))return;
-   const editing=!!target.closest('input,textarea,select,[contenteditable="true"]');
+   const target=e.target as HTMLElement|null;
+   const canSearchAncestors=!!target&&typeof target.closest==='function';
+   if(canSearchAncestors&&target.closest('[role="dialog"]'))return;
+   const editing=canSearchAncestors&&!!target.closest('input,textarea,select,[contenteditable="true"]');
    const searchCombo=(e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='k';
    if(searchCombo||(e.key==='/'&&!editing&&!e.ctrlKey&&!e.metaKey&&!e.altKey)){
     e.preventDefault();location.hash='search';
