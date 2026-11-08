@@ -49,6 +49,9 @@ export function TaskList({
             <CalendarDays aria-hidden="true" />
             Geplant {formatDate(task.scheduledDate)}
           </span>}
+          {task.eventDate && <span>
+            <CalendarDays aria-hidden="true" />Ereignis {formatDate(task.eventDate)}
+          </span>}
           {task.deadlineDate && <span className={`deadline deadline-${deadlineClass}`}>
             <Flag aria-hidden="true" />
             {deadlineCountdown(task.deadlineDate, today)} · benötigt {formatDate(task.deadlineDate)}

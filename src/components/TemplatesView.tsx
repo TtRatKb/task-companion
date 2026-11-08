@@ -3,18 +3,19 @@ import {BookmarkPlus,Copy,Plus,Trash2,X} from 'lucide-react';
 import type {TaskTemplate} from '../types';
 import {expandTaskTemplate,extractTemplatePlaceholders,fillTemplateText} from '../templateVariables';
 import {TemplateEditor} from './TemplateEditor';
+import {templateAnchorKind} from '../relativePlanning';
 
 export const STARTER_TEMPLATE:TaskTemplate={
  id:'starter-class-test',name:'Klassenarbeit {Fach} {Klasse} vorbereiten',
  description:'Klassenarbeit zum Thema {Thema} – individuell anpassbar.',
- steps:['Aufgaben für {Thema} zusammenstellen – 2 Wochen vorher','Erwartungshorizont zu {Thema} erstellen – {Deadline} - 10 Tage','Aufgaben und Punkteverteilung prüfen – 1 Woche vorher','ClassTime-Aufgaben eintragen – 1 Woche vorher','ClassTime-Terminierung prüfen – 3 Tage vorher','Differenzierung und Layout kontrollieren – 2 Tage vorher','Material für {Klasse} drucken oder kopieren – am Vortag'],
- createdAt:'2026-11-07T00:00:00.000Z',updatedAt:'2026-11-07T00:00:00.000Z'
+ steps:['Aufgaben für {Thema} zusammenstellen – 2 Wochen vorher','Erwartungshorizont zu {Thema} erstellen – {Deadline} - 10 Tage','Aufgaben und Punkteverteilung prüfen – 1 Woche vorher','ClassTime-Aufgaben eintragen – 1 Woche vorher','ClassTime-Terminierung prüfen – 3 Tage vorher','Differenzierung und Layout kontrollieren – 2 Tage vorher','Material für {Klasse} drucken oder kopieren – am Vortag','Nachschreibtermin prüfen – am {Deadline}','Klassenarbeiten korrigieren – bis 2 Wochen nach {Deadline}','Kompetenzraster erstellen – bis 2 Wochen nach {Deadline}','Klassenarbeiten zurückgeben – 2 Wochen nach {Deadline}'],
+ anchorKind:'event',createdAt:'2026-11-07T00:00:00.000Z',updatedAt:'2026-11-07T00:00:00.000Z'
 };
 
 export function TemplatesView({templates,onUse,onSave,onDelete}:{
  templates:TaskTemplate[];
  onUse:(template:TaskTemplate,deadlineDate?:string|null)=>void;
- onSave:(draft:{id?:string;name:string;description:string;steps:string[]})=>void;
+ onSave:(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline'})=>void;
  onDelete:(id:string)=>void;
 }){
  const [editing,setEditing]=useState<TaskTemplate|null>(null);
@@ -24,8 +25,9 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
  const [deadlineDate,setDeadlineDate]=useState('');
  const variables=instantiating?extractTemplatePlaceholders(instantiating):[];
  const missing=variables.filter(key=>!values[key]?.trim());
+ const dateKind=instantiating?templateAnchorKind(instantiating):'deadline';
  const beginUse=(template:TaskTemplate)=>{
-  if(!extractTemplatePlaceholders(template).length){onUse(template);return}
+  if(!extractTemplatePlaceholders(template).length&&templateAnchorKind(template)!=='event'){onUse(template);return}
   setInstantiating(template);setValues({});setDeadlineDate('');
  };
  const cancelUse=()=>{setInstantiating(null);setValues({});setDeadlineDate('')};
@@ -70,9 +72,9 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
       <input autoFocus={index===0} required aria-label={key} value={values[key]??''} onChange={e=>setValues(old=>({...old,[key]:e.target.value}))} placeholder={key==='Fach'?'z. B. Mathematik':key==='Klasse'?'z. B. 7b':key==='Thema'?'z. B. Bruchrechnung':key}/>
      </label>)}
     </div>
-    <label className="template-use-deadline">Deadline / Tag, an dem die Aufgabe bereits fertig sein muss
-     <input type="date" aria-label="Deadline beim Verwenden der Vorlage" value={deadlineDate} onChange={e=>setDeadlineDate(e.target.value)}/>
-     <small>Zum Beispiel der Klassenarbeitstag. Alle Angaben wie „2 Wochen vorher“ werden daraus berechnet. Du kannst das Datum auch später im Aufgabeneditor setzen.</small>
+    <label className="template-use-deadline">{dateKind==='event'?'Ereignisdatum · zum Beispiel Tag der Klassenarbeit':'Deadline · Tag, an dem alles bereits fertig sein muss'}
+     <input type="date" aria-label={dateKind==='event'?'Ereignisdatum beim Verwenden der Vorlage':'Deadline beim Verwenden der Vorlage'} value={deadlineDate} onChange={e=>setDeadlineDate(e.target.value)}/>
+     <small>{dateKind==='event'?'Die Unteraufgaben werden vor, am und nach dem Ereignistag terminiert. Der Klassenarbeitstag ist keine Deadline für die Korrektur.':'Die Unteraufgaben werden relativ zur Deadline geplant. Du kannst das Datum später noch ändern.'}</small>
     </label>
     <div className="template-live-preview" aria-live="polite">
      <span className="template-preview-label">Vorschau</span>
@@ -80,7 +82,7 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
      {instantiating.description&&<p>{fillTemplateText(instantiating.description,values)}</p>}
      {instantiating.steps.length>0&&<ol>{instantiating.steps.map((step,index)=><li key={index}>{fillTemplateText(step,values)}</li>)}</ol>}
     </div>
-    <p className="template-help">Danach kannst du im Aufgabeneditor die berechneten Unteraufgabentermine prüfen, das Projekt auswählen und bei Bedarf die Deadline ändern. Diese Vorlage bleibt unverändert.</p>
+    <p className="template-help">Danach kannst du die berechneten Unteraufgabentermine prüfen, das Projekt auswählen und bei Bedarf das Bezugsdatum ändern. Diese Vorlage bleibt unverändert.</p>
     <footer><span/><div><button type="button" className="ghost" onClick={cancelUse}>Abbrechen</button><button className="primary" disabled={missing.length>0}>Weiter zum Aufgabeneditor</button></div></footer>
    </form>
   </div>}

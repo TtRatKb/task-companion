@@ -305,3 +305,13 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Eine rechte Hilfe im **offenen Editor** erklärt Einfügen von `{Fach}`, `{Klasse}`, `{Thema}`, Zeitanker `{Deadline}`, Beispiele für Klassenarbeiten, Q/Enter/Strg+Enter/Escape und #P1–#P4 ausschließlich in der Schnellerfassung. Die vorhandene Kurzanleitung auf der Hauptseite erläutert Priorität und wiederkehrende Intervalle; bei ausreichend breiten Desktops bleibt sie sichtbar.
 - Beim Verwenden einer Vorlage mit Platzhaltern kann die konkrete Deadline im selben Dialog gewählt werden; die Unteraufgaben starten im anschließenden Aufgabenentwurf bereits mit relativ aufgelösten Terminen. Nachträgliche Datumsänderungen durchlaufen weiterhin die existierenden Sicherheitspfad-Prüfungen.
 - Die Änderung enthält **keine** neuen Persistenzfelder, keine Rückwirkung auf Vorlagen, PWA-Cloud/JSON-Schema bleibt v6. Erinnerungs-Push (#21) und Life RPG Rewards (#22) bleiben eigenständige Folgeaufträge.
+
+
+## 27. v1.8.2 — Ereignisbezogene Aufgaben mit Vor- und Nachbereitung
+
+- Trennung von `Task.eventDate` und `Task.deadlineDate`: Klassenarbeitstag = Ereignis, nicht Deadline, damit spätere Korrekturen/Rückgabe nicht fälschlich als überfällige Hauptaufgabe erscheinen.
+- `SubtaskOffset.direction` zusätzlich `'after'` und `'on'` (`amount=0, unit=days` für Tag selbst); abwärtskompatibel ohne direction = `'before'`. Parser erkennt `3 Tage vorher`, `am {Deadline}`, `2 Tage danach`, `bis 2 Wochen nach {Deadline}`, `{Deadline} + 3 Tage` sowie bestehendes `{Deadline} - 3 Tage`. Negative Abstände und Zufallsdaten sind ungültig.
+- Vorlagen behalten ihre zeilenweisen Unteraufgaben; `anchorKind` kann als 'event' oder 'deadline' gewählt werden. Alte Vorlagen mit post-event Texten werden beim Verwenden sicher als Event-Vorlagen behandelt, ohne Originaltexte umzuschreiben.
+- Bei Verwendung der Klassenarbeitsvorlage wird nur der Bezugstermin gefragt; das Beispiel-Template enthält jetzt auch Post-Exam-Schritte. Die Daten werden zu konkreten Unteraufgaben-Terminen aufgelöst, nicht als persönliche Leistungsdeadline des Eltern-Tasks.
+- `monthCalendarItems` zeigt Ereignisse getrennt von `ready`/`required` und `work`, ohne Arbeitszeit oder Deadline-Pflicht abzuleiten.
+- Neue schemaVersion 7 mit verlustfreier Importmigration aus allen v1–v6 Saves; bestehende Daten nicht rückwirkend ändern, neue eventDate nur bei expliziter Eingabe bzw. neuer Vorlagenverwendung erzeugen.

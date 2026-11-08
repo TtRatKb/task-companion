@@ -9,14 +9,20 @@ const templateSnippets=[
  {label:'2 Wochen vorher',value:' – 2 Wochen vorher',description:'Schritt relativ zur Deadline planen'},
  {label:'14 Tage vorher',value:' – 14 Tage vorher',description:'Exakte Kalendertage'},
  {label:'{Deadline} − 3 Tage',value:' – {Deadline} - 3 Tage',description:'Zeitanker; kein Eingabefeld'},
- {label:'am Vortag',value:' – am Vortag',description:'Letzter Vorbereitungstag'}
+ {label:'am Vortag',value:' – am Vortag',description:'Letzter Vorbereitungstag'},
+ {label:'am {Deadline}',value:' am {Deadline}',description:'Genau am Ereignistag'},
+ {label:'2 Tage danach',value:' – 2 Tage danach',description:'Nach dem Ereignistag'},
+ {label:'bis 2 Wochen nach {Deadline}',value:' – bis 2 Wochen nach {Deadline}',description:'Korrektur / Nachbereitung'}
 ];
 const taskSnippets=[
  {label:'2 Wochen vorher',value:' – 2 Wochen vorher',description:'Vom gewählten Deadline-Tag rückwärts'},
  {label:'14 Tage vorher',value:' – 14 Tage vorher',description:'Tage und Wochen sind möglich'},
  {label:'1 Monat vorher',value:' – 1 Monat vorher',description:'Echte Kalendermonate'},
  {label:'{Deadline} − 3 Tage',value:' – {Deadline} - 3 Tage',description:'Drei Tage vor der Deadline'},
- {label:'am Vortag',value:' – am Vortag',description:'Letzter Vorbereitungstag'}
+ {label:'am Vortag',value:' – am Vortag',description:'Letzter Vorbereitungstag'},
+ {label:'am {Deadline}',value:' am {Deadline}',description:'Am Ereignisdatum'},
+ {label:'2 Tage danach',value:' – 2 Tage danach',description:'Nach dem Bezugstermin'},
+ {label:'bis 2 Wochen nach {Deadline}',value:' – bis 2 Wochen nach {Deadline}',description:'Nach dem Bezugstermin'}
 ];
 
 export function EditorHelpPanel({mode,onInsert}:{
@@ -31,14 +37,14 @@ export function EditorHelpPanel({mode,onInsert}:{
    <h3><Lightbulb size={15} aria-hidden="true"/> Beispiel: Klassenarbeit</h3>
    <p><b>1 · Hauptaufgabe:</b> <code>Klassenarbeit {'{Fach}'} {'{Klasse}'} vorbereiten</code></p>
    <p><b>2 · Unteraufgaben:</b> jeden Schritt als eigene Zeile mit rundem Häkchen anlegen, z. B. <code>Erwartungshorizont erstellen – 2 Wochen vorher</code>.</p>
-   <p><b>3 · Vorlage verwenden:</b> Einmal Fach, Klasse und ggf. Thema eingeben. Danach die <b>Deadline der echten Aufgabe</b> eintragen – also den Klassenarbeitstag. Alle relativen Schritttermine werden daraus berechnet.</p>
+   <p><b>3 · Vorlage verwenden:</b> Einmal Fach, Klasse und ggf. Thema eingeben. Den <b>Klassenarbeitstag als Ereignisdatum</b> angeben – die App plant Vorbereitung davor und Korrektur, Kompetenzraster sowie Rückgabe danach.</p>
    <p><b>Nur Klasse abfragen?</b> Dann verwende nur <code>{'{Klasse}'}</code> als Platzhalter. Fach und Thema können fest im Text stehen.</p>
-   <p><b>Wichtig:</b> <code>{'{Deadline}'}</code> ist ein <b>Zeitanker</b>, keine zusätzliche Frage. Die Vorlage selbst hat bewusst noch keinen konkreten Termin.</p>
+   <p><b>Wichtig:</b> <code>{'{Deadline}'}</code> ist ein <b>Zeitanker</b>, keine zusätzliche Frage. Die Vorlage selbst hat bewusst noch keinen festen Termin. <b>In Vorlagen bedeutet {'{Deadline}'} auch beim Ereignis-Modus den Bezugszeitpunkt</b>; der Tag ist dann keine echte Deadline für die ganze Aufgabe.</p>
   </section>}
   {mode==='task'&&<section className="editor-help-section">
    <h3><Lightbulb size={15} aria-hidden="true"/> So ist die Aufgabe aufgebaut</h3>
-   <p>Oben steht die Hauptaufgabe, darunter eigene abhakbare Unteraufgaben – jeweils mit unabhängigem Termin und optionaler Dauer.</p>
-   <p><b>Geplant</b> = wann du daran arbeiten möchtest. <b>Deadline</b> = wann alles schon fertig sein muss; letzter Fertigstellungstag ist der Vortag.</p>
+   <p>Oben steht die Hauptaufgabe, darunter eigene abhakbare Unteraufgaben – jeweils mit unabhängigem Termin und optionaler Dauer. Wähle <b>Ereignisdatum</b> für Klassenarbeiten mit Vor- und Nachbereitung.</p>
+   <p><b>Geplant</b> = wann du daran arbeiten möchtest. <b>Ereignisdatum</b> = fester Bezugstag (z. B. Klassenarbeit). <b>Deadline</b> = wann wirklich alles fertig sein muss; letzter Fertigstellungstag ist der Vortag.</p>
   </section>}
   <section className="editor-help-section">
    <h3><MousePointerClick size={15} aria-hidden="true"/> Beispiele zum Einfügen</h3>
@@ -53,7 +59,7 @@ export function EditorHelpPanel({mode,onInsert}:{
   </section>
   <section className="editor-help-section">
    <h3><CalendarClock size={15} aria-hidden="true"/> Termine & Intervalle</h3>
-   <p><code>2 Wochen vorher</code> = 14 Kalendertage vor der Deadline. Auch <code>3 Monate vorher</code> und <code>am Vortag</code> funktionieren.</p>
+   <p><code>2 Wochen vorher</code> = 14 Kalendertage vor der Deadline. Auch <code>3 Monate vorher</code>, <code>am Vortag</code>, <code>am {'{Deadline}'}</code>, <code>2 Tage danach</code> und <code>bis 2 Wochen nach {'{Deadline}'}</code> funktionieren.</p>
    <p><b>Wiederholungen:</b> jeden Tag, Mo–Fr, am Wochenende, bestimmte Wochentage sowie alle 2 Tage, 3 Wochen oder jeden Monat am 15. In echten Aufgaben im Feld „Wiederholung“; in der Schnellerfassung direkt im Satz.</p>
    <p>Es erfolgt <b>keine</b> automatische Gleichverteilung der Schritte. Du bestimmst die Abstände.</p>
   </section>

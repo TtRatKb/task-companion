@@ -123,7 +123,7 @@ export function MonthCalendar({
   <header className="month-toolbar">
    <div>
     <h2>Dein Monat im Überblick</h2>
-    <p>Arbeitstage, Checklisten-Schritte und Deadlines – klar voneinander getrennt.</p>
+    <p>Arbeitstage, Checklisten-Schritte, Ereignisse und Deadlines – klar voneinander getrennt.</p>
    </div>
    <div className="month-navigation">
     <button type="button" aria-label="Vorheriger Monat" onClick={()=>setMonthAndDay(monthShift(month,-1))}><ChevronLeft size={18}/></button>
@@ -159,6 +159,7 @@ export function MonthCalendar({
   <div className="month-legend" aria-label="Legende">
    <span><i className="legend-work"/> Arbeit eingeplant</span>
    <span><i className="legend-ready"/> Spätestens fertig</span>
+    <span><i className="legend-event"/> Ereignisdatum</span>
    <span><i className="legend-required"/> Bereits benötigt</span>
    {showCompleted&&<span><i className="legend-done"/> Erledigt</span>}
   </div>
@@ -220,12 +221,13 @@ export function MonthCalendar({
     const work=daily.filter(e=>e.kind==='work').length;
     const ready=daily.filter(e=>e.kind==='ready').length;
     const required=daily.filter(e=>e.kind==='required').length;
+    const events=daily.filter(e=>e.kind==='event').length;
     const done=daily.filter(e=>e.kind==='done').length;
     const examples=daily.slice(0,2);
     return <button key={date} type="button"
      className={['month-day',date.slice(0,7)!==month?'outside':'',date===today?'current':'',date===selected?'selected':'',
       choosing||dragging?'plan-target':'',hoverDate===date?'plan-hover':''].filter(Boolean).join(' ')}
-     aria-label={`${formatDate(date)}: ${work} Arbeitsaufgaben, ${ready} bis dahin fertig, ${required} benötigt${showCompleted?`, ${done} erledigt`:''}`}
+     aria-label={`${formatDate(date)}: ${work} Arbeitsaufgaben, ${ready} bis dahin fertig, ${required} benötigt, ${events} Ereignisse${showCompleted?`, ${done} erledigt`:''}`}
      aria-pressed={date===selected} onClick={()=>dayClick(date)}
      onDragOver={event=>{if(dragRef.current){event.preventDefault();event.dataTransfer.dropEffect='move';setHoverDate(date)}}}
      onDragLeave={()=>setHoverDate(current=>current===date?'':current)}
@@ -237,8 +239,8 @@ export function MonthCalendar({
        onDragStart={event=>item.kind==='work'&&dragStart(event,{entry:item.entry,version:item.taskUpdatedAt})}
        onDragEnd={dragEnd} title={
        item.kind==='work'?`Geplant: ${item.entry.title}`:
-       item.kind==='ready'?`Spätestens fertig: ${item.title}`:item.kind==='required'?`Bereits benötigt: ${item.title}`:`Erledigt: ${item.title}`
-      }>{item.kind==='work'?item.entry.title:item.kind==='ready'?'Fertig: '+item.title:item.kind==='required'?'Benötigt: '+item.title:'✓ '+item.title}</span>)}
+       item.kind==='ready'?`Spätestens fertig: ${item.title}`:item.kind==='required'?`Bereits benötigt: ${item.title}`:item.kind==='event'?`Ereignis: ${item.title}`:`Erledigt: ${item.title}`
+      }>{item.kind==='work'?item.entry.title:item.kind==='ready'?'Fertig: '+item.title:item.kind==='required'?'Benötigt: '+item.title:item.kind==='event'?'Ereignis: '+item.title:'✓ '+item.title}</span>)}
       {daily.length>2&&<span className="month-day-extra">+{daily.length-2} weitere</span>}
       {daily.length===0&&<span className="month-day-quiet">—</span>}
      </span>
@@ -260,7 +262,7 @@ export function MonthCalendar({
    {overBudget&&<p className="month-budget-warning"><AlertTriangle size={14} aria-hidden="true"/>
     Mindestens {formatDuration(estimated-budget!)} über deinem Wochenplanungs-Budget. Nicht geschätzte Schritte kommen gegebenenfalls hinzu.</p>}
    {chosenItems.length===0?<div className="month-selected-empty">
-    Für diesen Tag ist noch keine Arbeit oder Deadline eingetragen.
+    Für diesen Tag ist noch keine Arbeit, kein Ereignis oder keine Deadline eingetragen.
     <button type="button" onClick={onOpenWeek}>Ungeplante Aufgaben in der Wochenplanung ansehen</button>
    </div>:<div className="month-day-detail-rows">
     {chosenItems.map(item=>{
@@ -279,11 +281,12 @@ export function MonthCalendar({
        {item.kind==='work'?<Clock3 size={17} aria-hidden="true"/>:
         item.kind==='ready'?<CalendarCheck2 size={17} aria-hidden="true"/>:
         item.kind==='done'?<CheckCircle2 size={17} aria-hidden="true"/>:
+         item.kind==='event'?<CalendarDays size={17} aria-hidden="true"/>:
         <CalendarClock size={17} aria-hidden="true"/>}
       </div>
       <div className="month-detail-body">
        <span className="month-detail-kind">{item.kind==='work'?'Eingeplanter Arbeitstag':
-        item.kind==='ready'?'Spätestens an diesem Tag fertigstellen':item.kind==='done'?'Erledigt':'An diesem Tag bereits benötigt'}</span>
+        item.kind==='ready'?'Spätestens an diesem Tag fertigstellen':item.kind==='done'?'Erledigt':item.kind==='event'?'Ereignis · z. B. Klassenarbeit':'An diesem Tag bereits benötigt'}</span>
        <button type="button" className="month-detail-name"
         aria-label={`Aufgabe „${detailTitle}“ öffnen`} onClick={()=>open(item)}>{detailTitle}</button>
        {item.kind==='work'&&item.entry.parentTitle&&<span className="month-detail-parent">Unteraufgabe von {item.entry.parentTitle}</span>}
@@ -296,6 +299,7 @@ export function MonthCalendar({
        {item.kind==='ready'&&<span className="month-detail-warning">
         Die Deadline ist {formatDate(item.deadlineDate)}. Ab diesem Tag muss alles bereit sein.</span>}
        {item.kind==='done'&&!item.subtaskId&&<span className="month-detail-minutes">Abgeschlossene Hauptaufgabe (am Abschlusstag angezeigt).</span>}
+       {item.kind==='event'&&<span className="month-detail-minutes">Bezugstermin für die Vor- und Nachbereitung – keine Deadline für die gesamte Aufgabe.</span>}
        {item.kind==='required'&&<span className="month-detail-warning">
         Letzter Fertigstellungstag: {formatDate(deadlineWorkday(item.deadlineDate))}.</span>}
       </div>

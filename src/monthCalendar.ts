@@ -7,6 +7,7 @@ import type {Task} from './types';
 export type CalendarItem=
  | {kind:'work';date:string;key:string;taskId:string;taskUpdatedAt:string;entry:WeekEntry}
  | {kind:'ready'|'required';date:string;key:string;taskId:string;taskUpdatedAt:string;title:string;deadlineDate:string;priority:Task['priority'];projectId:string|null}
+ | {kind:'event';date:string;key:string;taskId:string;taskUpdatedAt:string;title:string;priority:Task['priority'];projectId:string|null}
  | {kind:'done';date:string;key:string;taskId:string;taskUpdatedAt:string;title:string;priority:Task['priority'];projectId:string|null;subtaskId?:string;parentTitle?:string};
 
 export function monthStart(month:string):string {
@@ -48,6 +49,9 @@ export function monthCalendarItems(tasks:Task[],month:string,includeCompleted=fa
   .map(entry=>({kind:'work' as const,date:entry.date,key:entry.key,taskId:entry.taskId,
    taskUpdatedAt:versions.get(entry.taskId)??'',entry}));
  for(const task of tasks){
+  if(isOpenTask(task)&&task.eventDate&&task.eventDate>=first&&task.eventDate<=last)
+   entries.push({kind:'event',date:task.eventDate,key:'event:'+task.id,taskId:task.id,
+    taskUpdatedAt:task.updatedAt,title:task.title,priority:task.priority,projectId:task.projectId});
   if(!isOpenTask(task)||!task.deadlineDate)continue;
   const required=task.deadlineDate,ready=deadlineWorkday(required);
   if(ready>=first&&ready<=last)entries.push({
@@ -83,7 +87,7 @@ export function monthCalendarItems(tasks:Task[],month:string,includeCompleted=fa
    });
   }
  }
- const kindOrder={ready:0,work:1,done:2,required:3};
+ const kindOrder={ready:0,work:1,event:2,done:3,required:4};
  return entries.sort((a,b)=>a.date.localeCompare(b.date)||kindOrder[a.kind]-kindOrder[b.kind]||
   (a.kind==='work'?a.entry.priority:a.priority)-(b.kind==='work'?b.entry.priority:b.priority)||
   (a.kind==='work'&&b.kind==='work'&&a.taskId===b.taskId?
