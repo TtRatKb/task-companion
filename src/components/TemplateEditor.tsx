@@ -1,7 +1,7 @@
 import {useRef,useState,type FormEvent,type KeyboardEvent} from 'react';
 import {Check,Plus,Trash2,X} from 'lucide-react';
 import type {TaskTemplate} from '../types';
-import {parseRelativeStep,offsetDescription} from '../relativePlanning';
+import {parseRelativeStep,offsetDescription,templateAnchorKind} from '../relativePlanning';
 import {EditorHelpPanel} from './EditorHelpPanel';
 import {StepOrderControls} from './StepOrderControls';
 import {reorderById,stepUpDown} from '../subtaskOrganization';
@@ -12,11 +12,12 @@ const freshRow=(text=''):StepRow=>({id:crypto.randomUUID(),text,checked:false});
 
 export function TemplateEditor({template,onSave,onClose}:{
  template?:TaskTemplate;
- onSave:(draft:{id?:string;name:string;description:string;steps:string[]})=>void;
+ onSave:(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline'})=>void;
  onClose:()=>void;
 }){
  const [name,setName]=useState(template?.name??'');
  const [description,setDescription]=useState(template?.description??'');
+ const [anchorKind,setAnchorKind]=useState<'event'|'deadline'>(template?templateAnchorKind(template):'deadline');
  const [rows,setRows]=useState<StepRow[]>(()=>template?.steps.length
   ?template.steps.map(freshRow):[freshRow()]);
  const [previewChecked,setPreviewChecked]=useState(false);
@@ -29,7 +30,11 @@ export function TemplateEditor({template,onSave,onClose}:{
  const activeElement=useRef<HTMLInputElement|HTMLTextAreaElement|null>(null);
  const nameInput=(el:HTMLInputElement|null)=>{titleRef.current=el};
  const focusRow=(id:string)=>window.setTimeout(()=>rowRefs.current[id]?.focus(),0);
- const updateRow=(id:string,text:string)=>{setRows(old=>old.map(row=>row.id===id?{...row,text}:row));setDirty(true)};
+ const updateRow=(id:string,text:string)=>{
+  setRows(old=>old.map(row=>row.id===id?{...row,text}:row));
+  if(['after','on'].includes(parseRelativeStep(text).offset?.direction??''))setAnchorKind('event');
+  setDirty(true);
+ };
  const createAfter=(id?:string,text='')=>{
   const next=freshRow(text);
   setRows(old=>{
@@ -97,7 +102,7 @@ export function TemplateEditor({template,onSave,onClose}:{
   event.preventDefault();
   if(!name.trim()){setError('Bitte gib der Vorlage einen Namen.');titleRef.current?.focus();return}
   const steps=rows.map(row=>row.text.trim()).filter(Boolean);
-  try{onSave({id:template?.id||undefined,name:name.trim(),description:description.trim(),steps});onClose()}
+  try{onSave({id:template?.id||undefined,name:name.trim(),description:description.trim(),steps,anchorKind});onClose()}
   catch(e){setError(e instanceof Error?e.message:'Vorlage konnte nicht gespeichert werden.')}
  };
  const cancel=()=>{
@@ -143,6 +148,13 @@ export function TemplateEditor({template,onSave,onClose}:{
         onFocus={e=>{active.current={field:'description'};activeElement.current=e.currentTarget}}
         placeholder="Wofür brauchst du diese Aufgabe?"/>
       </label>
+      <label className="template-anchor-kind">Wofür steht das Bezugsdatum?
+       <select aria-label="Art des Bezugsdatums" value={anchorKind} onChange={e=>{setAnchorKind(e.target.value as 'event'|'deadline');setDirty(true)}}>
+        <option value="deadline">Abgabe-Deadline · alles vorher erledigt</option>
+        <option value="event">Ereignisdatum · Schritte davor, am Tag und danach</option>
+       </select>
+       <small>Klassenarbeiten sind Ereignisse: Drucken davor, Korrigieren und Rückgabe danach. Die Uhrzeit oder das Datum wählst du erst bei Verwendung.</small>
+      </label>
      </div>
      <div className="template-step-heading">
       <h3>Unteraufgaben <small>{total} Schritte</small></h3>
@@ -172,7 +184,7 @@ export function TemplateEditor({template,onSave,onClose}:{
           onKeyDown={e=>keyRow(e,row)}
           placeholder={index===0?'Ersten Schritt eingeben …':'Weiteren Schritt eingeben …'}/>
          {parsed.offset&&parsed.title&&<div className="template-step-explanation">
-          <span>Zeitpunkt:</span> {offsetDescription(parsed.offset)}
+          <span>Zeitpunkt:</span> {offsetDescription(parsed.offset,anchorKind==='event'?'Ereignisdatum':'Deadline')}
          </div>}
         </div>
         <button type="button" className="icon-button template-remove-row"
@@ -184,7 +196,7 @@ export function TemplateEditor({template,onSave,onClose}:{
        <Plus size={16}/> Unteraufgabe hinzufügen <kbd>Enter</kbd>
       </button>
      </div>
-     <p className="template-preview-notice">Du bearbeitest hier eine Hauptaufgabe mit eigenen Unteraufgaben – wie in deiner Aufgabenliste. Häkchen dienen nur zur Vorschau; jede Verwendung startet mit offenen Schritten. Den konkreten Klassenarbeitstermin (Deadline) gibst du erst beim Erstellen der echten Aufgabe an.</p>
+     <p className="template-preview-notice">Du bearbeitest hier eine Hauptaufgabe mit eigenen Unteraufgaben – wie in deiner Aufgabenliste. Häkchen dienen nur zur Vorschau; jede Verwendung startet mit offenen Schritten. Den konkreten Klassenarbeitstermin (Ereignisdatum) gibst du erst beim Erstellen der echten Aufgabe an. Danach können die Vorbereitung und die Nachbereitung relativ geplant werden.</p>
      {error&&<p className="template-save-error" role="alert">{error}</p>}
      <footer className="template-visual-actions">
       <button type="button" className="ghost" onClick={cancel}>Abbrechen</button>
