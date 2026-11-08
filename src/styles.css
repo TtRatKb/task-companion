@@ -713,3 +713,17 @@
 .template-use-dialog .template-use-deadline{display:grid;gap:6px;margin:14px 0 16px;font-size:12px}
 .template-use-dialog .template-use-deadline input{max-width:250px}
 .template-use-dialog .template-use-deadline small{font-size:11px;color:#80766d;font-weight:400;line-height:1.5}
+
+/* Subtasks in the normal list behave like their parent task rows. */
+.task-list .subtask-inline{margin-top:3px;gap:0}
+.task-list .subtask-inline .subtask-line{min-height:43px;border-bottom:1px solid #f0ebe6;padding:7px 3px;gap:10px}
+.task-list .subtask-inline .subtask-check-label{display:flex;align-items:flex-start;gap:10px;cursor:default}
+.task-list .subtask-inline .subtask-check-label>input[type=checkbox]{appearance:none;-webkit-appearance:none;display:grid;place-content:center;flex:none;border:2px solid #aaa;border-radius:50%;width:20px;height:20px;min-width:20px;background:#fff;padding:0;margin:2px 0 0;cursor:pointer}
+.task-list .subtask-inline .subtask-check-label>input[type=checkbox]:checked{border-color:#548d71;background:#548d71}
+.task-list .subtask-inline .subtask-check-label>input[type=checkbox]:checked:after{content:'✓';font-size:13px;color:white;line-height:1;font-weight:800}
+.task-list .subtask-inline .subtask-check-label>input[type=checkbox]:focus-visible{outline:3px solid #4d89dd;outline-offset:2px}
+.task-list .subtask-inline .subtask-open-button{flex:1;min-width:0;display:block;text-align:left;border:0;background:transparent;padding:0;color:#45403b;font-size:13px;line-height:1.5}
+.task-list .subtask-inline .subtask-open-button:hover{text-decoration:underline;text-decoration-color:#b77363}
+.task-list .subtask-inline .subtask-open-button>span{display:flex;flex-direction:column;gap:3px}
+.task-list .subtask-inline .subtask-open-button small{font-size:10px;color:#817971;text-decoration:none}
+.task-list .subtask-inline .subtask-line.done .subtask-open-button>span{color:#918b85;text-decoration:line-through}
