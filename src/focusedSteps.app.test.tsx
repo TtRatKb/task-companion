@@ -24,7 +24,7 @@ describe('Heute-Fokus im Task Companion',()=>{
   ]});
   localStorage.setItem(STORAGE_KEY,JSON.stringify({...emptyData(),tasks:[parent]}));
   location.hash='#today';render(<App/>);
-  await waitFor(()=>expect(screen.getByRole('heading',{name:/Überfällige Arbeitsschritte/})).toBeInTheDocument());
+  await waitFor(()=>expect(screen.getByRole('heading',{name:/Überfällige Unteraufgaben/})).toBeInTheDocument());
   expect(screen.getByRole('heading',{name:/Heute anstehende Unteraufgaben/})).toBeInTheDocument();
   expect(screen.getByRole('button',{name:/„ClassTime einrichten“ erledigen/})).toBeInTheDocument();
   expect(screen.getByRole('button',{name:/„Aufgaben auswählen“ erledigen/})).toBeInTheDocument();
