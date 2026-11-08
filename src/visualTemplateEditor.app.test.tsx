@@ -139,4 +139,38 @@ describe('Intuitiver Vorlageneditor und kontextuelle Hilfe',()=>{
   expect(within(editor).getByLabelText('Termin Unteraufgabe 2')).toHaveValue('2026-11-24');
  });
 
+ it('verwendet bei Klassenarbeiten den Ereignistag statt einer falschen Deadline und legt Nachbereitung danach',async()=>{
+  const exam:TaskTemplate={
+   id:'exam-after',name:'Klassenarbeit {Klasse}',description:'',
+   steps:['Papierarbeit drucken 3 Tage vorher','Nachschreibtermin entscheiden am {Deadline}',
+    'Über Nachschreibarbeit entscheiden 2 Tage danach',
+    'Klassenarbeiten bewerten bis 2 Wochen nach {Deadline}',
+    'Kompetenzraster ausdrucken bis 2 Wochen nach {Deadline}',
+    'Klassenarbeiten zurückgeben 2 Wochen nach {Deadline}'],
+   createdAt:stamp,updatedAt:stamp
+  };
+  seed([exam]);
+  const user=userEvent.setup();render(<App/>);
+  await user.click(screen.getByRole('button',{name:'Vorlagen'}));
+  await user.click(screen.getByRole('button',{name:'Aufgabe erstellen'}));
+  const useDialog=screen.getByRole('dialog',{name:'Vorlage ausfüllen'});
+  await user.type(within(useDialog).getByLabelText('Klasse'),'7b');
+  fireEvent.change(within(useDialog).getByLabelText('Ereignisdatum beim Verwenden der Vorlage'),{target:{value:'2026-11-27'}});
+  await user.click(within(useDialog).getByRole('button',{name:'Weiter zum Aufgabeneditor'}));
+  const editor=screen.getByRole('dialog',{name:'Aufgabe hinzufügen'});
+  expect(within(editor).getByLabelText('Ereignisdatum')).toHaveValue('2026-11-27');
+  expect(within(editor).getByLabelText('Deadline')).toHaveValue('');
+  expect(within(editor).getByLabelText('Termin Unteraufgabe 1')).toHaveValue('2026-11-24');
+  expect(within(editor).getByLabelText('Termin Unteraufgabe 2')).toHaveValue('2026-11-27');
+  expect(within(editor).getByLabelText('Termin Unteraufgabe 3')).toHaveValue('2026-11-29');
+  expect(within(editor).getByLabelText('Termin Unteraufgabe 4')).toHaveValue('2026-12-11');
+  await user.click(within(editor).getByRole('button',{name:'Speichern'}));
+  const task=stored().tasks[0];
+  expect(task.eventDate).toBe('2026-11-27');
+  expect(task.deadlineDate).toBeNull();
+  expect(task.subtasks.map((step:{plannedDate:string})=>step.plannedDate))
+   .toEqual(['2026-11-24','2026-11-27','2026-11-29','2026-12-11','2026-12-11','2026-12-11']);
+  expect(stored().templates[0]).toEqual(exam);
+ });
+
 });
