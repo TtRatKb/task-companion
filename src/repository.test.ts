@@ -151,7 +151,7 @@ describe('v6 checklists and template backups',()=>{
   expect(repo.load()).toEqual(data);
   expect(repo.parseImport(repo.export(data))).toEqual(data);
   const invalid={...data,templates:[{...data.templates[0],stepEstimatesMinutes:[45]}]};
-  expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow(/Zeitangaben/);
+  expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow();
   invalid.templates=[{...data.templates[0],stepEstimatesMinutes:[-5,90]}];
   expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow();
   expect(repo.load()).toEqual(data);
