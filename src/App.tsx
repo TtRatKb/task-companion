@@ -182,17 +182,17 @@ export default function App(){
  const saveTaskTemplate=(draft:TaskDraft)=>{
   const prepared=templateFromTask({...draft,id:'preview',createdAt:'',updatedAt:'',completedAt:null});
   commit({...data,templates:[...data.templates,prepared]});
-  setNotice('Vorlage gespeichert. Du findest sie unter  const useTemplate=(template:TaskTemplate,anchorDate:string|null=null)=>{
+  setNotice('Vorlage gespeichert. Du findest sie unter „Vorlagen“.');
+ };
+ const useTemplate=(template:TaskTemplate,anchorDate:string|null=null)=>{
   const draft=taskFromTemplate(template,null);
   const eventBased=templateAnchorKind(template)==='event';
   setEditor(undefined);
   setEditorDraft({title:draft.title,description:draft.description,projectId:draft.projectId,priority:draft.priority,
    scheduledDate:draft.scheduledDate,deadlineDate:eventBased?null:anchorDate,
-   ...(eventBased?{eventDate:anchorDate}:{}),recurrence:draft.recurrence,
-   subtasks:resolveRelativeSubtasks(draft.subtasks??[],anchorDate)});
+   ...(eventBased?{eventDate:anchorDate}:{}),
+   recurrence:draft.recurrence,subtasks:resolveRelativeSubtasks(draft.subtasks??[],anchorDate)});
   navigate({kind:'inbox'});
- };
-ind:'inbox'});
  };
  const saveTemplateDefinition=(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline'})=>{
   const now=new Date().toISOString();
