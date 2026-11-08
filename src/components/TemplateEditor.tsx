@@ -67,6 +67,11 @@ export function TemplateEditor({template,onSave,onClose}:{
   }
  };
  const insertSnippet=(snippet:string)=>{
+  // Relative date snippets are always subtask instructions, never part of a template title.
+  if(snippet.startsWith(' – ') && active.current.field!=='step'){
+   const row=rows.find(item=>item.text.trim())??rows[0];
+   if(row){active.current={field:'step',id:row.id};activeElement.current=rowRefs.current[row.id]??null}
+  }
   const target=active.current;
   const element=activeElement.current;
   let value=target.field==='name'?name:target.field==='description'?description:
