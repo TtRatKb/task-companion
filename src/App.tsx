@@ -17,6 +17,7 @@ import {AppShortcutRail} from './components/AppShortcutRail';
 import {MoveSubtaskDialog} from './components/MoveSubtaskDialog';
 import {transferSubtask,undoSubtaskTransfer,type TransferDateChoice,type TransferReceipt} from './subtaskOrganization';
 import {FocusedSteps} from './components/FocusedSteps';
+import {TaskBundlesView,TaskBundlesPreview} from './components/TaskBundlesView';
 import {focusedSteps,stepsDueNow,parentGroupsWithoutStepOnlyDuplicates} from './focusedSteps';
 import {moveWorkItem} from './weeklyPlanner';
 import {resolveRelativeSubtasks,templateAnchorKind} from './relativePlanning';
@@ -24,7 +25,7 @@ import {InboxProcessor} from './components/InboxProcessor';
 import {applyInboxTriage,inboxQueue,type InboxTriagePatch} from './inboxTriage';
 import type {TaskTemplate} from './types';
 type TaskGroup={key:string;title:string|null;description?:string;tasks:Task[]};
-const repo=new LocalTaskRepository();const route=():View=>{const p=location.hash.slice(1).split('/');return p[0]==='today'?{kind:'today'}:p[0]==='upcoming'?{kind:'upcoming'}:p[0]==='week'?{kind:'week'}:p[0]==='calendar'?{kind:'calendar'}:p[0]==='deadlines'?{kind:'deadlines'}:p[0]==='templates'?{kind:'templates'}:p[0]==='search'?{kind:'search'}:p[0]==='project'?{kind:'project',id:p[1]}:{kind:'inbox'}};
+const repo=new LocalTaskRepository();const route=():View=>{const p=location.hash.slice(1).split('/');return p[0]==='today'?{kind:'today'}:p[0]==='upcoming'?{kind:'upcoming'}:p[0]==='week'?{kind:'week'}:p[0]==='calendar'?{kind:'calendar'}:p[0]==='deadlines'?{kind:'deadlines'}:p[0]==='templates'?{kind:'templates'}:p[0]==='bundles'?{kind:'bundles'}:p[0]==='search'?{kind:'search'}:p[0]==='project'?{kind:'project',id:p[1]}:{kind:'inbox'}};
 export default function App(){
  const cloudRef=useRef<CloudController|null>(null);
  const searchInputRef=useRef<HTMLInputElement>(null);
@@ -92,7 +93,7 @@ export default function App(){
    if(view.kind==='project')return [{key:'project',title:null,tasks:active.filter(t=>t.projectId===view.id)}];
    if(view.kind==='today')return parentGroupsWithoutStepOnlyDuplicates(todayRadarGroups(data.tasks,today),today);
    if(view.kind==='deadlines')return allDeadlineGroups(data.tasks,today);
-   if(view.kind==='week'||view.kind==='calendar'||view.kind==='search'||view.kind==='templates')return [];
+   if(view.kind==='week'||view.kind==='calendar'||view.kind==='search'||view.kind==='templates'||view.kind==='bundles')return [];
    return Array.from({length:7},(_,i)=>{
      const d=addDays(today,i);
      return {key:d,title:i===0?'Heute · '+formatDate(d):formatDate(d),tasks:active.filter(t=>t.scheduledDate===d)};
@@ -112,7 +113,7 @@ export default function App(){
  const hasPinnedOverdue=pinnedOverdueTasks.length>0||pinnedOverdueSteps.length>0;
  const visibleGroups=groups.map(group=>({...group,tasks:group.tasks.filter(task=>!pinnedOverdueIds.has(task.id))}))
   .filter(group=>(!groupedRadar||group.tasks.length>0)&&!(view.kind==='deadlines'&&group.key==='overdue'));
- const title=view.kind==='inbox'?'Eingang':view.kind==='today'?'Heute':view.kind==='upcoming'?'Anstehend':view.kind==='week'?'Wochenplanung':view.kind==='calendar'?'Monatskalender':view.kind==='deadlines'?'Deadline-Radar':view.kind==='templates'?'Vorlagen':view.kind==='search'?'Suche':data.projects.find(p=>p.id===view.id)?.name??'Projekt';
+ const title=view.kind==='inbox'?'Eingang':view.kind==='today'?'Heute':view.kind==='upcoming'?'Anstehend':view.kind==='week'?'Wochenplanung':view.kind==='calendar'?'Monatskalender':view.kind==='deadlines'?'Deadline-Radar':view.kind==='templates'?'Vorlagen':view.kind==='bundles'?'Aufgabenpakete':view.kind==='search'?'Suche':data.projects.find(p=>p.id===view.id)?.name??'Projekt';
  const finish=(taskId:string)=>{const next=completeTask(data,taskId);if(next===data)return;commit(next);setStepUndo(null);setUndo(next.completionEvents.at(-1)!.id)};
  const saveDraft=(draft:TaskDraft,editing?:Task)=>{const now=new Date().toISOString();const next=editing?{...data,tasks:data.tasks.map(t=>t.id===editing.id?{...t,...draft,updatedAt:now}:t)}:{...data,tasks:[...data.tasks,{...draft,id:id(),completedAt:null,createdAt:now,updatedAt:now}]};commit(next)};
  const saveQuick=(draft:TaskDraft)=>{saveDraft(draft);setCaptureVersion(version=>version+1)};
@@ -276,6 +277,9 @@ export default function App(){
    onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>}
  </section>}
 
+ {view.kind==='today'&&<TaskBundlesPreview tasks={data.tasks} today={today} onOpen={setEditor} onAll={()=>navigate({kind:'bundles'})}/>}
+ {view.kind==='bundles'&&<TaskBundlesView tasks={data.tasks} projects={data.projects} today={today}
+  onEdit={setEditor} onToggleStep={toggleChecklistStep} onCompleteParent={finish}/>}
  {view.kind==='inbox'&&<section className="inbox-startbar" aria-label="Eingang effizient bearbeiten">
   <div><strong>Eingang sortieren</strong>
    <p>{inboxQueue(data.tasks).length===0?'Alles durchgesehen – aktuell keine offenen Eingangsaufgaben.':'Ordne offene Aufgaben nacheinander ein – per Tastatur oder mit wenigen Klicks.'}</p>
@@ -301,7 +305,7 @@ export default function App(){
    entries={focusedToday.today} projects={data.projects} onComplete={toggleChecklistStep} onMove={requestMove}
    onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>
  </div>}
- {view.kind!=='templates'&&view.kind!=='week'&&view.kind!=='calendar'&&view.kind!=='search'&&visibleGroups.filter(group=>view.kind!=='upcoming'||group.tasks.length>0||focusedSteps(data.tasks,group.key).length>0).map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
+ {view.kind!=='templates'&&view.kind!=='week'&&view.kind!=='calendar'&&view.kind!=='search'&&view.kind!=='bundles'&&visibleGroups.filter(group=>view.kind!=='upcoming'||group.tasks.length>0||focusedSteps(data.tasks,group.key).length>0).map(group=><section className={`task-section ${groupedRadar?'radar-section':''}`} key={group.key}>
   {group.title&&<h2>{group.title}<small>{group.tasks.length}</small></h2>}
   {group.description&&<p className="radar-group-description">{group.description}</p>}
   {group.tasks.length>0&&<TaskList tasks={group.tasks} today={today} projects={data.projects}
@@ -313,7 +317,7 @@ export default function App(){
    projects={data.projects} today={today} onComplete={toggleChecklistStep}
    onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} onMove={requestMove}/> }
  </section>)}
- {view.kind!=='templates'&&view.kind!=='search'&&view.kind!=='calendar'&&(quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>)}</div><AppShortcutRail view={view}/></div></main>
+ {view.kind!=='templates'&&view.kind!=='search'&&view.kind!=='calendar'&&view.kind!=='bundles'&&(quick?<QuickCapture key={captureVersion} projectId={view.kind==='project'?view.id??null:null} onSave={saveQuick} onCancel={()=>setQuick(false)} onMore={draft=>setEditorDraft(draft)}/>:<button className="add-row" onClick={()=>setQuick(true)}><Plus/>Aufgabe hinzufügen <kbd>Q</kbd></button>)}</div><AppShortcutRail view={view}/></div></main>
  {searchTemplate&&<TemplateEditor key={searchTemplate.id} template={searchTemplate}
   onSave={saveTemplateDefinition} onClose={()=>setSearchTemplate(undefined)}/>}
  {(editor||editorDraft)&&<TaskEditor task={editor} initialDraft={editorDraft} projects={data.projects} initialProject={view.kind==='project'?view.id:null} onClose={()=>{setEditor(undefined);setEditorDraft(undefined)}} onSave={saveEditor} onSaveAndMoveStep={editor?saveAndMoveStep:undefined} onSaveTemplate={saveTaskTemplate} onDelete={editor?()=>{if(confirm('Aufgabe wirklich löschen?')){commit({...data,tasks:data.tasks.filter(t=>t.id!==editor.id)});setEditor(undefined)}}:undefined}/>}
