@@ -55,7 +55,7 @@ describe('cloud conflict policy', () => {
 
   it('does not unnecessarily write equivalent snapshots', () => {
     expect(resolveInitial(uid, cloudData, cloud, null)).toBe('already-equal');
-    expect(sameData({ ...cloudData, schemaVersion: 7 }, cloudData)).toBe(true);
+    expect(sameData({ ...cloudData, schemaVersion: 8 }, cloudData)).toBe(true);
   });
 
   it('notices different interval settings as a real cloud change',()=>{
