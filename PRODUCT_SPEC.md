@@ -323,3 +323,12 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Bereits vergangene `Subtask.plannedDate` für offene Unteraufgaben werden als „Überfällige Unteraufgaben“ ebenfalls oben gezeigt. Sie sind ein überschrittener Schritttermin; die Datenstruktur behauptet nicht, dass jeder geplante Tag eine gesetzliche Abgabedeadline sei.
 - Vorlagen erhalten optionale `estimatedMinutes` sowie positionsgebundene `stepEstimatesMinutes: (number|null)[]`. Der Editor bindet Zeiten an die Schritte, sodass Verschieben, Löschen und Enter-Erstellen die Zuordnung nicht beschädigen. Bei Vorlage verwenden/„Als Vorlage speichern“ werden Zeiten verlustfrei übertragen; exakte Schätzungen werden nicht aus Titeln erraten.
 - Migration v1–v7 → v8: bestehende Task-IDs, Vorlagen, Cloud-Snapshots, Unteraufgaben, Completion-Events und Export/Import bleiben erhalten. Ungültige/verschobene Minuten-Arrays werden verworfen (Import sicher abgelehnt), nicht stillschweigend falsch zugewiesen.
+
+
+## 29. v1.8.4 — Übergeordnete Aufgaben und Fortschrittsübersicht
+
+- Neue Menüansicht `bundles`: Offen gespeicherte Hauptaufgaben mit mindestens einer Unteraufgabe, unabhängig von Parent-Arbeitstag oder `eventDate`, mit optional abgeschlossenen Paketen.
+- Jede Elternaufgabe zeigt Gesamtfortschritt (Anzahl erledigter / aller Schritte), gespeicherte Unteraufgaben, tatsächlichen Check-Status, Termine, Schätzzeiten, Projekt und ggf. überfällige Teil-Schritte. Sortierung zuerst Pakete mit Nachholbedarf.
+- Reine Ereignisdaten dürfen niemals die Eltern-Aufgabe überfällig machen. Überfällige *geplante* Unteraufgabentermine werden auch nach dem Veranstaltungstag weiter sichtbar.
+- Klick auf Hauptaufgabe öffnet Original-Editor; Unteraufgaben werden direkt am bestehenden Task abgehakt. Gesamtaufgabe nur durch explizite Aktion nach vollständig erledigten Unteraufgaben schließen; kein automatisches Wiederanlegen oder Umplanen.
+- In `Heute` erscheint eine kompakte Vorschau laufender Hauptaufgaben. Alle vorhandenen Task-IDs, Termine, Vorlagen und Cloud-Daten bleiben unverändert. Schema v8 bleibt bestehen.
