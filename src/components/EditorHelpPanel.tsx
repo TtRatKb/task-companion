@@ -39,7 +39,7 @@ export function EditorHelpPanel({mode,onInsert}:{
    <p><b>2 · Unteraufgaben:</b> jeden Schritt als eigene Zeile mit rundem Häkchen anlegen, z. B. <code>Erwartungshorizont erstellen – 2 Wochen vorher</code>.</p>
    <p><b>3 · Vorlage verwenden:</b> Einmal Fach, Klasse und ggf. Thema eingeben. Den <b>Klassenarbeitstag als Ereignisdatum</b> angeben – die App plant Vorbereitung davor und Korrektur, Kompetenzraster sowie Rückgabe danach.</p>
    <p><b>Nur Klasse abfragen?</b> Dann verwende nur <code>{'{Klasse}'}</code> als Platzhalter. Fach und Thema können fest im Text stehen.</p>
-   <p><b>Wichtig:</b> <code>{'{Deadline}'}</code> ist ein <b>Zeitanker</b>, keine zusätzliche Frage. Die Vorlage selbst hat bewusst noch keinen festen Termin. <b>In Vorlagen bedeutet {Deadline} auch beim Ereignis-Modus den Bezugszeitpunkt</b>; der Tag ist dann keine echte Deadline für die ganze Aufgabe.</p>
+   <p><b>Wichtig:</b> <code>{'{Deadline}'}</code> ist ein <b>Zeitanker</b>, keine zusätzliche Frage. Die Vorlage selbst hat bewusst noch keinen festen Termin. <b>In Vorlagen bedeutet {'{Deadline}'} auch beim Ereignis-Modus den Bezugszeitpunkt</b>; der Tag ist dann keine echte Deadline für die ganze Aufgabe.</p>
   </section>}
   {mode==='task'&&<section className="editor-help-section">
    <h3><Lightbulb size={15} aria-hidden="true"/> So ist die Aufgabe aufgebaut</h3>
@@ -59,7 +59,7 @@ export function EditorHelpPanel({mode,onInsert}:{
   </section>
   <section className="editor-help-section">
    <h3><CalendarClock size={15} aria-hidden="true"/> Termine & Intervalle</h3>
-   <p><code>2 Wochen vorher</code> = 14 Kalendertage vor der Deadline. Auch <code>3 Monate vorher</code>, <code>am Vortag</code>, <code>am {Deadline}</code>, <code>2 Tage danach</code> und <code>bis 2 Wochen nach {Deadline}</code> funktionieren.</p>
+   <p><code>2 Wochen vorher</code> = 14 Kalendertage vor der Deadline. Auch <code>3 Monate vorher</code>, <code>am Vortag</code>, <code>am {'{Deadline}'}</code>, <code>2 Tage danach</code> und <code>bis 2 Wochen nach {'{Deadline}'}</code> funktionieren.</p>
    <p><b>Wiederholungen:</b> jeden Tag, Mo–Fr, am Wochenende, bestimmte Wochentage sowie alle 2 Tage, 3 Wochen oder jeden Monat am 15. In echten Aufgaben im Feld „Wiederholung“; in der Schnellerfassung direkt im Satz.</p>
    <p>Es erfolgt <b>keine</b> automatische Gleichverteilung der Schritte. Du bestimmst die Abstände.</p>
   </section>
