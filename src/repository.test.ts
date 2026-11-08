@@ -126,4 +126,35 @@ describe('v6 checklists and template backups',()=>{
   expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow();
   expect(repo.load().tasks[0].id).toBe('stable');
  });
+ it('übernimmt v7-Daten mit bestehenden Deadline- und Ereignis-Aufgaben ohne Änderungen',()=>{
+  const repo=new LocalTaskRepository();
+  const snapshot={...repo.load(),schemaVersion:7,
+   tasks:[{id:'exam',title:'Klassenarbeit',description:'',projectId:null,priority:2,
+    scheduledDate:null,deadlineDate:null,eventDate:'2026-11-27',recurrence:null,
+    completedAt:null,createdAt:'x',updatedAt:'x',
+    subtasks:[{id:'mark',title:'Korrektur',completed:false,plannedDate:'2026-12-11',offset:{amount:2,unit:'weeks',direction:'after'}}]}],
+   templates:[{id:'legacy-exam',name:'Prüfung',description:'',anchorKind:'event',
+    steps:['Korrektur – 2 Wochen danach'],createdAt:'x',updatedAt:'x'}]};
+  const result=repo.parseImport(JSON.stringify(snapshot));
+  expect(result.schemaVersion).toBe(8);
+  expect(result.tasks[0]).toMatchObject({id:'exam',deadlineDate:null,eventDate:'2026-11-27',
+   subtasks:[{id:'mark',plannedDate:'2026-12-11'}]});
+  expect(result.templates[0]).toEqual(snapshot.templates[0]);
+  expect(result.templates[0].estimatedMinutes).toBeUndefined();
+ });
+ it('übernimmt Vorlagenminuten in JSON/Cloud-Daten und lehnt unpassende Schätzungen ab',()=>{
+  const repo=new LocalTaskRepository();
+  const data=repo.load();
+  data.templates=[{id:'minutes',name:'Klassenarbeit',description:'',steps:['Aufgaben','Korrigieren'],
+   estimatedMinutes:120,stepEstimatesMinutes:[30,90],createdAt:'x',updatedAt:'x'}];
+  repo.save(data);
+  expect(repo.load()).toEqual(data);
+  expect(repo.parseImport(repo.export(data))).toEqual(data);
+  const invalid={...data,templates:[{...data.templates[0],stepEstimatesMinutes:[45]}]};
+  expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow(/Zeitangaben/);
+  invalid.templates=[{...data.templates[0],stepEstimatesMinutes:[-5,90]}];
+  expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow();
+  expect(repo.load()).toEqual(data);
+ });
+
 });
