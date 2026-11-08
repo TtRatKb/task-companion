@@ -315,3 +315,11 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Bei Verwendung der Klassenarbeitsvorlage wird nur der Bezugstermin gefragt; das Beispiel-Template enthält jetzt auch Post-Exam-Schritte. Die Daten werden zu konkreten Unteraufgaben-Terminen aufgelöst, nicht als persönliche Leistungsdeadline des Eltern-Tasks.
 - `monthCalendarItems` zeigt Ereignisse getrennt von `ready`/`required` und `work`, ohne Arbeitszeit oder Deadline-Pflicht abzuleiten.
 - Neue schemaVersion 7 mit verlustfreier Importmigration aus allen v1–v6 Saves; bestehende Daten nicht rückwirkend ändern, neue eventDate nur bei expliziter Eingabe bzw. neuer Vorlagenverwendung erzeugen.
+
+
+## 28. v1.8.3 — Dauerhafte Überfällig-Sektion und Zeitbedarf pro Vorlagen-Schritt
+
+- Nicht erledigte Tasks mit vergangener `deadlineDate` werden unabhängig von `scheduledDate` in einer eigenen obersten „Überfällige Aufgaben“-Sektion von Eingang, Heute, Anstehend, Projektansichten und Deadline-Radar geführt. Sortierung nach ältester Deadline, danach Priorität/ID. Erledigte Tasks verschwinden; reine Ereignisdaten (`eventDate`) erzeugen kein Parent-Überfällig.
+- Bereits vergangene `Subtask.plannedDate` für offene Unteraufgaben werden als „Überfällige Unteraufgaben“ ebenfalls oben gezeigt. Sie sind ein überschrittener Schritttermin; die Datenstruktur behauptet nicht, dass jeder geplante Tag eine gesetzliche Abgabedeadline sei.
+- Vorlagen erhalten optionale `estimatedMinutes` sowie positionsgebundene `stepEstimatesMinutes: (number|null)[]`. Der Editor bindet Zeiten an die Schritte, sodass Verschieben, Löschen und Enter-Erstellen die Zuordnung nicht beschädigen. Bei Vorlage verwenden/„Als Vorlage speichern“ werden Zeiten verlustfrei übertragen; exakte Schätzungen werden nicht aus Titeln erraten.
+- Migration v1–v7 → v8: bestehende Task-IDs, Vorlagen, Cloud-Snapshots, Unteraufgaben, Completion-Events und Export/Import bleiben erhalten. Ungültige/verschobene Minuten-Arrays werden verworfen (Import sicher abgelehnt), nicht stillschweigend falsch zugewiesen.
