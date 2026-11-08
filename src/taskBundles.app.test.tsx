@@ -2,7 +2,7 @@ import {beforeEach,describe,expect,it} from 'vitest';
 import {render,screen,waitFor,within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
-import {addDays,todayLocal} from './date';
+import {addDays,formatDate,todayLocal} from './date';
 import {emptyData,type Task} from './types';
 import {STORAGE_KEY} from './repository';
 
@@ -46,7 +46,7 @@ describe('Übergeordnete Aufgaben mit Unteraufgaben sichtbar halten',()=>{
   expect(within(card).getByText('Aufgaben vorbereiten')).toBeInTheDocument();
   expect(within(card).getByText('Klassenarbeiten korrigieren')).toBeInTheDocument();
   expect(within(card).getByText('Klassenarbeiten zurückgeben')).toBeInTheDocument();
-  expect(within(card).getByText('Ereignis '+new Intl.DateTimeFormat('de-DE').format(new Date(past+'T12:00:00Z'))))
+  expect(within(card).getByText('Ereignis '+formatDate(past)))
    .toBeInTheDocument();
   expect(within(card).getByRole('checkbox',{name:'Aufgaben vorbereiten erledigt (Klassenarbeit Mathematik 7b)'})).toBeChecked();
   expect(within(card).getByRole('checkbox',{name:'Klassenarbeiten korrigieren erledigt (Klassenarbeit Mathematik 7b)'})).not.toBeChecked();
