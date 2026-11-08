@@ -253,7 +253,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.8.3 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.8.4 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
@@ -311,3 +311,10 @@ Ein bestehendes Ereignisdatum mit relativen Unteraufgaben wird niemals ohne Nach
 **Minuten direkt in der Vorlage:** Im grafischen Vorlageneditor können die Hauptaufgabe und **jede einzelne Unteraufgabe** optional eine geschätzte Dauer (0–1440 Min.) erhalten. Werte bleiben bei Reihenfolge-Änderungen am jeweiligen Schritt, werden über JSON-Backup und Cloud-Sync erhalten und bei jeder Verwendung in neue Tasks übernommen. Leere Felder sind erlaubt. Die Wochenplanung zählt zeitgeschätzte Unteraufgaben getrennt von der Elternschätzung und vermeidet Doppelzählung.
 
 Datenschema v8 (verlustfreie Migration v1–v7). Bestehende Vorlagen ohne Minuten werden unverändert übernommen. Keine automatischen Änderungen an Prioritäten, Deadlines oder Ereignis-Ankern; v1.9 Push (#21) und Life RPG (#22) sind separat.
+
+
+## v1.8.4 — Aufgabenpakete bleiben dauerhaft sichtbar
+
+Der Menüpunkt **Aufgabenpakete** zeigt alle bestehenden offenen Hauptaufgaben mit Unteraufgaben, unabhängig von Ereignisdatum, Arbeitstag oder Projektzuordnung. Das ist eine Ansicht auf vorhandene Tasks, **keine zweite Aufgabenverwaltung**. Bei einer Klassenarbeit bleibt die Hauptaufgabe auch nach dem Prüfungstag sichtbar, bis sie tatsächlich abgeschlossen wird. Der Fortschritt wird als erledigt/gesamt angezeigt; alle Schritte sind inklusive bestehender Häkchen und eigener Termine einsehbar und abhackbar. Überfällige **geplante Teil-Schritte** werden als Nachholbedarf markiert, auch wenn die Parent-Aufgabe kein echtes `deadlineDate` besitzt. Vergangene Ereignisdaten allein lösen hingegen keine Überfällig-Warnung aus.
+
+In **Heute** gibt es zusätzlich eine Vorschau der wichtigsten laufenden Pakete mit Link zur vollständigen Ansicht. Bei allen erledigten Schritten wird das explizite Abschließen der Hauptaufgabe angeboten, nicht automatisch ausgelöst. Ein Filter zeigt auf Wunsch abgeschlossene Pakete. Alte Aufgaben, ihre IDs, Termine, Projekte und Zeitangaben werden nicht verändert. Datenschema unverändert v8.
