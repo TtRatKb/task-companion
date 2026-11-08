@@ -657,3 +657,54 @@
  .month-complete-toggle{margin-top:4px}
  .month-detail-row:has(>.month-complete-toggle) .month-detail-body{flex-basis:calc(100% - 72px)}
 }
+
+
+/* v1.8.1 — Task and template editors use the same visual language as list items.
+   Parent title / steps are rows with circular check markers; editor help stays inside the dialog. */
+.task-editor-workspace .editor-task-like-parent{display:flex;align-items:flex-start;gap:12px;padding:7px 7px 15px;margin-bottom:14px;border-bottom:1px solid #e9e5e1;background:#fff}
+.task-editor-workspace .editor-task-like-body{flex:1;min-width:0}
+.task-editor-workspace .editor-task-like-body label{margin-bottom:5px}
+.task-editor-workspace .editor-task-decorative-check{display:block;flex:none;width:21px;height:21px;border:2px solid #aaa;border-radius:50%;background:#fff;margin-top:29px}
+.task-editor-workspace .editor-parent-title input{width:100%;border:0;border-bottom:1px solid #eee6df;background:transparent;border-radius:0;padding:10px 3px;font-size:16px;font-weight:700;color:#35312e}
+.task-editor-workspace .editor-parent-title input:focus{outline:0;border-color:#b85e51}
+.task-editor-workspace .editor-parent-description textarea{width:100%;min-height:58px;resize:vertical;border:1px solid transparent;background:#faf9f7;border-radius:7px;font-weight:400;font-size:12px}
+.task-editor-workspace .editor-parent-description textarea:focus{border-color:#c7a89e}
+.task-editor-workspace .task-list-like-subtasks{border:0;border-radius:0;padding:0 5px 7px;margin:0 0 16px}
+.task-editor-workspace .task-list-like-subtasks legend{font-size:14px;padding:0 0 9px;font-weight:700}
+.task-editor-workspace .task-list-like-subtasks legend small{font-size:10px}
+.task-editor-workspace .task-list-like-subtasks .subtask-edit-row{margin:0;padding:10px 3px;align-items:flex-start;border-bottom:1px solid #eeeae7;gap:10px}
+.task-editor-workspace .task-list-like-subtasks .subtask-edit-row:focus-within,
+.template-visual-editor .template-visual-row:focus-within{background:#fdfaf7}
+.task-editor-workspace .task-list-like-subtasks .editor-subtask-checkbox{appearance:none;-webkit-appearance:none;display:grid;place-content:center;flex:none;width:20px;height:20px;min-width:20px;border:2px solid #aaa;border-radius:50%;padding:0;margin:9px 0 0;background:#fff;cursor:pointer}
+.task-editor-workspace .task-list-like-subtasks .editor-subtask-checkbox:checked{border-color:#548d71;background:#548d71}
+.task-editor-workspace .task-list-like-subtasks .editor-subtask-checkbox:checked:after{content:'✓';color:white;font-size:13px;line-height:1;font-weight:800}
+.task-editor-workspace .task-list-like-subtasks .editor-subtask-checkbox:focus-visible{outline:3px solid #4d89dd;outline-offset:2px}
+.task-editor-workspace .task-list-like-subtasks .subtask-edit-main>input{width:100%;flex:none;min-width:0;border:0;border-radius:0;background:transparent;padding:9px 1px;font-size:13px}
+.task-editor-workspace .task-list-like-subtasks .subtask-edit-main>input:focus{outline:0;border-bottom:1px solid #b66c5d}
+.task-editor-workspace .task-list-like-subtasks .subtask-edit-row:has(.editor-subtask-checkbox:checked) .subtask-edit-main>input{text-decoration:line-through;color:#89817b}
+.task-editor-workspace .task-list-like-subtasks .subtask-schedule-row{margin:0;padding:0 0 2px;font-size:10px}
+.task-editor-workspace .task-list-like-subtasks .subtask-schedule-row>label{margin:0;font-size:10px}
+.task-editor-workspace .task-list-like-subtasks .subtask-add-row{padding:9px 3px 0;gap:10px}
+.task-editor-workspace .task-list-like-subtasks .subtask-add-row .editor-task-decorative-check{border-color:#c8bdb4;margin:9px 0 0}
+.task-editor-workspace .task-list-like-subtasks .subtask-add-row>input{border:0;border-bottom:1px dashed #dfd7cf;border-radius:0;padding:9px 3px}
+.task-editor-workspace .task-list-like-subtasks .subtask-add-row>input:focus{outline:0;border-color:#b85e51}
+.template-visual-editor .editor-template-parent{border:0;border-bottom:1px solid #e9e5e1;border-radius:0;background:#fff;margin:0 0 17px;padding:7px 8px 16px}
+.template-visual-editor .template-visual-steps{border:0;border-radius:0}
+.template-visual-editor .editor-task-like-step{padding:10px 5px;border-bottom:1px solid #eeeae7;gap:10px}
+.template-visual-editor .editor-task-like-step .template-preview-toggle{margin-top:10px}
+.template-visual-editor .template-title-field input{font-size:16px}
+.template-visual-editor .template-main-row .template-preview-toggle{margin-top:29px}
+.template-visual-editor .template-visual-field input{font-size:13px}
+.template-visual-editor .template-step-explanation{font-size:10px;margin-top:0}
+.editor-help-panel .editor-help-walkthrough{background:#fff9f4;padding:14px 10px 5px;margin:0 -10px;border:1px solid #efe4d9;border-radius:9px}
+.editor-help-panel .editor-help-walkthrough p{margin:7px 0 11px}
+@media(min-width:1181px) and (max-width:1310px){
+ .main-content-shell{max-width:1380px;display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:16px;padding:28px 19px 95px}
+ .app-shortcut-rail{display:block}
+ .main-content-shell>.content{max-width:none}
+}
+@media(max-width:510px){
+ .task-editor-workspace .task-list-like-subtasks .subtask-edit-row{gap:5px;padding-left:0;padding-right:0}
+ .task-editor-workspace .task-list-like-subtasks .subtask-add-row .editor-task-decorative-check{display:none}
+ .template-visual-editor .editor-task-like-step{gap:5px}
+}
