@@ -19,7 +19,7 @@ import {transferSubtask,undoSubtaskTransfer,type TransferDateChoice,type Transfe
 import {FocusedSteps} from './components/FocusedSteps';
 import {focusedSteps,stepsDueNow,parentGroupsWithoutStepOnlyDuplicates} from './focusedSteps';
 import {moveWorkItem} from './weeklyPlanner';
-import {resolveRelativeSubtasks} from './relativePlanning';
+import {resolveRelativeSubtasks,templateAnchorKind} from './relativePlanning';
 import {InboxProcessor} from './components/InboxProcessor';
 import {applyInboxTriage,inboxQueue,type InboxTriagePatch} from './inboxTriage';
 import type {TaskTemplate} from './types';
@@ -182,20 +182,23 @@ export default function App(){
  const saveTaskTemplate=(draft:TaskDraft)=>{
   const prepared=templateFromTask({...draft,id:'preview',createdAt:'',updatedAt:'',completedAt:null});
   commit({...data,templates:[...data.templates,prepared]});
-  setNotice('Vorlage gespeichert. Du findest sie unter „Vorlagen“.');
- };
- const useTemplate=(template:TaskTemplate,deadlineDate:string|null=null)=>{
+  setNotice('Vorlage gespeichert. Du findest sie unter  const useTemplate=(template:TaskTemplate,anchorDate:string|null=null)=>{
   const draft=taskFromTemplate(template,null);
+  const eventBased=templateAnchorKind(template)==='event';
   setEditor(undefined);
-  setEditorDraft({title:draft.title,description:draft.description,projectId:draft.projectId,priority:draft.priority,scheduledDate:draft.scheduledDate,deadlineDate,recurrence:draft.recurrence,
-   subtasks:resolveRelativeSubtasks(draft.subtasks??[],deadlineDate)});
+  setEditorDraft({title:draft.title,description:draft.description,projectId:draft.projectId,priority:draft.priority,
+   scheduledDate:draft.scheduledDate,deadlineDate:eventBased?null:anchorDate,
+   ...(eventBased?{eventDate:anchorDate}:{}),recurrence:draft.recurrence,
+   subtasks:resolveRelativeSubtasks(draft.subtasks??[],anchorDate)});
   navigate({kind:'inbox'});
  };
- const saveTemplateDefinition=(draft:{id?:string;name:string;description:string;steps:string[]})=>{
+ind:'inbox'});
+ };
+ const saveTemplateDefinition=(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline'})=>{
   const now=new Date().toISOString();
   const templates=draft.id&&data.templates.some(t=>t.id===draft.id)?
-   data.templates.map(t=>t.id===draft.id?{...t,name:draft.name,description:draft.description,steps:draft.steps,updatedAt:now}:t):
-   [...data.templates,makeTemplate(draft.name,draft.description,draft.steps)];
+   data.templates.map(t=>t.id===draft.id?{...t,name:draft.name,description:draft.description,steps:draft.steps,anchorKind:draft.anchorKind??t.anchorKind,updatedAt:now}:t):
+   [...data.templates,makeTemplate(draft.name,draft.description,draft.steps,new Date(),draft.anchorKind)];
   commit({...data,templates});
   setNotice('Vorlage gespeichert.');
  };
