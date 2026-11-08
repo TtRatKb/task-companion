@@ -297,3 +297,11 @@ Keine echten Schülerdaten, Schulunterlagen, privaten Tokens oder Produktivdaten
 - Ein **Projektfilter** (`alle`, `Eingang`, konkrete Projekte) filtert **Workload-/Deadline-Kalenderereignisse, Tagesdetails und „Ohne Arbeitstag“** aus denselben aktiven Task-Daten, ohne persistierte Änderungen.
 - **„Erledigte anzeigen“** ist optional und standardmäßig deaktiviert. Als eigene `done`-Projektion erscheinen abgeschlossene datierte Unteraufgaben offener Eltern am ursprünglichen Arbeitstag (mit direkter Wieder-Öffnen-Funktion) sowie abgeschlossene einmalige Hauptaufgaben am tatsächlichen Abschlusstag (informativ). Abgeschlossene Wiederholungszyklen werden nicht als fiktive historische Aufgaben dargestellt. Das Kalender-Workload-Budget zählt ausschließlich offene `work`-Einträge, niemals `done`.
 - Die Filterzustände sind nur lokale React-UI-Zustände. Die bestehende `AppData`-Struktur bleibt **Schema v6**; Cloud, Backups, Templatevariablen und Terminmechanismen erfordern keine Migration.
+
+
+## 26. v1.8.1 — Todoist-artige Bearbeitungsansicht und Hilfespalte
+
+- Aufgaben- und Vorlageneditor zeigen die Hauptaufgabe sowie eigene, kompakte Unteraufgaben-Zeilen mit runden Häkchen und Tastaturbedienung, statt einer Textarea mit einer Zeile pro Eintrag; die intern gespeicherten Vorlagenschritte bleiben kompatibel und werden nicht migriert.
+- Eine rechte Hilfe im **offenen Editor** erklärt Einfügen von `{Fach}`, `{Klasse}`, `{Thema}`, Zeitanker `{Deadline}`, Beispiele für Klassenarbeiten, Q/Enter/Strg+Enter/Escape und #P1–#P4 ausschließlich in der Schnellerfassung. Die vorhandene Kurzanleitung auf der Hauptseite erläutert Priorität und wiederkehrende Intervalle; bei ausreichend breiten Desktops bleibt sie sichtbar.
+- Beim Verwenden einer Vorlage mit Platzhaltern kann die konkrete Deadline im selben Dialog gewählt werden; die Unteraufgaben starten im anschließenden Aufgabenentwurf bereits mit relativ aufgelösten Terminen. Nachträgliche Datumsänderungen durchlaufen weiterhin die existierenden Sicherheitspfad-Prüfungen.
+- Die Änderung enthält **keine** neuen Persistenzfelder, keine Rückwirkung auf Vorlagen, PWA-Cloud/JSON-Schema bleibt v6. Erinnerungs-Push (#21) und Life RPG Rewards (#22) bleiben eigenständige Folgeaufträge.
