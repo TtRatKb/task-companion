@@ -8,4 +8,4 @@ export interface TaskTemplate { id:string; name:string; description:string; step
 export interface Project { id:string; name:string; color:string; createdAt:string }
 export interface CompletionEvent { id:string; taskId:string; occurredAt:string; previousScheduledDate:string|null; resultingScheduledDate:string|null; previousCompletedAt:string|null; undoneAt:string|null; previousSubtasks?:Subtask[] }
 export interface AppData { schemaVersion:7; tasks:Task[]; projects:Project[]; completionEvents:CompletionEvent[]; templates:TaskTemplate[]; weeklyBudgetMinutes:(number|null)[] }
-export const emptyData=():AppData=>({schemaVersion:6,tasks:[],projects:[],completionEvents:[],templates:[],weeklyBudgetMinutes:[null,null,null,null,null,null,null]});
+export const emptyData=():AppData=>({schemaVersion:7,tasks:[],projects:[],completionEvents:[],templates:[],weeklyBudgetMinutes:[null,null,null,null,null,null,null]});
