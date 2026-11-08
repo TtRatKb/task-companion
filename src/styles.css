@@ -727,3 +727,12 @@
 .task-list .subtask-inline .subtask-open-button>span{display:flex;flex-direction:column;gap:3px}
 .task-list .subtask-inline .subtask-open-button small{font-size:10px;color:#817971;text-decoration:none}
 .task-list .subtask-inline .subtask-line.done .subtask-open-button>span{color:#918b85;text-decoration:line-through}
+
+/* v1.8.2: event anchors are not deadlines; make the template choice visible. */
+.template-anchor-kind{display:grid;gap:7px;margin:12px 0 4px 32px;font-size:12px;color:#675d56}
+.template-anchor-kind select{width:100%;border:1px solid #ddd5ce;border-radius:8px;background:#fff;padding:9px 11px}
+.template-anchor-kind small{font-size:11px;line-height:1.5;color:#817970;font-weight:400}
+.month-legend .legend-event{background:#9879ba}
+.month-entry-chip.event{background:#f0ebf7;color:#674d88}
+.month-detail-row.event{background:#fcf9ff}
+.month-detail-symbol.event{background:#f0eaf9;color:#795e9a}
