@@ -61,15 +61,29 @@ function parseTemplates(value:unknown):TaskTemplate[]{
    throw new Error('Ungültige Aufgabenvorlage.');
   if(t.anchorKind!==undefined&&t.anchorKind!=='deadline'&&t.anchorKind!=='event')
    throw new Error('Ungültiger Datumstyp einer Vorlage.');
+  const estimatedMinutes=parseMinutes(t.estimatedMinutes,'Vorlage');
+  let stepEstimatesMinutes:(number|null)[]|undefined;
+  if(t.stepEstimatesMinutes!==undefined){
+   if(!Array.isArray(t.stepEstimatesMinutes)||t.stepEstimatesMinutes.length!==t.steps.length)
+    throw new Error('Zeitangaben der Vorlage passen nicht zur Anzahl der Unteraufgaben.');
+   stepEstimatesMinutes=t.stepEstimatesMinutes.map((value:unknown,index:number)=>{
+    const minutes=parseMinutes(value,'Vorlagen-Unteraufgabe '+(index+1));
+    if(minutes===undefined)throw new Error('Ungültige Zeitangabe in einer Vorlagen-Unteraufgabe.');
+    return minutes;
+   });
+  }
   return{id:t.id,name:t.name,description:t.description,steps:[...(t.steps as string[])],
-   ...(t.anchorKind?{anchorKind:t.anchorKind as 'event'|'deadline'}:{}),createdAt:t.createdAt,updatedAt:t.updatedAt};
+   ...(t.anchorKind?{anchorKind:t.anchorKind as 'event'|'deadline'}:{}),
+   ...(estimatedMinutes!==undefined?{estimatedMinutes}:{}),
+   ...(stepEstimatesMinutes!==undefined?{stepEstimatesMinutes}:{}),
+   createdAt:t.createdAt,updatedAt:t.updatedAt};
  });
  if(new Set(templates.map(t=>t.id)).size!==templates.length)throw new Error('Doppelte Vorlagen-ID.');
  return templates;
 }
 export function migrateData(value:unknown):AppData{
  const raw=safeRecord(value);
- if(raw.schemaVersion!==1&&raw.schemaVersion!==2&&raw.schemaVersion!==3&&raw.schemaVersion!==4&&raw.schemaVersion!==5&&raw.schemaVersion!==6&&raw.schemaVersion!==7)throw new Error('Nicht unterstützte Datenversion.');
+ if(raw.schemaVersion!==1&&raw.schemaVersion!==2&&raw.schemaVersion!==3&&raw.schemaVersion!==4&&raw.schemaVersion!==5&&raw.schemaVersion!==6&&raw.schemaVersion!==7&&raw.schemaVersion!==8)throw new Error('Nicht unterstützte Datenversion.');
  if(!Array.isArray(raw.tasks)||!Array.isArray(raw.projects)||!Array.isArray(raw.completionEvents))throw new Error('Unvollständige Sicherung.');
  const tasks=raw.tasks.map((item):Task=>{
   const t=safeRecord(item);
@@ -102,9 +116,9 @@ export function migrateData(value:unknown):AppData{
   if(typeof e.id!=='string'||typeof e.taskId!=='string'||typeof e.occurredAt!=='string'||!dateOrNull(e.previousScheduledDate)||!dateOrNull(e.resultingScheduledDate)||!nullableString(e.undoneAt))throw new Error('Ungültiger Abschluss.');
   return{id:e.id,taskId:e.taskId,occurredAt:e.occurredAt,previousScheduledDate:e.previousScheduledDate as string|null,resultingScheduledDate:e.resultingScheduledDate as string|null,previousCompletedAt:nullableString(e.previousCompletedAt)?e.previousCompletedAt as string|null:null,undoneAt:e.undoneAt as string|null,previousSubtasks:e.previousSubtasks===undefined?undefined:parseSubtasks(e.previousSubtasks)};
  });
- return{schemaVersion:7,tasks,projects,completionEvents,templates:parseTemplates(raw.templates),weeklyBudgetMinutes:parseBudgets(raw.weeklyBudgetMinutes)};
+ return{schemaVersion:8,tasks,projects,completionEvents,templates:parseTemplates(raw.templates),weeklyBudgetMinutes:parseBudgets(raw.weeklyBudgetMinutes)};
 }
-export function validateData(v:unknown):v is AppData{try{return migrateData(v).schemaVersion===7}catch{return false}}
+export function validateData(v:unknown):v is AppData{try{return migrateData(v).schemaVersion===8}catch{return false}}
 export class LocalTaskRepository implements TaskRepository{
  constructor(private storage:Pick<Storage,'getItem'|'setItem'>=localStorage){}
  load(){const raw=this.storage.getItem(STORAGE_KEY);if(!raw)return emptyData();try{return migrateData(JSON.parse(raw))}catch{throw new Error('Gespeicherte Daten sind beschädigt. Sie wurden nicht überschrieben.')}}
