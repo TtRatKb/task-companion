@@ -708,3 +708,8 @@
  .task-editor-workspace .task-list-like-subtasks .subtask-add-row .editor-task-decorative-check{display:none}
  .template-visual-editor .editor-task-like-step{gap:5px}
 }
+
+/* Template instantiation: deadline and placeholders in the same, editable dialog. */
+.template-use-dialog .template-use-deadline{display:grid;gap:6px;margin:14px 0 16px;font-size:12px}
+.template-use-dialog .template-use-deadline input{max-width:250px}
+.template-use-dialog .template-use-deadline small{font-size:11px;color:#80766d;font-weight:400;line-height:1.5}
