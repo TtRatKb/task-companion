@@ -9,7 +9,9 @@ Deutschsprachige, responsive Aufgaben-PWA mit getrennter Planung und Deadline, w
 
 Danach die angezeigte lokale URL öffnen. Produktionsnah: npm run build und npm run preview.
 
-## Funktionen in v1.8
+## Funktionen in v1.8.1
+
+- **Überarbeitete Editoren (v1.8.1):** Hauptaufgabe und Unteraufgaben im Todoist-artigen Zeilenlayout mit runden Häkchen; rechts im offenen Editor eine konkrete Hilfe zu Klassenarbeitsvorlagen, Platzhaltern, relativen Terminen und Tastenkürzeln. Beim Verwenden einer Vorlage mit Platzhaltern kannst du den benötigten Klassenarbeitstag direkt als Deadline eingeben; die relativen Schritttermine erscheinen im anschließenden Aufgabeneditor bereits berechnet.
 
 - Eingang, Heute, Anstehend (7 Tage), **Wochenplanung**, **Monatskalender**, **Deadline-Radar**, **globale Suche** und eigene Projekte
 - **Unteraufgaben/Checklisten** direkt an Aufgaben mit Fortschrittsanzeige, separaten Häkchen und Bearbeiten im Aufgabeneditor
@@ -251,7 +253,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.8.0 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.8.1 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
@@ -286,3 +288,9 @@ Wenn Pages für das Repository oder Konto nicht freigeschaltet ist, bleibt die l
 ## Grenzen
 
 Bewusst nicht enthalten sind **Hintergrund-Push bei vollständig geschlossener App**, automatisches Mergen von gleichzeitig geänderten Cloud-Datensätzen, Companion-/Life-RPG-Belohnungsfunktionen, KI, Kalender- oder Todoist-Import. Die Cloud-Synchronisation ist optional und muss einmalig serverseitig eingerichtet werden.
+
+## UX-Korrektur v1.8.1: Aufgaben und Vorlagen wie eine Aufgabenliste
+
+Im geöffneten Aufgaben- und Vorlageneditor stehen Hauptaufgabe und Unteraufgaben visuell als kompakte Aufgabenzeilen mit runden Häkchen untereinander. Die Häkchen im Vorlageneditor sind eine Vorschau; bei echten Aufgaben verändern sie den gespeicherten Erledigt-Status. Die rechte Hilfe ist **Teil des offenen Dialogs**, erklärt Platzhalter und Zeitabstände am Beispiel einer Klassenarbeit und listet Q, #P1–#P4 (nur Schnellerfassung), Wiederholungen sowie Editor-Kürzel. Auf schmalen Displays folgt die Hilfe unter dem Editor.
+
+Wenn du eine Vorlage mit `{Fach}` / `{Klasse}` verwendest, kannst du im selben Ausfülldialog optional die Deadline (Tag, an dem alles bereits fertig sein muss) auswählen. Die Schritte `2 Wochen vorher` oder `{Deadline} - 3 Tage` werden beim anschließenden Öffnen des Aufgabenedotors berechnet; bestehende Vorlagen und bereits angelegte Aufgaben werden nicht verändert. Die Vorlage enthält selbst keinen festen Klassenarbeitstag, damit sie für andere Termine wiederverwendbar bleibt.

@@ -120,9 +120,14 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
   }}>
    <div className="editor-two-column"><div className="editor-primary">
    <header><h2 id="editor-title">{task?'Aufgabe bearbeiten':'Aufgabe hinzufügen'}</h2><button type="button" className="icon-button" aria-label="Schließen" onClick={onClose}><X/></button></header>
-   <label>Titel<input ref={title} value={v.title} onChange={e=>setV({...v,title:e.target.value})} required placeholder="Was steht an?"/></label>
-   <label>Beschreibung<textarea value={v.description} onChange={e=>setV({...v,description:e.target.value})} placeholder="Notizen (optional)"/></label>
-   <fieldset className="subtask-editor">
+   <div className="editor-task-like-parent">
+    <span className="editor-task-decorative-check" aria-hidden="true"/>
+    <div className="editor-task-like-body">
+     <label className="editor-parent-title">Hauptaufgabe<input ref={title} aria-label="Titel" value={v.title} onChange={e=>setV({...v,title:e.target.value})} required placeholder="Was steht an?"/></label>
+     <label className="editor-parent-description">Beschreibung<textarea value={v.description} onChange={e=>setV({...v,description:e.target.value})} placeholder="Notizen (optional)"/></label>
+    </div>
+   </div>
+   <fieldset className="subtask-editor task-list-like-subtasks">
     <legend>Unteraufgaben <small>{steps.filter(s=>s.completed).length}/{steps.length} erledigt · Per Griff ziehen oder Pfeile nutzen</small></legend>
     {steps.map((step,index)=><div className="subtask-edit-row" key={step.id}
      onDragOver={e=>{if(dragging.current){e.preventDefault();e.dataTransfer.dropEffect='move'}}}
@@ -131,7 +136,7 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
       onUp={()=>moveRow(step.id,-1)} onDown={()=>moveRow(step.id,1)}
       onDragStart={e=>{dragging.current=step.id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',step.id)}}
       onDragEnd={()=>{dragging.current=null}}/>
-     <input aria-label={`Unteraufgabe ${index+1} erledigt`} type="checkbox" checked={step.completed} onChange={e=>changeStep(step.id,{completed:e.target.checked})}/>
+     <input className="editor-subtask-checkbox" aria-label={`Unteraufgabe ${index+1} erledigt`} type="checkbox" checked={step.completed} onChange={e=>changeStep(step.id,{completed:e.target.checked})}/>
      <div className="subtask-edit-main">
       <input ref={el=>{stepRefs.current[step.id]=el}} aria-label={`Unteraufgabe ${index+1}`} value={step.title}
        onChange={e=>changeStep(step.id,{title:e.target.value})}
@@ -166,9 +171,9 @@ export function TaskEditor({task,initialDraft,projects,initialProject,onSave,onD
       onClick={()=>startTransfer(step.id)}><MoveRight size={17}/></button>}
      <button type="button" className="icon-button" aria-label={`Unteraufgabe ${index+1} entfernen`} onClick={()=>setV(current=>({...current,subtasks:(current.subtasks??[]).filter(s=>s.id!==step.id)}))}><X/></button>
     </div>)}
-    <div className="subtask-add-row"><input ref={newStepRef} aria-label="Neue Unteraufgabe" value={newStep}
+    <div className="subtask-add-row"><span className="editor-task-decorative-check" aria-hidden="true"/><input ref={newStepRef} aria-label="Neue Unteraufgabe" value={newStep}
      onFocus={()=>{activeStep.current=null}} onChange={e=>setNewStep(e.target.value)} placeholder="Weiteren Schritt eingeben" onKeyDown={e=>{if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();addStep()}}}/><button type="button" className="ghost" onClick={addStep} disabled={!newStep.trim()}><Plus size={15}/> Hinzufügen</button></div>
-    <p className="subtask-hint">Schreib einen Abstand einfach ans Ende: „Aufgaben zusammenstellen – 2 Wochen vorher“, „ClassTime einrichten – {<code>{'{Deadline}'}</code>} - 3 Tage“ oder „14 Tage vorher“. Termine werden von der Hauptdeadline zurückgerechnet, nie gleichmäßig verteilt. Du kannst Termine jederzeit manuell ändern; das löst dann die automatische Verknüpfung.</p>
+    <p className="subtask-hint">Jeder Schritt ist eine eigene abhakbare Aufgabe. <b>Enter</b> fügt den nächsten Schritt hinzu. Schreib einen Abstand einfach ans Ende: „Aufgaben zusammenstellen – 2 Wochen vorher“, „ClassTime einrichten – {<code>{'{Deadline}'}</code>} - 3 Tage“ oder „14 Tage vorher“. Termine werden von der Hauptdeadline zurückgerechnet, nie gleichmäßig verteilt. Du kannst Termine jederzeit manuell ändern; das löst dann die automatische Verknüpfung.</p>
    </fieldset>
    <div className="form-grid">
     <label>Projekt<select value={v.projectId??''} onChange={e=>setV({...v,projectId:e.target.value||null})}><option value="">Eingang</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>

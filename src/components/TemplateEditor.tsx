@@ -67,6 +67,11 @@ export function TemplateEditor({template,onSave,onClose}:{
   }
  };
  const insertSnippet=(snippet:string)=>{
+  // Relative date snippets are always subtask instructions, never part of a template title.
+  if(snippet.startsWith(' – ') && active.current.field!=='step'){
+   const row=rows.find(item=>item.text.trim())??rows[0];
+   if(row){active.current={field:'step',id:row.id};activeElement.current=rowRefs.current[row.id]??null}
+  }
   const target=active.current;
   const element=activeElement.current;
   let value=target.field==='name'?name:target.field==='description'?description:
@@ -117,7 +122,7 @@ export function TemplateEditor({template,onSave,onClose}:{
       </div>
       <button type="button" className="icon-button" aria-label="Schließen" onClick={cancel}><X/></button>
      </header>
-     <div className="template-main-task">
+     <div className="template-main-task editor-template-parent">
       <div className="template-main-row">
        <button className={previewChecked?'template-preview-toggle checked':'template-preview-toggle'}
         type="button" aria-label="Hauptaufgabe als Vorschau abhaken"
@@ -146,7 +151,7 @@ export function TemplateEditor({template,onSave,onClose}:{
      <div className="template-visual-steps" aria-label="Unteraufgaben der Vorlage">
       {rows.map((row,index)=>{
        const parsed=parseRelativeStep(row.text);
-       return <div className="template-visual-row" key={row.id}
+       return <div className="template-visual-row editor-task-like-step" key={row.id}
          onDragOver={e=>{if(dragging.current){e.preventDefault();e.dataTransfer.dropEffect='move'}}}
          onDrop={e=>{e.preventDefault();dropRow(row.id)}}>
         <StepOrderControls index={index} total={rows.length}
@@ -179,7 +184,7 @@ export function TemplateEditor({template,onSave,onClose}:{
        <Plus size={16}/> Unteraufgabe hinzufügen <kbd>Enter</kbd>
       </button>
      </div>
-     <p className="template-preview-notice">Häkchen dienen nur zur Vorschau. Jede neue Aufgabe aus dieser Vorlage beginnt mit unerledigten Schritten.</p>
+     <p className="template-preview-notice">Du bearbeitest hier eine Hauptaufgabe mit eigenen Unteraufgaben – wie in deiner Aufgabenliste. Häkchen dienen nur zur Vorschau; jede Verwendung startet mit offenen Schritten. Den konkreten Klassenarbeitstermin (Deadline) gibst du erst beim Erstellen der echten Aufgabe an.</p>
      {error&&<p className="template-save-error" role="alert">{error}</p>}
      <footer className="template-visual-actions">
       <button type="button" className="ghost" onClick={cancel}>Abbrechen</button>

@@ -19,6 +19,7 @@ import {transferSubtask,undoSubtaskTransfer,type TransferDateChoice,type Transfe
 import {FocusedSteps} from './components/FocusedSteps';
 import {focusedSteps,stepsDueNow,parentGroupsWithoutStepOnlyDuplicates} from './focusedSteps';
 import {moveWorkItem} from './weeklyPlanner';
+import {resolveRelativeSubtasks} from './relativePlanning';
 import {InboxProcessor} from './components/InboxProcessor';
 import {applyInboxTriage,inboxQueue,type InboxTriagePatch} from './inboxTriage';
 import type {TaskTemplate} from './types';
@@ -183,10 +184,11 @@ export default function App(){
   commit({...data,templates:[...data.templates,prepared]});
   setNotice('Vorlage gespeichert. Du findest sie unter „Vorlagen“.');
  };
- const useTemplate=(template:TaskTemplate)=>{
+ const useTemplate=(template:TaskTemplate,deadlineDate:string|null=null)=>{
   const draft=taskFromTemplate(template,null);
   setEditor(undefined);
-  setEditorDraft({title:draft.title,description:draft.description,projectId:draft.projectId,priority:draft.priority,scheduledDate:draft.scheduledDate,deadlineDate:draft.deadlineDate,recurrence:draft.recurrence,subtasks:draft.subtasks});
+  setEditorDraft({title:draft.title,description:draft.description,projectId:draft.projectId,priority:draft.priority,scheduledDate:draft.scheduledDate,deadlineDate,recurrence:draft.recurrence,
+   subtasks:resolveRelativeSubtasks(draft.subtasks??[],deadlineDate)});
   navigate({kind:'inbox'});
  };
  const saveTemplateDefinition=(draft:{id?:string;name:string;description:string;steps:string[]})=>{

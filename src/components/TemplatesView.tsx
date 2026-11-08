@@ -13,7 +13,7 @@ export const STARTER_TEMPLATE:TaskTemplate={
 
 export function TemplatesView({templates,onUse,onSave,onDelete}:{
  templates:TaskTemplate[];
- onUse:(template:TaskTemplate)=>void;
+ onUse:(template:TaskTemplate,deadlineDate?:string|null)=>void;
  onSave:(draft:{id?:string;name:string;description:string;steps:string[]})=>void;
  onDelete:(id:string)=>void;
 }){
@@ -21,17 +21,18 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
  const [newOpen,setNewOpen]=useState(false);
  const [instantiating,setInstantiating]=useState<TaskTemplate|null>(null);
  const [values,setValues]=useState<Record<string,string>>({});
+ const [deadlineDate,setDeadlineDate]=useState('');
  const variables=instantiating?extractTemplatePlaceholders(instantiating):[];
  const missing=variables.filter(key=>!values[key]?.trim());
  const beginUse=(template:TaskTemplate)=>{
   if(!extractTemplatePlaceholders(template).length){onUse(template);return}
-  setInstantiating(template);setValues({});
+  setInstantiating(template);setValues({});setDeadlineDate('');
  };
- const cancelUse=()=>{setInstantiating(null);setValues({})};
+ const cancelUse=()=>{setInstantiating(null);setValues({});setDeadlineDate('')};
  const confirmUse=(event:FormEvent)=>{
   event.preventDefault();
   if(!instantiating||missing.length)return;
-  onUse(expandTaskTemplate(instantiating,values));
+  onUse(expandTaskTemplate(instantiating,values),deadlineDate||null);
   cancelUse();
  };
  const edit=(template?:TaskTemplate)=>{setEditing(template??null);setNewOpen(true)};
@@ -69,13 +70,17 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
       <input autoFocus={index===0} required aria-label={key} value={values[key]??''} onChange={e=>setValues(old=>({...old,[key]:e.target.value}))} placeholder={key==='Fach'?'z. B. Mathematik':key==='Klasse'?'z. B. 7b':key==='Thema'?'z. B. Bruchrechnung':key}/>
      </label>)}
     </div>
+    <label className="template-use-deadline">Deadline / Tag, an dem die Aufgabe bereits fertig sein muss
+     <input type="date" aria-label="Deadline beim Verwenden der Vorlage" value={deadlineDate} onChange={e=>setDeadlineDate(e.target.value)}/>
+     <small>Zum Beispiel der Klassenarbeitstag. Alle Angaben wie „2 Wochen vorher“ werden daraus berechnet. Du kannst das Datum auch später im Aufgabeneditor setzen.</small>
+    </label>
     <div className="template-live-preview" aria-live="polite">
      <span className="template-preview-label">Vorschau</span>
      <strong>{fillTemplateText(instantiating.name,values)}</strong>
      {instantiating.description&&<p>{fillTemplateText(instantiating.description,values)}</p>}
      {instantiating.steps.length>0&&<ol>{instantiating.steps.map((step,index)=><li key={index}>{fillTemplateText(step,values)}</li>)}</ol>}
     </div>
-    <p className="template-help">Danach kannst du im Aufgabeneditor die Deadline, das Projekt und weitere Details festlegen. Diese Vorlage bleibt unverändert.</p>
+    <p className="template-help">Danach kannst du im Aufgabeneditor die berechneten Unteraufgabentermine prüfen, das Projekt auswählen und bei Bedarf die Deadline ändern. Diese Vorlage bleibt unverändert.</p>
     <footer><span/><div><button type="button" className="ghost" onClick={cancelUse}>Abbrechen</button><button className="primary" disabled={missing.length>0}>Weiter zum Aufgabeneditor</button></div></footer>
    </form>
   </div>}

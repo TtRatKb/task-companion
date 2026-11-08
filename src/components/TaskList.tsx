@@ -79,16 +79,19 @@ export function TaskList({
         <div className="subtask-meter" aria-hidden="true"><span style={{width:`${checklist.done/checklist.total*100}%`}}/></div>
         {(task.subtasks??[]).map(step=><div key={step.id}
          className={step.completed?'subtask-line done':'subtask-line'}>
-         <label className="subtask-check-label">
-          <input type="checkbox" checked={step.completed} disabled={!onToggleSubtask}
+         <div className="subtask-check-label">
+          <input type="checkbox" aria-label={step.title} checked={step.completed} disabled={!onToggleSubtask}
            onChange={()=>onToggleSubtask?.(task.id,step.id)}/>
-          <span>{step.title}
-           {step.plannedDate&&<small className={step.plannedDate<=today&&!step.completed?'subtask-date-due':'subtask-date-future'}>
-            {step.plannedDate<today&&!step.completed?'Geplant war ':step.plannedDate===today&&!step.completed?'Heute geplant · ':'Geplant '}
-            {formatDate(step.plannedDate)}
-           </small>}
-          </span>
-         </label>
+          <button type="button" className="subtask-open-button" aria-label={`Unteraufgabe „${step.title}“ bearbeiten`}
+           onClick={()=>onEdit(task)}>
+           <span>{step.title}
+            {step.plannedDate&&<small className={step.plannedDate<=today&&!step.completed?'subtask-date-due':'subtask-date-future'}>
+             {step.plannedDate<today&&!step.completed?'Geplant war ':step.plannedDate===today&&!step.completed?'Heute geplant · ':'Geplant '}
+             {formatDate(step.plannedDate)}
+            </small>}
+           </span>
+          </button>
+         </div>
          {onMoveSubtask&&<button className="subtask-move-inline" type="button"
           aria-label={`„${step.title}“ aus „${task.title}“ verschieben`}
           title="Unteraufgabe in eine andere Aufgabe verschieben"
