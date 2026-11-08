@@ -113,4 +113,30 @@ describe('Intuitiver Vorlageneditor und kontextuelle Hilfe',()=>{
   expect(stored().tasks[0].subtasks[0].offset).toEqual({amount:2,unit:'weeks'});
   expect(stored().tasks[0].subtasks[0].plannedDate).toBe('2026-11-13');
  });
+ it('behält Hilfe für Vorlagen innerhalb des geöffneten Editors und zeigt den Klassenarbeitsablauf',async()=>{
+  await openNew();
+  const dialog=screen.getByRole('dialog',{name:'Neue Vorlage erstellen'});
+  const help=within(dialog).getByLabelText('Hilfe für Vorlagen');
+  expect(within(help).getByText(/Beispiel: Klassenarbeit/)).toBeInTheDocument();
+  expect(within(help).getByText(/Nur Klasse abfragen/)).toBeInTheDocument();
+  expect(within(help).getByText(/Zeitanker/)).toBeInTheDocument();
+  expect(within(dialog).getByLabelText('Unteraufgabe 1')).toBeInTheDocument();
+ });
+ it('fragt die Deadline beim Verwenden einer Klassenarbeitsvorlage ab und plant ihre Schritte relativ dazu',async()=>{
+  seed([template]);
+  const user=userEvent.setup();render(<App/>);
+  await user.click(screen.getByRole('button',{name:'Vorlagen'}));
+  await user.click(screen.getByRole('button',{name:'Aufgabe erstellen'}));
+  const useDialog=screen.getByRole('dialog',{name:'Vorlage ausfüllen'});
+  await user.type(within(useDialog).getByLabelText('Fach'),'Mathematik');
+  await user.type(within(useDialog).getByLabelText('Klasse'),'7b');
+  fireEvent.change(within(useDialog).getByLabelText('Deadline beim Verwenden der Vorlage'),{target:{value:'2026-11-27'}});
+  await user.click(within(useDialog).getByRole('button',{name:'Weiter zum Aufgabeneditor'}));
+  const editor=screen.getByRole('dialog',{name:'Aufgabe hinzufügen'});
+  expect(within(editor).getByLabelText('Titel')).toHaveValue('Klassenarbeit Mathematik vorbereiten');
+  expect(within(editor).getByLabelText('Deadline')).toHaveValue('2026-11-27');
+  expect(within(editor).getByLabelText('Termin Unteraufgabe 1')).toHaveValue('2026-11-13');
+  expect(within(editor).getByLabelText('Termin Unteraufgabe 2')).toHaveValue('2026-11-24');
+ });
+
 });
