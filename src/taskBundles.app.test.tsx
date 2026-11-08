@@ -62,15 +62,19 @@ describe('Übergeordnete Aufgaben mit Unteraufgaben sichtbar halten',()=>{
   const user=userEvent.setup();location.hash='#bundles';render(<App/>);
   const card=await screen.findByRole('article',{name:'Aufgabenpaket Klassenarbeit Mathematik 7b'});
   await user.click(within(card).getByRole('checkbox',{name:'Klassenarbeiten korrigieren erledigt (Klassenarbeit Mathematik 7b)'}));
-  expect(within(card).getByText('2/3')).toBeInTheDocument();
-  expect(within(card).queryByText('1 überfälliger Schritt')).toBeNull();
+  // After resolving its last overdue step, the package moves from "Nachholbedarf"
+  // to the normal section, so React legitimately mounts a new article DOM node.
+  let current=await screen.findByRole('article',{name:'Aufgabenpaket Klassenarbeit Mathematik 7b'});
+  expect(within(current).getByText('2/3')).toBeInTheDocument();
+  expect(within(current).queryByText('1 überfälliger Schritt')).toBeNull();
   expect(saved().tasks[0].subtasks.map((s:{completed:boolean})=>s.completed)).toEqual([true,true,false]);
   expect(saved().tasks[0].completedAt).toBeNull();
-  await user.click(within(card).getByRole('checkbox',{name:'Klassenarbeiten zurückgeben erledigt (Klassenarbeit Mathematik 7b)'}));
-  expect(within(card).getByText('3/3')).toBeInTheDocument();
-  expect(within(card).getByRole('button',{name:'Hauptaufgabe abschließen'})).toBeInTheDocument();
+  await user.click(within(current).getByRole('checkbox',{name:'Klassenarbeiten zurückgeben erledigt (Klassenarbeit Mathematik 7b)'}));
+  current=await screen.findByRole('article',{name:'Aufgabenpaket Klassenarbeit Mathematik 7b'});
+  expect(within(current).getByText('3/3')).toBeInTheDocument();
+  expect(within(current).getByRole('button',{name:'Hauptaufgabe abschließen'})).toBeInTheDocument();
   expect(saved().tasks[0].completedAt).toBeNull();
-  await user.click(within(card).getByRole('button',{name:'Hauptaufgabe abschließen'}));
+  await user.click(within(current).getByRole('button',{name:'Hauptaufgabe abschließen'}));
   await waitFor(()=>expect(screen.queryByRole('article',{name:'Aufgabenpaket Klassenarbeit Mathematik 7b'})).not.toBeInTheDocument());
   expect(saved().tasks[0].completedAt).not.toBeNull();
   await user.click(screen.getByRole('checkbox',{name:/Abgeschlossene anzeigen/}));
