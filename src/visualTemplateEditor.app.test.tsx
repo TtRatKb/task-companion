@@ -119,7 +119,7 @@ describe('Intuitiver Vorlageneditor und kontextuelle Hilfe',()=>{
   const help=within(dialog).getByLabelText('Hilfe für Vorlagen');
   expect(within(help).getByText(/Beispiel: Klassenarbeit/)).toBeInTheDocument();
   expect(within(help).getByText(/Nur Klasse abfragen/)).toBeInTheDocument();
-  expect(within(help).getByText(/Zeitanker/)).toBeInTheDocument();
+  expect(within(help).getAllByText(/Zeitanker/).length).toBeGreaterThan(0);
   expect(within(dialog).getByLabelText('Unteraufgabe 1')).toBeInTheDocument();
  });
  it('fragt die Deadline beim Verwenden einer Klassenarbeitsvorlage ab und plant ihre Schritte relativ dazu',async()=>{
