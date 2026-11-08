@@ -1,5 +1,5 @@
 import {useEffect,useMemo,useRef,useState} from 'react';import {Plus,Inbox as InboxIcon,Search as SearchIcon} from 'lucide-react';
-import {addDays,formatDate,todayLocal} from './date';import {allDeadlineGroups,deadlineOverview,todayRadarGroups} from './deadlineRadar';import {completeTask,id,undoCompletion} from './domain';import {LocalTaskRepository} from './repository';import {emptyData,type AppData,type Project,type Task} from './types';
+import {addDays,formatDate,todayLocal} from './date';import {allDeadlineGroups,deadlineOverview,todayRadarGroups,overdueOpenTasks} from './deadlineRadar';import {completeTask,id,undoCompletion} from './domain';import {LocalTaskRepository} from './repository';import {emptyData,type AppData,type Project,type Task} from './types';
 import {DataSettings} from './components/DataSettings';import {MenuButton,Sidebar,type View} from './components/Sidebar';import {TaskEditor} from './components/TaskEditor';import {TaskList} from './components/TaskList';
 import {QuickCapture,type TaskDraft} from './components/QuickCapture';
 import {CloudController,type CloudStatus} from './cloud/CloudController';
@@ -101,7 +101,17 @@ export default function App(){
  const overview=useMemo(()=>deadlineOverview(data.tasks,today),[data,today]);
  const focusedToday=useMemo(()=>stepsDueNow(data.tasks,today),[data.tasks,today]);
  const groupedRadar=view.kind==='today'||view.kind==='deadlines';
- const visibleGroups=groupedRadar?groups.filter(group=>group.tasks.length):groups;
+ const supportsOverdue=['today','upcoming','inbox','project','deadlines'].includes(view.kind);
+ const overdueScope=active.filter(task=>view.kind==='inbox'?task.projectId===null:
+  view.kind==='project'?task.projectId===view.id:true);
+ const pinnedOverdueTasks=supportsOverdue?overdueOpenTasks(overdueScope,today):[];
+ const pinnedOverdueIds=new Set(pinnedOverdueTasks.map(task=>task.id));
+ const pinnedOverdueSteps=supportsOverdue&&view.kind!=='deadlines'
+  ?focusedToday.overdue.filter(step=>view.kind==='inbox'?step.projectId===null:
+    view.kind==='project'?step.projectId===view.id:true):[];
+ const hasPinnedOverdue=pinnedOverdueTasks.length>0||pinnedOverdueSteps.length>0;
+ const visibleGroups=groups.map(group=>({...group,tasks:group.tasks.filter(task=>!pinnedOverdueIds.has(task.id))}))
+  .filter(group=>(!groupedRadar||group.tasks.length>0)&&!(view.kind==='deadlines'&&group.key==='overdue'));
  const title=view.kind==='inbox'?'Eingang':view.kind==='today'?'Heute':view.kind==='upcoming'?'Anstehend':view.kind==='week'?'Wochenplanung':view.kind==='calendar'?'Monatskalender':view.kind==='deadlines'?'Deadline-Radar':view.kind==='templates'?'Vorlagen':view.kind==='search'?'Suche':data.projects.find(p=>p.id===view.id)?.name??'Projekt';
  const finish=(taskId:string)=>{const next=completeTask(data,taskId);if(next===data)return;commit(next);setStepUndo(null);setUndo(next.completionEvents.at(-1)!.id)};
  const saveDraft=(draft:TaskDraft,editing?:Task)=>{const now=new Date().toISOString();const next=editing?{...data,tasks:data.tasks.map(t=>t.id===editing.id?{...t,...draft,updatedAt:now}:t)}:{...data,tasks:[...data.tasks,{...draft,id:id(),completedAt:null,createdAt:now,updatedAt:now}]};commit(next)};
@@ -191,14 +201,14 @@ export default function App(){
   setEditorDraft({title:draft.title,description:draft.description,projectId:draft.projectId,priority:draft.priority,
    scheduledDate:draft.scheduledDate,deadlineDate:eventBased?null:anchorDate,
    ...(eventBased?{eventDate:anchorDate}:{}),
-   recurrence:draft.recurrence,subtasks:resolveRelativeSubtasks(draft.subtasks??[],anchorDate)});
+   recurrence:draft.recurrence,estimatedMinutes:draft.estimatedMinutes,subtasks:resolveRelativeSubtasks(draft.subtasks??[],anchorDate)});
   navigate({kind:'inbox'});
  };
- const saveTemplateDefinition=(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline'})=>{
+ const saveTemplateDefinition=(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline';estimatedMinutes?:number|null;stepEstimatesMinutes?:(number|null)[]})=>{
   const now=new Date().toISOString();
   const templates=draft.id&&data.templates.some(t=>t.id===draft.id)?
-   data.templates.map(t=>t.id===draft.id?{...t,name:draft.name,description:draft.description,steps:draft.steps,anchorKind:draft.anchorKind??t.anchorKind,updatedAt:now}:t):
-   [...data.templates,makeTemplate(draft.name,draft.description,draft.steps,new Date(),draft.anchorKind)];
+   data.templates.map(t=>t.id===draft.id?{...t,name:draft.name,description:draft.description,steps:draft.steps,anchorKind:draft.anchorKind??t.anchorKind,estimatedMinutes:draft.estimatedMinutes,stepEstimatesMinutes:draft.stepEstimatesMinutes,updatedAt:now}:t):
+   [...data.templates,makeTemplate(draft.name,draft.description,draft.steps,new Date(),draft.anchorKind,{estimatedMinutes:draft.estimatedMinutes,stepEstimatesMinutes:draft.stepEstimatesMinutes})];
   commit({...data,templates});
   setNotice('Vorlage gespeichert.');
  };
@@ -250,6 +260,22 @@ export default function App(){
  </button><button className="add-top" onClick={()=>setQuick(true)}><Plus/>Aufgabe</button></header>
  {error&&<div className="error" role="alert">{error} <button onClick={()=>setSettings(true)}>Sicherung importieren</button></div>}
  <div className="main-content-shell"><div className="content">
+ {hasPinnedOverdue&&<section className="overdue-pinned" aria-label="Überfällige Aufgaben und Unteraufgaben">
+  {pinnedOverdueTasks.length>0&&<div className="overdue-pinned-tasks">
+   <h2>Überfällige Aufgaben <small>{pinnedOverdueTasks.length}</small></h2>
+   <p>Die letzte mögliche Fertigstellung liegt zurück. Offene Aufgaben bleiben hier, bis du sie erledigst.</p>
+   <TaskList tasks={pinnedOverdueTasks} today={today} projects={data.projects}
+    onComplete={finish} onEdit={setEditor} onToggleSubtask={toggleChecklistStep}
+    onMoveSubtask={requestMove} showSubtasks={view.kind!=='today'&&view.kind!=='upcoming'}
+    empty="Keine überfälligen Aufgaben."/>
+  </div>}
+  {pinnedOverdueSteps.length>0&&<FocusedSteps title="Überfällige Unteraufgaben"
+   description="Termine bereits vorbei, Schritte noch offen. Auch Nachbereitung nach einem Ereignis bleibt sichtbar."
+   entries={pinnedOverdueSteps} projects={data.projects}
+   onComplete={toggleChecklistStep} onMove={requestMove}
+   onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>}
+ </section>}
+
  {view.kind==='inbox'&&<section className="inbox-startbar" aria-label="Eingang effizient bearbeiten">
   <div><strong>Eingang sortieren</strong>
    <p>{inboxQueue(data.tasks).length===0?'Alles durchgesehen – aktuell keine offenen Eingangsaufgaben.':'Ordne offene Aufgaben nacheinander ein – per Tastatur oder mit wenigen Klicks.'}</p>
@@ -268,12 +294,9 @@ export default function App(){
  {view.kind==='templates'&&<TemplatesView templates={data.templates} onUse={useTemplate} onSave={saveTemplateDefinition} onDelete={deleteTemplate}/>}
  {(view.kind==='today'||view.kind==='deadlines')&&
   <DeadlineRadarSummary summary={overview} compact={view.kind==='today'} onOpen={()=>navigate({kind:'deadlines'})}/>}
- {groupedRadar&&visibleGroups.length===0&&(view.kind!=='today'||(focusedToday.today.length===0&&focusedToday.overdue.length===0))&&
+ {groupedRadar&&!hasPinnedOverdue&&visibleGroups.length===0&&(view.kind!=='today'||focusedToday.today.length===0)&&
   <div className="empty radar-all-clear"><div className="empty-check">✓</div><h2>Alles im Blick</h2><p>{view.kind==='today'?'Heute ist nichts dringend oder eingeplant.':'Aktuell sind keine offenen Aufgaben mit Deadline erfasst.'}</p></div>}
  {view.kind==='today'&&<div className="today-focus">
-  <FocusedSteps title="Überfällige Arbeitsschritte" description="Diese Schritte waren bereits eingeplant und sind noch offen."
-   entries={focusedToday.overdue} projects={data.projects} onComplete={toggleChecklistStep} onMove={requestMove}
-   onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>
   <FocusedSteps title="Heute anstehende Unteraufgaben" description="Konkrete Schritte aus deinen größeren Aufgaben – direkt abhaken, ohne die Hauptaufgabe abzuschließen."
    entries={focusedToday.today} projects={data.projects} onComplete={toggleChecklistStep} onMove={requestMove}
    onEdit={taskId=>{const task=data.tasks.find(t=>t.id===taskId);if(task)setEditor(task)}} today={today}/>
