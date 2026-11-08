@@ -139,7 +139,7 @@ export function TaskBundlesPreview({tasks,today,onOpen,onAll}:{
     <span className="bundles-preview-title">{bundle.task.title}</span>
     <span className="bundles-preview-progress">{bundle.done}/{bundle.total} erledigt</span>
     <span className="bundles-preview-track"><i style={{width:Math.round(bundle.done*100/bundle.total)+'%'}}/></span>
-    {bundle.overdueSteps.length>0&&<small>{bundle.overdueSteps.length} ${bundle.overdueSteps.length===1?'Schritt':'Schritte'} überfällig</small>}
+    {bundle.overdueSteps.length>0&&<small>{bundle.overdueSteps.length} {bundle.overdueSteps.length===1?'Schritt':'Schritte'} überfällig</small>}
     {bundle.parentDeadlineOverdue&&bundle.overdueSteps.length===0&&<small>Deadline überschritten</small>}
    </button>)}
   </div>
