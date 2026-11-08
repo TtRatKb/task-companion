@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {
- dateBeforeDeadline,deadlineWorkday,offsetDescription,
+ dateBeforeDeadline,dateRelativeToAnchor,deadlineWorkday,offsetDescription,templateAnchorKind,
  parseAndResolveStep,parseRelativeStep,resolveRelativeSubtasks,templateStepFromSubtask
 } from './relativePlanning';
 import {taskFromTemplate,templateFromTask} from './checklists';
@@ -78,4 +78,45 @@ describe('explizite rückwärts geplante Unteraufgaben',()=>{
   expect(()=>dateBeforeDeadline('2026-02-31',{amount:2,unit:'days'})).toThrow();
   expect(()=>dateBeforeDeadline('2026-11-10',{amount:0,unit:'weeks'})).toThrow();
  });
+ it.each([
+  ['Nachschreibtermin entscheiden am {Deadline}','Nachschreibtermin entscheiden',0,'on'],
+  ['Über Nachschreibarbeit entscheiden 2 Tage danach','Über Nachschreibarbeit entscheiden',2,'after'],
+  ['Klassenarbeiten bewerten bis 2 Wochen nach {Deadline}','Klassenarbeiten bewerten',2,'after'],
+  ['Kompetenzraster ausdrucken bis 2 Wochen nach {Deadline}','Kompetenzraster ausdrucken',2,'after'],
+  ['Klassenarbeiten zurückgeben 2 Wochen nach {Deadline}','Klassenarbeiten zurückgeben',2,'after'],
+  ['Nachschreiben vereinbaren – {Deadline} + 5 Tage','Nachschreiben vereinbaren',5,'after'],
+ ])('versteht einen Termin am oder nach dem Ereignisdatum: %s',(text,title,amount,direction)=>{
+  const {title:cleaned,offset}=parseRelativeStep(text);
+  expect(cleaned).toBe(title);
+  expect(offset?.amount).toBe(amount);
+  expect(offset?.direction).toBe(direction);
+ });
+ it('plant Vorbereitung, Termin und Nachbereitung aus einem Ereignisdatum ohne Deadline',()=>{
+  const steps=[
+   'Aufgaben drucken – 3 Tage vorher',
+   'Klassenarbeit schreiben am {Deadline}',
+   'Über Nachschreibarbeit entscheiden 2 Tage danach',
+   'Korrektur abschließen bis 2 Wochen nach {Deadline}'
+  ].map((text,i)=>({id:String(i),...parseAndResolveStep(text,'2026-11-27'),completed:false}));
+  expect(steps.map(s=>s.title)).toEqual([
+   'Aufgaben drucken','Klassenarbeit schreiben','Über Nachschreibarbeit entscheiden','Korrektur abschließen'
+  ]);
+  expect(steps.map(s=>s.plannedDate)).toEqual(['2026-11-24','2026-11-27','2026-11-29','2026-12-11']);
+  expect(templateAnchorKind({steps:[
+   'Aufgaben drucken – 3 Tage vorher','Korrektur abschließen bis 2 Wochen nach {Deadline}'
+  ]})).toBe('event');
+ });
+ it('addiert Kalendermonate mit korrekt begrenztem Monatstag',()=>{
+  expect(dateRelativeToAnchor('2027-01-31',{amount:1,unit:'months',direction:'after'})).toBe('2027-02-28');
+  expect(dateRelativeToAnchor('2028-01-31',{amount:1,unit:'months',direction:'after'})).toBe('2028-02-29');
+  expect(dateRelativeToAnchor('2026-11-27',{amount:0,unit:'days',direction:'on'})).toBe('2026-11-27');
+  expect(()=>dateRelativeToAnchor('2026-11-27',{amount:0,unit:'days',direction:'after'})).toThrow();
+ });
+ it('schreibt Post-Ereignis-Abstände verlustfrei in wiederverwendbare Vorlagen',()=>{
+  const step={id:'s1',title:'Korrektur',completed:false,offset:{amount:2,unit:'weeks',direction:'after'} as const};
+  const raw=templateStepFromSubtask(step);
+  expect(raw).toBe('Korrektur – {Deadline} + 2 Wochen');
+  expect(parseRelativeStep(raw).offset).toEqual(step.offset);
+ });
+
 });
