@@ -15,7 +15,7 @@ export const STARTER_TEMPLATE:TaskTemplate={
 export function TemplatesView({templates,onUse,onSave,onDelete}:{
  templates:TaskTemplate[];
  onUse:(template:TaskTemplate,deadlineDate?:string|null)=>void;
- onSave:(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline'})=>void;
+ onSave:(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline';estimatedMinutes?:number|null;stepEstimatesMinutes?:(number|null)[]})=>void;
  onDelete:(id:string)=>void;
 }){
  const [editing,setEditing]=useState<TaskTemplate|null>(null);
@@ -47,8 +47,11 @@ export function TemplatesView({templates,onUse,onSave,onDelete}:{
   <section className="template-grid" aria-label="Gespeicherte Vorlagen">
    {templates.map(template=><article className="template-card" key={template.id}>
     <h3>{template.name}</h3>{template.description&&<p>{template.description}</p>}
-    <span className="template-count">{template.steps.length} Schritte{extractTemplatePlaceholders(template).length>0?` · ${extractTemplatePlaceholders(template).length} Platzhalter`:null}</span>
-    <ol>{template.steps.slice(0,4).map((step,i)=><li key={i}>{step}</li>)}</ol>
+    <span className="template-count">{template.steps.length} Schritte{extractTemplatePlaceholders(template).length>0?` · ${extractTemplatePlaceholders(template).length} Platzhalter`:null}
+     {template.estimatedMinutes!=null?` · Hauptaufgabe ca. ${template.estimatedMinutes} Min.`:''}
+     {template.stepEstimatesMinutes?.some(minutes=>minutes!=null)?` · Schritte ca. ${template.stepEstimatesMinutes.reduce<number>((total,minutes)=>total+(minutes??0),0)} Min.`:''}
+    </span>
+    <ol>{template.steps.slice(0,4).map((step,i)=><li key={i}>{step}{template.stepEstimatesMinutes?.[i]!=null&&<small> · {template.stepEstimatesMinutes[i]} Min.</small>}</li>)}</ol>
     {template.steps.length>4&&<small>+ {template.steps.length-4} weitere</small>}
     <div className="template-actions">
      <button className="primary" onClick={()=>beginUse(template)}><Copy size={15}/> Aufgabe erstellen</button>

@@ -173,4 +173,43 @@ describe('Intuitiver Vorlageneditor und kontextuelle Hilfe',()=>{
   expect(stored().templates[0]).toEqual(exam);
  });
 
+ it('speichert Zeitbedarf pro Vorlagen-Schritt und Hauptaufgabe, auch nach dem Sortieren',async()=>{
+  const user=await openNew();
+  const dialog=screen.getByRole('dialog',{name:'Neue Vorlage erstellen'});
+  await user.type(within(dialog).getByLabelText('Vorlagenname'),'Korrektur');
+  fireEvent.change(within(dialog).getByLabelText('Dauer der Hauptaufgabe in der Vorlage'),{target:{value:'120'}});
+  await user.type(within(dialog).getByLabelText('Unteraufgabe 1'),'Erwartungshorizont{Enter}');
+  fireEvent.change(within(dialog).getByLabelText('Dauer Unteraufgabe 1 in der Vorlage'),{target:{value:'30'}});
+  await user.type(within(dialog).getByLabelText('Unteraufgabe 2'),'Arbeiten bewerten');
+  fireEvent.change(within(dialog).getByLabelText('Dauer Unteraufgabe 2 in der Vorlage'),{target:{value:'90'}});
+  await user.click(within(dialog).getByRole('button',{name:'Unteraufgabe 2 nach oben'}));
+  expect(within(dialog).getByLabelText('Unteraufgabe 1')).toHaveValue('Arbeiten bewerten');
+  expect(within(dialog).getByLabelText('Dauer Unteraufgabe 1 in der Vorlage')).toHaveValue(90);
+  expect(within(dialog).getByLabelText('Dauer Unteraufgabe 2 in der Vorlage')).toHaveValue(30);
+  await user.click(within(dialog).getByRole('button',{name:/Vorlage speichern/}));
+  expect(stored().templates[0].steps).toEqual(['Arbeiten bewerten','Erwartungshorizont']);
+  expect(stored().templates[0].stepEstimatesMinutes).toEqual([90,30]);
+  expect(stored().templates[0].estimatedMinutes).toBe(120);
+  await user.click(screen.getByRole('button',{name:'Aufgabe erstellen'}));
+  const taskEditor=screen.getByRole('dialog',{name:'Aufgabe hinzufügen'});
+  expect(within(taskEditor).getByLabelText('Dauer Aufgabe in Minuten')).toHaveValue(120);
+  expect(within(taskEditor).getByLabelText('Dauer Unteraufgabe 1 in Minuten')).toHaveValue(90);
+  expect(within(taskEditor).getByLabelText('Dauer Unteraufgabe 2 in Minuten')).toHaveValue(30);
+  await user.click(within(taskEditor).getByRole('button',{name:'Speichern'}));
+  expect(stored().tasks[0].estimatedMinutes).toBe(120);
+  expect(stored().tasks[0].subtasks.map((v:{estimatedMinutes:number})=>v.estimatedMinutes)).toEqual([90,30]);
+ });
+ it('lässt alte Vorlagen ohne Zeitangaben unverändert und einzelne Minutenschätzungen später ergänzen',async()=>{
+  seed([template]);
+  const user=userEvent.setup();render(<App/>);
+  await user.click(screen.getByRole('button',{name:'Vorlagen'}));
+  await user.click(screen.getByRole('button',{name:'Bearbeiten'}));
+  const dialog=screen.getByRole('dialog',{name:'Vorlage bearbeiten'});
+  expect(within(dialog).getByLabelText('Dauer Unteraufgabe 1 in der Vorlage')).toHaveValue(null);
+  fireEvent.change(within(dialog).getByLabelText('Dauer Unteraufgabe 2 in der Vorlage'),{target:{value:'45'}});
+  await user.click(within(dialog).getByRole('button',{name:/Vorlage speichern/}));
+  expect(stored().templates[0].steps).toEqual(template.steps);
+  expect(stored().templates[0].stepEstimatesMinutes).toEqual([null,45]);
+ });
+
 });

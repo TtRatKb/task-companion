@@ -44,7 +44,7 @@ describe('Monatskalender direkt beplanen',()=>{
   expect(result.data.tasks[0].subtasks?.[1]).toEqual(initial.tasks[0].subtasks?.[1]);
   expect(result.data.tasks[0].deadlineDate).toBe('2026-11-27');
   expect(result.data.tasks[1]).toBe(initial.tasks[1]);
-  expect(result.data.schemaVersion).toBe(7);
+  expect(result.data.schemaVersion).toBe(8);
   expect(JSON.stringify(initial)).toBe(serial);
  });
  it('replans a relative step only when explicitly instructed, and undo restores the old offset',()=>{

@@ -253,7 +253,7 @@ Die Woche ist eine **Arbeitsplanung**, keine stundenweise Kalenderbelegung: 60 M
 
 ## Versionsanzeige und Benachrichtigungen
 
-Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.8.2 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
+Unten links in der Seitenleiste sowie unter **Daten & Einstellungen** steht die aktuell geladene Versionsnummer (z. B. `v1.8.3 · Build 1234abcd`). Bei GitHub-Pages-Veröffentlichungen wird die Build-Kennung direkt aus der Commit-ID generiert; damit lässt sich nach einem Seitenreload erkennen, ob die App tatsächlich aktualisiert wurde. Lokal erscheint `Build lokal`.
 
 In **Daten & Einstellungen → Deadline-Erinnerungen** lassen sich Browser-Benachrichtigungen bewusst einschalten. Standardmäßig sind sie deaktiviert. Es gibt Auswahlen für 7, 3 und 1 Tag(e) vor der Deadline sowie am Deadline-Tag. Die früheste Benachrichtigungszeit gilt nach deutscher Ortszeit. Eine Testbenachrichtigung hilft bei der Browser-Konfiguration. Jede kombinierte Aufgabe/Deadline/Vorwarnstufe wird pro Browser nur einmal angezeigt; mehrere gleichzeitig fällige Hinweise werden gebündelt.
 
@@ -302,3 +302,12 @@ Bei Klassenarbeiten ist der **Klassenarbeitstag** ein `eventDate` (Ereignisdatum
 Im Vorlagen-Dialog gibt man den Klassenarbeitstag als **Ereignisdatum** ein. Unteraufgaben wie `Aufgaben drucken – 3 Tage vorher`, `Nachschreibtermin klären am {Deadline}`, `Über Nachschreibarbeit entscheiden 2 Tage danach`, `Korrigieren bis 2 Wochen nach {Deadline}` werden relativ dazu terminiert. `{Deadline}` bleibt in alten Vorlagen aus Kompatibilitätsgründen der allgemeine Datumsanker, stellt aber im Ereignis-Modus **keine Deadline der Hauptaufgabe** dar. Die Termine erscheinen auch als eigenständige Arbeitsschritte in Heute/Woche/Monat; das Ereignis selbst ist im Monatskalender separat sichtbar.
 
 Ein bestehendes Ereignisdatum mit relativen Unteraufgaben wird niemals ohne Nachfrage so verschoben, dass ihre eigenen Termine stillschweigend verändert werden. Relative Termine lassen sich einzeln manuell ablösen. Die v6→v7-Datenmigration erhält alte Aufgaben-IDs, Templates, Events, Cloud-Snapshots und JSON-Exporte. Die Änderungen an Erinnerungen (Issue #21) und Life-RPG-Integration (Issue #22) gehören nicht zu dieser Version.
+
+
+## v1.8.3 — Überfälliges bleibt oben, Vorlagen kennen Zeitbedarf
+
+**Überfällige Aufgaben verschwinden nicht automatisch.** In Eingang, Heute, Anstehend, Projekten und Deadline-Radar steht eine eigene `Überfällige Aufgaben`-Sektion *vor* den übrigen Aufgaben. Offene Aufgaben werden nach dem ältesten tatsächlichen Fertigstellungstermin geordnet und bleiben dort, bis sie abgehakt werden. Die bestehende Semantik einer echten Deadline bleibt: `deadlineDate` = „muss ab diesem Tag bereits fertig sein“, der letzte Arbeitstag ist der Vortag. Reine `eventDate`-Einträge (wie Klassenarbeitstage) sind keine überfälligen Hauptaufgaben. Bereits verpasste **Unteraufgabentermine** – etwa die Korrektur nach der Klassenarbeit – werden zusätzlich im oberen Bereich als `Überfällige Unteraufgaben` angezeigt, damit sie nach dem Ereignis nicht untergehen.
+
+**Minuten direkt in der Vorlage:** Im grafischen Vorlageneditor können die Hauptaufgabe und **jede einzelne Unteraufgabe** optional eine geschätzte Dauer (0–1440 Min.) erhalten. Werte bleiben bei Reihenfolge-Änderungen am jeweiligen Schritt, werden über JSON-Backup und Cloud-Sync erhalten und bei jeder Verwendung in neue Tasks übernommen. Leere Felder sind erlaubt. Die Wochenplanung zählt zeitgeschätzte Unteraufgaben getrennt von der Elternschätzung und vermeidet Doppelzählung.
+
+Datenschema v8 (verlustfreie Migration v1–v7). Bestehende Vorlagen ohne Minuten werden unverändert übernommen. Keine automatischen Änderungen an Prioritäten, Deadlines oder Ereignis-Ankern; v1.9 Push (#21) und Life RPG (#22) sind separat.

@@ -70,6 +70,13 @@ function byDeadlineThenPriority(a: Task, b: Task): number {
     a.id.localeCompare(b.id);
 }
 
+/** Open tasks with an already missed last possible completion day.
+ * A calendar event alone does not create overdue status. */
+export function overdueOpenTasks(tasks:Task[],today:string):Task[]{
+ return tasks.filter(task=>isOpenTask(task)&&task.deadlineDate!==null&&deadlineWorkday(task.deadlineDate)<today)
+  .sort(byDeadlineThenPriority);
+}
+
 /** Dashboard groups are mutually exclusive and never alter a task's planned day. */
 export function todayRadarGroups(tasks: Task[], today: string): RadarGroup[] {
   const active = tasks.filter(isOpenTask);

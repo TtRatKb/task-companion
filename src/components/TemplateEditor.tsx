@@ -6,20 +6,21 @@ import {EditorHelpPanel} from './EditorHelpPanel';
 import {StepOrderControls} from './StepOrderControls';
 import {reorderById,stepUpDown} from '../subtaskOrganization';
 
-type StepRow={id:string;text:string;checked:boolean};
+type StepRow={id:string;text:string;checked:boolean;estimatedMinutes:number|null};
 type FocusTarget={field:'name'|'description'|'step';id?:string};
-const freshRow=(text=''):StepRow=>({id:crypto.randomUUID(),text,checked:false});
+const freshRow=(text='',estimatedMinutes:number|null=null):StepRow=>({id:crypto.randomUUID(),text,checked:false,estimatedMinutes});
 
 export function TemplateEditor({template,onSave,onClose}:{
  template?:TaskTemplate;
- onSave:(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline'})=>void;
+ onSave:(draft:{id?:string;name:string;description:string;steps:string[];anchorKind?:'event'|'deadline';estimatedMinutes?:number|null;stepEstimatesMinutes?:(number|null)[]})=>void;
  onClose:()=>void;
 }){
  const [name,setName]=useState(template?.name??'');
  const [description,setDescription]=useState(template?.description??'');
+ const [estimatedMinutes,setEstimatedMinutes]=useState<number|null>(template?.estimatedMinutes??null);
  const [anchorKind,setAnchorKind]=useState<'event'|'deadline'>(template?templateAnchorKind(template):'deadline');
  const [rows,setRows]=useState<StepRow[]>(()=>template?.steps.length
-  ?template.steps.map(freshRow):[freshRow()]);
+  ?template.steps.map((text,index)=>freshRow(text,template.stepEstimatesMinutes?.[index]??null)):[freshRow()]);
  const [previewChecked,setPreviewChecked]=useState(false);
  const [error,setError]=useState('');
  const [dirty,setDirty]=useState(false);
@@ -30,6 +31,7 @@ export function TemplateEditor({template,onSave,onClose}:{
  const activeElement=useRef<HTMLInputElement|HTMLTextAreaElement|null>(null);
  const nameInput=(el:HTMLInputElement|null)=>{titleRef.current=el};
  const focusRow=(id:string)=>window.setTimeout(()=>rowRefs.current[id]?.focus(),0);
+ const updateMinutes=(id:string,minutes:number|null)=>{setRows(old=>old.map(row=>row.id===id?{...row,estimatedMinutes:minutes}:row));setDirty(true)};
  const updateRow=(id:string,text:string)=>{
   setRows(old=>old.map(row=>row.id===id?{...row,text}:row));
   if(['after','on'].includes(parseRelativeStep(text).offset?.direction??''))setAnchorKind('event');
@@ -101,8 +103,11 @@ export function TemplateEditor({template,onSave,onClose}:{
  const submit=(event:FormEvent)=>{
   event.preventDefault();
   if(!name.trim()){setError('Bitte gib der Vorlage einen Namen.');titleRef.current?.focus();return}
-  const steps=rows.map(row=>row.text.trim()).filter(Boolean);
-  try{onSave({id:template?.id||undefined,name:name.trim(),description:description.trim(),steps,anchorKind});onClose()}
+  const cleaned=rows.filter(row=>row.text.trim());
+  const steps=cleaned.map(row=>row.text.trim());
+  const stepEstimatesMinutes=cleaned.map(row=>row.estimatedMinutes);
+  try{onSave({id:template?.id||undefined,name:name.trim(),description:description.trim(),steps,anchorKind,
+   estimatedMinutes,stepEstimatesMinutes});onClose()}
   catch(e){setError(e instanceof Error?e.message:'Vorlage konnte nicht gespeichert werden.')}
  };
  const cancel=()=>{
@@ -148,6 +153,12 @@ export function TemplateEditor({template,onSave,onClose}:{
         onFocus={e=>{active.current={field:'description'};activeElement.current=e.currentTarget}}
         placeholder="Wofür brauchst du diese Aufgabe?"/>
       </label>
+      <label className="template-main-estimate">Geschätzte Dauer der Hauptaufgabe (Minuten, optional)
+       <input type="number" min="0" max="1440" step="5" aria-label="Dauer der Hauptaufgabe in der Vorlage"
+        placeholder="z. B. 90" value={estimatedMinutes??''}
+        onChange={e=>{setEstimatedMinutes(e.target.value===''?null:Math.max(0,Math.min(1440,Math.round(Number(e.target.value)))));setDirty(true)}}/>
+       <small>Falls du die einzelnen Schritte unten schätzt, zählt Task Companion diese Zeiten getrennt und nicht doppelt.</small>
+      </label>
       <label className="template-anchor-kind">Wofür steht das Bezugsdatum?
        <select aria-label="Art des Bezugsdatums" value={anchorKind} onChange={e=>{setAnchorKind(e.target.value as 'event'|'deadline');setDirty(true)}}>
         <option value="deadline">Abgabe-Deadline · alles vorher erledigt</option>
@@ -186,6 +197,11 @@ export function TemplateEditor({template,onSave,onClose}:{
          {parsed.offset&&parsed.title&&<div className="template-step-explanation">
           <span>Zeitpunkt:</span> {offsetDescription(parsed.offset,anchorKind==='event'?'Ereignisdatum':'Deadline')}
          </div>}
+         <label className="template-step-minutes">Dauer (Min.)
+          <input type="number" min="0" max="1440" step="5" aria-label={`Dauer Unteraufgabe ${index+1} in der Vorlage`}
+           placeholder="–" value={row.estimatedMinutes??''}
+           onChange={e=>updateMinutes(row.id,e.target.value===''?null:Math.max(0,Math.min(1440,Math.round(Number(e.target.value)))))}/>
+         </label>
         </div>
         <button type="button" className="icon-button template-remove-row"
          aria-label={`Unteraufgabe ${index+1} entfernen`} title="Unteraufgabe entfernen"

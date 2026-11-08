@@ -39,6 +39,7 @@ export function EditorHelpPanel({mode,onInsert}:{
    <p><b>2 · Unteraufgaben:</b> jeden Schritt als eigene Zeile mit rundem Häkchen anlegen, z. B. <code>Erwartungshorizont erstellen – 2 Wochen vorher</code>.</p>
    <p><b>3 · Vorlage verwenden:</b> Einmal Fach, Klasse und ggf. Thema eingeben. Den <b>Klassenarbeitstag als Ereignisdatum</b> angeben – die App plant Vorbereitung davor und Korrektur, Kompetenzraster sowie Rückgabe danach.</p>
    <p><b>Nur Klasse abfragen?</b> Dann verwende nur <code>{'{Klasse}'}</code> als Platzhalter. Fach und Thema können fest im Text stehen.</p>
+   <p><b>Zeitbedarf:</b> Jede Unteraufgabe hat ein eigenes optionales Feld „Dauer (Min.)“. Du kannst auch eine geschätzte Hauptaufgaben-Dauer angeben. Sind Unteraufgaben einzeln geschätzt, werden ihre Minuten nicht zusätzlich zur gesamten Hauptaufgabe doppelt gezählt.</p>
    <p><b>Wichtig:</b> <code>{'{Deadline}'}</code> ist ein <b>Zeitanker</b>, keine zusätzliche Frage. Die Vorlage selbst hat bewusst noch keinen festen Termin. <b>In Vorlagen bedeutet {'{Deadline}'} auch beim Ereignis-Modus den Bezugszeitpunkt</b>; der Tag ist dann keine echte Deadline für die ganze Aufgabe.</p>
   </section>}
   {mode==='task'&&<section className="editor-help-section">

@@ -34,7 +34,7 @@ describe('Deadline-Radar in der Anwendung', () => {
     render(<App />);
 
     await waitFor(() => expect(screen.getByText('Abgabe dringend')).toBeInTheDocument());
-    expect(screen.getByText('Unbedingt im Blick')).toBeInTheDocument();
+    expect(screen.getByRole('heading',{name:/Überfällige Aufgaben/})).toBeInTheDocument();
     expect(screen.getByText('Für heute geplant')).toBeInTheDocument();
     expect(screen.getByText('Bald fällig')).toBeInTheDocument();
     expect(screen.getByText('Wenn du noch Zeit hast')).toBeInTheDocument();

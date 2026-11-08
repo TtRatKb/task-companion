@@ -1,13 +1,13 @@
 import {beforeEach,describe,expect,it} from 'vitest';import {LocalTaskRepository,STORAGE_KEY} from './repository';
 const v1={schemaVersion:1,tasks:[{id:'stable',title:'Alt',description:'',projectId:null,priority:2,scheduledDate:'2026-11-09',deadlineDate:'2026-11-20',recurrence:{kind:'weekly',weekday:1},completedAt:null,createdAt:'x',updatedAt:'x'}],projects:[],completionEvents:[{id:'e1',taskId:'stable',occurredAt:'2026-11-02T09:00:00Z',previousScheduledDate:'2026-11-02',resultingScheduledDate:'2026-11-09',undoneAt:null}]};
-describe('v7-Migration',()=>{beforeEach(()=>localStorage.clear());it('migriert v1 idempotent mit IDs und Historie',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));const repo=new LocalTaskRepository(),first=repo.load(),second=repo.parseImport(repo.export(first));expect(second).toEqual(first);expect(first).toMatchObject({schemaVersion:7,tasks:[{id:'stable',deadlineDate:'2026-11-20',recurrence:{kind:'weekdays',weekdays:[1]}}],completionEvents:[{id:'e1',taskId:'stable'}]})});it('überschreibt alten Speicher beim Laden nicht',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));new LocalTaskRepository().load();expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).schemaVersion).toBe(1)});it('ungültiger Import ändert nichts',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));expect(()=>new LocalTaskRepository().parseImport('{}')).toThrow();expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).tasks[0].id).toBe('stable')})});
+describe('v8-Migration',()=>{beforeEach(()=>localStorage.clear());it('migriert v1 idempotent mit IDs und Historie',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));const repo=new LocalTaskRepository(),first=repo.load(),second=repo.parseImport(repo.export(first));expect(second).toEqual(first);expect(first).toMatchObject({schemaVersion:8,tasks:[{id:'stable',deadlineDate:'2026-11-20',recurrence:{kind:'weekdays',weekdays:[1]}}],completionEvents:[{id:'e1',taskId:'stable'}]})});it('überschreibt alten Speicher beim Laden nicht',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));new LocalTaskRepository().load();expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).schemaVersion).toBe(1)});it('ungültiger Import ändert nichts',()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(v1));expect(()=>new LocalTaskRepository().parseImport('{}')).toThrow();expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).tasks[0].id).toBe('stable')})});
 
 describe('v6 checklists and template backups',()=>{
  beforeEach(()=>localStorage.clear());
  it('imports schema v2, preserves task IDs and adds empty checklists',()=>{
   const older={...v1,schemaVersion:2,tasks:[{...v1.tasks[0],recurrence:{kind:'weekdays',weekdays:[1,3]}}]};
   const migrated=new LocalTaskRepository().parseImport(JSON.stringify(older));
-  expect(migrated.schemaVersion).toBe(7);
+  expect(migrated.schemaVersion).toBe(8);
   expect(migrated.tasks[0]).toMatchObject({id:'stable',subtasks:[],recurrence:{kind:'weekdays',weekdays:[1,3]}});
   expect(migrated.templates).toEqual([]);
  });
@@ -25,11 +25,11 @@ describe('v6 checklists and template backups',()=>{
    tasks:[{id:'old',title:'Alt',description:'',projectId:null,priority:4,scheduledDate:null,deadlineDate:'2026-11-10',recurrence:null,completedAt:null,createdAt:'x',updatedAt:'x',
      subtasks:[{id:'s1',title:'Kopieren',completed:false}]}]};
   const updated=new LocalTaskRepository().parseImport(JSON.stringify(previous));
-  expect(updated.schemaVersion).toBe(7);
+  expect(updated.schemaVersion).toBe(8);
   expect(updated.tasks[0].subtasks?.[0].id).toBe('s1');
  });
  it('does not accept a future schema version that this client cannot understand',()=>{
-  const future={...new LocalTaskRepository().load(),schemaVersion:8};
+  const future={...new LocalTaskRepository().load(),schemaVersion:9};
   expect(()=>new LocalTaskRepository().parseImport(JSON.stringify(future))).toThrow();
  });
  it('migrates the v4 cloud format and retains timing information',()=>{
@@ -40,7 +40,7 @@ describe('v6 checklists and template backups',()=>{
     subtasks:[{id:'s1',title:'Kopieren',completed:false,plannedDate:'2026-11-08',offset:{amount:2,unit:'days'}}]}]};
   delete (previous as {weeklyBudgetMinutes?:unknown}).weeklyBudgetMinutes;
   const updated=new LocalTaskRepository().parseImport(JSON.stringify(previous));
-  expect(updated.schemaVersion).toBe(7);
+  expect(updated.schemaVersion).toBe(8);
   expect(updated.tasks[0].subtasks?.[0].offset).toEqual({amount:2,unit:'days'});
   expect(updated.weeklyBudgetMinutes).toEqual([null,null,null,null,null,null,null]);
  });
@@ -77,7 +77,7 @@ describe('v6 checklists and template backups',()=>{
     subtasks:[{id:'sub',title:'Kopieren',completed:true,plannedDate:'2026-11-06'}]}],
    templates:[{id:'tpl',name:'Klausur',description:'',steps:['Aufgaben schreiben'],createdAt:'x',updatedAt:'x'}]};
   const updated=repo.parseImport(JSON.stringify(previous));
-  expect(updated.schemaVersion).toBe(7);
+  expect(updated.schemaVersion).toBe(8);
   expect(updated.tasks[0]).toMatchObject({id:'stable-old',deadlineDate:'2026-11-15',
    recurrence:{kind:'weekdays',weekdays:[1,3,5]},subtasks:[{id:'sub',completed:true}]});
   expect(updated.templates).toEqual(previous.templates);
@@ -126,4 +126,35 @@ describe('v6 checklists and template backups',()=>{
   expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow();
   expect(repo.load().tasks[0].id).toBe('stable');
  });
+ it('übernimmt v7-Daten mit bestehenden Deadline- und Ereignis-Aufgaben ohne Änderungen',()=>{
+  const repo=new LocalTaskRepository();
+  const snapshot={...repo.load(),schemaVersion:7,
+   tasks:[{id:'exam',title:'Klassenarbeit',description:'',projectId:null,priority:2,
+    scheduledDate:null,deadlineDate:null,eventDate:'2026-11-27',recurrence:null,
+    completedAt:null,createdAt:'x',updatedAt:'x',
+    subtasks:[{id:'mark',title:'Korrektur',completed:false,plannedDate:'2026-12-11',offset:{amount:2,unit:'weeks',direction:'after'}}]}],
+   templates:[{id:'legacy-exam',name:'Prüfung',description:'',anchorKind:'event',
+    steps:['Korrektur – 2 Wochen danach'],createdAt:'x',updatedAt:'x'}]};
+  const result=repo.parseImport(JSON.stringify(snapshot));
+  expect(result.schemaVersion).toBe(8);
+  expect(result.tasks[0]).toMatchObject({id:'exam',deadlineDate:null,eventDate:'2026-11-27',
+   subtasks:[{id:'mark',plannedDate:'2026-12-11'}]});
+  expect(result.templates[0]).toEqual(snapshot.templates[0]);
+  expect(result.templates[0].estimatedMinutes).toBeUndefined();
+ });
+ it('übernimmt Vorlagenminuten in JSON/Cloud-Daten und lehnt unpassende Schätzungen ab',()=>{
+  const repo=new LocalTaskRepository();
+  const data=repo.load();
+  data.templates=[{id:'minutes',name:'Klassenarbeit',description:'',steps:['Aufgaben','Korrigieren'],
+   estimatedMinutes:120,stepEstimatesMinutes:[30,90],createdAt:'x',updatedAt:'x'}];
+  repo.save(data);
+  expect(repo.load()).toEqual(data);
+  expect(repo.parseImport(repo.export(data))).toEqual(data);
+  const invalid={...data,templates:[{...data.templates[0],stepEstimatesMinutes:[45]}]};
+  expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow();
+  invalid.templates=[{...data.templates[0],stepEstimatesMinutes:[-5,90]}];
+  expect(()=>repo.parseImport(JSON.stringify(invalid))).toThrow();
+  expect(repo.load()).toEqual(data);
+ });
+
 });

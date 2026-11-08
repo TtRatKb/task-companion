@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { addDays } from './date';
 import {
   allDeadlineGroups, calendarDaysBetween, deadlineCountdown,
-  deadlineOverview, deadlineState, planningAfterDeadline, todayRadarGroups
+  deadlineOverview, deadlineState, overdueOpenTasks, planningAfterDeadline, todayRadarGroups
 } from './deadlineRadar';
 import type { Task } from './types';
 
@@ -120,4 +120,17 @@ describe('Deadline-Radar', () => {
     ];
     expect(deadlineOverview(tasks, today)).toEqual({ overdue: 0, today: 1, soon: 2, planningConflicts: 1 });
   });
+ it('lässt vergangene echte Deadlines bis zum Abschluss offen und priorisiert das älteste Datum',()=>{
+  const tasks=[
+   task('newer',{deadlineDate:'2026-11-05',priority:1}),
+   task('event',{eventDate:'2026-11-01'}),
+   task('oldest',{deadlineDate:'2026-11-01',priority:4}),
+   task('done',{deadlineDate:'2026-11-01',completedAt:'2026-11-03T10:00:00Z'}),
+   task('future',{deadlineDate:'2026-11-09'})
+  ];
+  expect(overdueOpenTasks(tasks,today).map(t=>t.id)).toEqual(['oldest','newer']);
+  expect(deadlineOverview(tasks,today).overdue).toBe(2);
+  expect(tasks[0].deadlineDate).toBe('2026-11-05');
+ });
+
 });
