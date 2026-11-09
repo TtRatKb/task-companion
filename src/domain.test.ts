@@ -4,6 +4,10 @@ const task=(rule:Recurrence,scheduledDate:string):Task=>({id:'t1',title:'Routine
 const complete=(days:number[],scheduled:string,iso:string)=>completeTask({...emptyData(),tasks:[task({kind:'weekdays',weekdays:days as Weekday[]},scheduled)]},'t1',new Date(iso));
 describe('flexible Wiederholung',()=>{
  it.each([[[1,2,3,4,5],'2026-11-09','2026-11-09T09:00:00+01:00','2026-11-10'],[[1,2,3,4,5],'2026-11-13','2026-11-13T09:00:00+01:00','2026-11-16'],[[0,6],'2026-11-07','2026-11-07T09:00:00+01:00','2026-11-08'],[[0,6],'2026-11-08','2026-11-08T09:00:00+01:00','2026-11-14'],[[1,3,5],'2026-11-11','2026-11-11T09:00:00+01:00','2026-11-13'],[[1,3,5],'2026-11-13','2026-11-13T09:00:00+01:00','2026-11-16']])('berechnet nächste erlaubte Tage', (days,scheduled,iso,expected)=>expect(complete(days as number[],scheduled as string,iso as string).tasks[0].scheduledDate).toBe(expected));
+ it('does not create undefined previousSubtasks on completion without a checklist',()=>{
+  const result=complete([1,2,3,4,5],'2026-11-09','2026-11-09T09:00:00+01:00');
+  expect(result.completionEvents[0]).not.toHaveProperty('previousSubtasks');
+ });
  it('setzt überfällige Routine nach tatsächlichem Abschluss fort',()=>expect(complete([1,2,3,4,5],'2026-11-02','2026-11-12T09:00:00+01:00').tasks[0].scheduledDate).toBe('2026-11-13'));
  it('verhindert Doppelabschluss und macht den richtigen Abschluss rückgängig',()=>{const once=complete([1,2,3,4,5],'2026-11-09','2026-11-09T09:00:00+01:00');const twice=completeTask(once,'t1',new Date('2026-11-09T10:00:00+01:00'));expect(twice.completionEvents).toHaveLength(1);expect(twice.tasks[0].completedAt).not.toBeNull();const undone=undoCompletion(twice,twice.completionEvents[0].id);expect(undone.tasks[0]).toMatchObject({scheduledDate:'2026-11-09',completedAt:null,deadlineDate:'2026-12-20'});expect(undone.completionEvents[0].undoneAt).not.toBeNull()});
 });
