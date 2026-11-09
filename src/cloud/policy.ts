@@ -11,13 +11,20 @@ export interface CloudSnapshot {
   data: AppData;
 }
 
+/** Firestore rejects undefined in nested objects, while local JSON safely omits it.
+ * Make a detached, JSON-safe snapshot before any cloud write; preserve explicit nulls.
+ */
+export function toFirestoreData(data: AppData): AppData {
+  return JSON.parse(JSON.stringify(data)) as AppData;
+}
+
 /** Compare data by content, not Firestore's object-property ordering. */
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
   if (value && typeof value === 'object')
-    return '{' + Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
+    return '{' + Object.entries(value).filter(([, val]) => val !== undefined).sort(([a], [b]) => a.localeCompare(b))
       .map(([key, val]) => JSON.stringify(key) + ':' + canonical(val)).join(',') + '}';
-  return JSON.stringify(value);
+  return value === undefined ? 'null' : JSON.stringify(value);
 }
 
 export function sameData(left: AppData, right: AppData): boolean {
