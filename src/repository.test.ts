@@ -4,6 +4,10 @@ describe('v8-Migration',()=>{beforeEach(()=>localStorage.clear());it('migriert v
 
 describe('v6 checklists and template backups',()=>{
  beforeEach(()=>localStorage.clear());
+ it('does not create undefined optional completion fields from old backups',()=>{
+  const data=new LocalTaskRepository().parseImport(JSON.stringify(v1));
+  expect(data.completionEvents[0]).not.toHaveProperty('previousSubtasks');
+ });
  it('imports schema v2, preserves task IDs and adds empty checklists',()=>{
   const older={...v1,schemaVersion:2,tasks:[{...v1.tasks[0],recurrence:{kind:'weekdays',weekdays:[1,3]}}]};
   const migrated=new LocalTaskRepository().parseImport(JSON.stringify(older));
