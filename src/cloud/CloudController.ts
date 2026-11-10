@@ -1,5 +1,5 @@
 import { firebaseServices, type FirebaseServices } from './firebase';
-import { isEmptyData, resolveInitial, sameData, type CloudMeta, type CloudSnapshot } from './policy';
+import { isEmptyData, resolveInitial, sameData, toFirestoreData, type CloudMeta, type CloudSnapshot } from './policy';
 import { LocalTaskRepository } from '../repository';
 import type { AppData } from '../types';
 
@@ -223,16 +223,17 @@ export class CloudController {
   async createCloud() {
     if (!this.services || !this.user || this.remote) return;
     const local = this.getLocal();
+    const cloudData = toFirestoreData(local);
     this.emit('syncing');
     try {
       const ref = this.documentRef();
       await this.services.firestoreSDK.runTransaction(this.services.db, async (tx: any) => {
         const snap = await tx.get(ref);
         if (snap.exists()) throw new Error('Cloud wurde zwischenzeitlich angelegt. Bitte neu prüfen.');
-        tx.set(ref, { revision: 1, data: local, updatedAt: this.services!.firestoreSDK.serverTimestamp() });
+        tx.set(ref, { revision: 1, data: cloudData, updatedAt: this.services!.firestoreSDK.serverTimestamp() });
       });
-      this.remote = { revision: 1, data: local };
-      this.saveMeta({ uid: this.user.uid, revision: 1, lastSyncedData: local });
+      this.remote = { revision: 1, data: cloudData };
+      this.saveMeta({ uid: this.user.uid, revision: 1, lastSyncedData: cloudData });
       this.emit('synced');
     } catch (error) { this.failure(error); }
   }
@@ -247,16 +248,17 @@ export class CloudController {
       this.backup(this.remote.data, 'cloud-before-replace');
       const expected = this.remote.revision;
       const local = this.getLocal();
+      const cloudData = toFirestoreData(local);
       const ref = this.documentRef();
       this.emit('syncing');
       await this.services.firestoreSDK.runTransaction(this.services.db, async (tx: any) => {
         const snap = await tx.get(ref);
         if (!snap.exists() || Number(snap.data().revision) !== expected)
           throw new Error('Cloud wurde inzwischen geändert. Bitte zuerst aktualisieren.');
-        tx.update(ref, { revision: expected + 1, data: local, updatedAt: this.services!.firestoreSDK.serverTimestamp() });
+        tx.update(ref, { revision: expected + 1, data: cloudData, updatedAt: this.services!.firestoreSDK.serverTimestamp() });
       });
-      this.remote = { revision: expected + 1, data: local };
-      this.saveMeta({ uid: this.user.uid, revision: expected + 1, lastSyncedData: local });
+      this.remote = { revision: expected + 1, data: cloudData };
+      this.saveMeta({ uid: this.user.uid, revision: expected + 1, lastSyncedData: cloudData });
       this.emit('synced');
     } catch (error) { this.failure(error); }
   }
@@ -285,6 +287,7 @@ export class CloudController {
           this.emit('synced');
           break;
         }
+        const cloudData = toFirestoreData(local);
         this.emit('syncing');
         const ref = this.documentRef();
         // Transaction provides compare-and-swap; conflicting device changes
@@ -295,13 +298,13 @@ export class CloudController {
             throw new Error('SYNC_CONFLICT');
           tx.update(ref, {
             revision: meta.revision + 1,
-            data: local,
+            data: cloudData,
             updatedAt: this.services!.firestoreSDK.serverTimestamp()
           });
         });
         if (!this.user || this.user.uid !== uid) return;
-        this.remote = { revision: meta.revision + 1, data: local };
-        this.saveMeta({ uid, revision: meta.revision + 1, lastSyncedData: local });
+        this.remote = { revision: meta.revision + 1, data: cloudData };
+        this.saveMeta({ uid, revision: meta.revision + 1, lastSyncedData: cloudData });
         this.emit('synced');
       } while (this.queued || (this.meta && !sameData(this.getLocal(), this.meta.lastSyncedData)));
     } catch (error) {

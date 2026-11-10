@@ -114,7 +114,7 @@ export function migrateData(value:unknown):AppData{
  const completionEvents=raw.completionEvents.map((item):CompletionEvent=>{
   const e=safeRecord(item);
   if(typeof e.id!=='string'||typeof e.taskId!=='string'||typeof e.occurredAt!=='string'||!dateOrNull(e.previousScheduledDate)||!dateOrNull(e.resultingScheduledDate)||!nullableString(e.undoneAt))throw new Error('Ungültiger Abschluss.');
-  return{id:e.id,taskId:e.taskId,occurredAt:e.occurredAt,previousScheduledDate:e.previousScheduledDate as string|null,resultingScheduledDate:e.resultingScheduledDate as string|null,previousCompletedAt:nullableString(e.previousCompletedAt)?e.previousCompletedAt as string|null:null,undoneAt:e.undoneAt as string|null,previousSubtasks:e.previousSubtasks===undefined?undefined:parseSubtasks(e.previousSubtasks)};
+  return{id:e.id,taskId:e.taskId,occurredAt:e.occurredAt,previousScheduledDate:e.previousScheduledDate as string|null,resultingScheduledDate:e.resultingScheduledDate as string|null,previousCompletedAt:nullableString(e.previousCompletedAt)?e.previousCompletedAt as string|null:null,undoneAt:e.undoneAt as string|null,...(e.previousSubtasks===undefined?{}:{previousSubtasks:parseSubtasks(e.previousSubtasks)})};
  });
  return{schemaVersion:8,tasks,projects,completionEvents,templates:parseTemplates(raw.templates),weeklyBudgetMinutes:parseBudgets(raw.weeklyBudgetMinutes)};
 }

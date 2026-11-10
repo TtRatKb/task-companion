@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { emptyData, type AppData } from '../types';
-import { isEmptyData, resolveInitial, sameData, type CloudMeta, type CloudSnapshot } from './policy';
+import { isEmptyData, resolveInitial, sameData, toFirestoreData, type CloudMeta, type CloudSnapshot } from './policy';
 
 function data(title?: string): AppData {
   const result = emptyData();
@@ -80,6 +80,25 @@ describe('cloud conflict policy', () => {
     const customized={...emptyData(),weeklyBudgetMinutes:[120,120,60,120,90,0,0]};
     expect(isEmptyData(customized)).toBe(false);
     expect(sameData(customized,emptyData())).toBe(false);
+  });
+
+  it('strips undefined from every nested cloud field while retaining tasks and explicit nulls', () => {
+    const raw: AppData = {
+      ...local,
+      tasks: local.tasks.map(task => ({ ...task, subtasks: undefined })),
+      completionEvents: [{
+        id: 'e1', taskId: 'stable-id', occurredAt: '2026-11-06T10:00:00Z',
+        previousScheduledDate: null, resultingScheduledDate: null,
+        previousCompletedAt: null, undoneAt: null, previousSubtasks: undefined
+      }]
+    };
+    const safe = toFirestoreData(raw);
+    expect(safe.tasks[0]).not.toHaveProperty('subtasks');
+    expect(safe.completionEvents[0]).not.toHaveProperty('previousSubtasks');
+    expect(safe.completionEvents[0].previousScheduledDate).toBeNull();
+    expect(safe.tasks[0].title).toBe('Lokale Aufgabe');
+    expect(raw.completionEvents[0]).toHaveProperty('previousSubtasks'); // No local mutation.
+    expect(sameData(raw, safe)).toBe(true);
   });
 
   it('distinguishes truly empty local state', () => {
